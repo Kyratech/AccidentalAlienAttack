@@ -1,0 +1,19 @@
+{
+	"root": "src",
+	"wait": 200,
+	"metadata": {
+		"title": "speshInvoders",
+		"author": "kyratech",
+		"description": "A clone of the atari space invaders game",
+		"script": "lua",
+		"input": null,
+		"saveId": null
+	},
+	"output": {
+		"path": "./",
+		"extension": "lua",
+		"name": "build"
+	},
+	"files": ["speshInvodersGame.lua", "animationUtils.lua"],
+	"after": null
+}
