@@ -1,3 +1,6 @@
+# Build file
+build.lua
+
 # Logs
 logs
 *.log

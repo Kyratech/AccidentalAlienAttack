@@ -2,9 +2,9 @@
 	"root": "src",
 	"wait": 200,
 	"metadata": {
-		"title": "speshInvoders",
-		"author": "kyratech",
-		"description": "A clone of the atari space invaders game",
+		"title": "Accidental alien attack!",
+		"author": "KyraTech",
+		"desc": "A clone of the atari space invaders game",
 		"script": "lua",
 		"input": null,
 		"saveId": null
@@ -14,6 +14,16 @@
 		"extension": "lua",
 		"name": "build"
 	},
-	"files": ["speshInvodersGame.lua", "animationUtils.lua"],
+	"files": [
+		"consts.lua",
+		"speshInvodersGame.lua",
+		"player.lua",
+		"explosion.lua",
+		"alien.lua",
+		"animations.lua",
+		"animationUtils.lua",
+		"runGame.lua",
+		"assetMetadata.lua"
+	],
 	"after": null
 }
