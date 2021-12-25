@@ -16,7 +16,7 @@
 	},
 	"files": [
 		"consts.lua",
-		"speshInvodersGame.lua",
+		"gameLoop.lua",
 		"player.lua",
 		"explosion.lua",
 		"alien.lua",
