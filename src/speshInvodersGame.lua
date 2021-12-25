@@ -1,103 +1,102 @@
-function init()
+function Init()
 	-- Player
-	player = createPlayer()
-	playerShot = createPlayerShot()
-	
+	Player = CreatePlayer()
+	PlayerShot = CreatePlayerShot()
+
 	-- Aliens
-	aliens = {}
-	alienCountX = 9
-	alienCountY = 4
-	
+	Aliens = {}
+	local alienCountX = 9
+	local alienCountY = 4
+
 	for i = 0, alienCountX, 1 do
 		for j = 0, alienCountY, 1 do
-			local alien = createAlien(i, j)
-			table.insert(aliens, alien)
+			local alien = CreateAlien(i, j)
+			table.insert(Aliens, alien)
 		end
 	end
-	
-	explosion = createExplosion()
+
+	Explosion = CreateExplosion()
 end
 
-function input()
-	if btn(btnLeft) then
-		player.speed = -playerConsts.speed
-	elseif btn(btnRight) then
-		player.speed = playerConsts.speed
+function Input()
+	if btn(BtnLeft) then
+		Player.speed = -PlayerConsts.speed
+	elseif btn(BtnRight) then
+		Player.speed = PlayerConsts.speed
 	else
-		player.speed = 0
+		Player.speed = 0
 	end
-	
-	if btn(btnA) then
-		playerShoot()
-	end	
-end
 
-function update()
-  player:update()
-  playerShot:update()
-	
-	for i, alien in pairs(aliens) do
-		aliens[i]:update()
+	if btn(BtnA) then
+		PlayerShoot()
 	end
-  
-  explosion:update()
 end
 
-function collisions()
-  playerWallCollision()
-  playerShotCollision()
+function Update()
+	Player:update()
+	PlayerShot:update()
+
+	for i, alien in pairs(Aliens) do
+		Aliens[i]:update()
+	end
+
+	Explosion:update()
 end
 
-function playerWallCollision()
-  if player.x < 0 then
-    player.x = 0
-  elseif player.x + player.w > 240 then
-    player.x = 240 - player.w
-  end
+function Collisions()
+	PlayerWallCollision()
+	PlayerShotCollision()
 end
 
-function playerShotCollision()
+function PlayerWallCollision()
+	if Player.x < 0 then
+		Player.x = 0
+	elseif Player.x + Player.w > 240 then
+		Player.x = 240 - Player.w
+	end
+end
+
+function PlayerShotCollision()
 	-- Check off top of screen
-	if playerShot.y < 0 then
-		playerShotReset()
+	if PlayerShot.y < 0 then
+		PlayerShotReset()
 	end
-	
+
 	-- Check aliens
-	for i, alien in pairs(aliens) do
-		if collide(playerShot, aliens[i]) then
-			table.remove(aliens, i)
-			explosion:enable(playerShot.x, playerShot.y)
-			playerShotReset()
+	for i, alien in pairs(Aliens) do
+		if Collide(PlayerShot, Aliens[i]) then
+			Explosion:enable(Aliens[i].x, Aliens[i].y)
+			table.remove(Aliens, i)
+			PlayerShotReset()
 		end
 	end
 end
 
-function collide(a, b)
-	if  a.x < b.x + b.w and
-      a.x + a.w > b.x and
-      a.y < b.y + b.h and
-      a.y + a.h > b.y then
+function Collide(a, b)
+	if a.x < b.x + b.w and
+		a.x + a.w > b.x and
+		a.y < b.y + b.h and
+		a.y + a.h > b.y then
 		return true
 	end
-	
 	return false
 end
 
-function draw()
-	drawGameObjects()
+function Draw()
+	DrawGameObjects()
 end
 
-function drawGameObjects()
-	player:draw()
-	playerShot:draw()
-		
-	for i, alien in pairs(aliens) do
-		aliens[i]:draw()
+function DrawGameObjects()
+	Player:draw()
+	PlayerShot:draw()
+
+	for i, alien in pairs(Aliens) do
+		Aliens[i]:draw()
 	end
-	
-	explosion:draw()
+
+	Explosion:draw()
 end
 
-function drawDebug(text)
+function DrawDebug(text)
 	print(text, 5, 1, 7)
 end

@@ -1,8 +1,8 @@
 -- Global constants
-bgColour = 0
-tilePx = 8
+BgColour = 0
+TilePx = 8
 
 -- Button aliases
-btnLeft = 2
-btnRight = 3
-btnA = 4
+BtnLeft = 2
+BtnRight = 3
+BtnA = 4

@@ -1,6 +1,6 @@
-function animate(gameObject, animation)
+function Animate(gameObject, animation)
 	gameObject.ani.delayCounter = gameObject.ani.delayCounter + 1
-	
+
 	if gameObject.ani.delayCounter > animation.frameDelay then
 		local frame = gameObject.ani.currentCounter % animation.length
 		gameObject.ani.currentCounter = frame + 1
@@ -9,12 +9,12 @@ function animate(gameObject, animation)
 	end
 end
 
-function animateOneshot(gameObject, animation)
+function AnimateOneshot(gameObject, animation)
 	gameObject.ani.delayCounter = gameObject.ani.delayCounter + 1
-	
+
 	if gameObject.ani.delayCounter > animation.frameDelay then
 		gameObject.ani.currentCounter = gameObject.ani.currentCounter + 1
-		
+
 		if gameObject.ani.currentCounter > animation.length + 1 then
 			gameObject:disable()
 		else

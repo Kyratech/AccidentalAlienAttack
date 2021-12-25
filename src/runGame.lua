@@ -1,9 +1,9 @@
 function TIC()
-  cls(bgColour)
-	input()
-	update()
-	collisions()
-	draw()
+	cls(BgColour)
+	Input()
+	Update()
+	Collisions()
+	Draw()
 end
 
-init()
+Init()
