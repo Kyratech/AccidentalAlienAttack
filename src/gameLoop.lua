@@ -7,6 +7,8 @@ function Init()
 	Aliens = {}
 	local alienCountX = 9
 	local alienCountY = 4
+	AlienGlobalSpeed = AlienConsts.speed
+	AlienGlobalRowsStepped = 0
 
 	for i = 0, alienCountX, 1 do
 		for j = 0, alienCountY, 1 do
@@ -35,17 +37,21 @@ end
 function Update()
 	Player:update()
 	PlayerShot:update()
-
-	for i, alien in pairs(Aliens) do
-		Aliens[i]:update()
-	end
-
 	Explosion:update()
 end
 
 function Collisions()
 	PlayerWallCollision()
 	PlayerShotCollision()
+end
+
+-- Combine alien handling so we only have to loop through once
+function UpdateAndDrawAliens()
+	for i, alien in pairs(Aliens) do
+		Aliens[i]:update()
+		Aliens[i]:checkWallCollision()
+		Aliens[i]:draw()
+	end
 end
 
 function PlayerWallCollision()
@@ -89,11 +95,6 @@ end
 function DrawGameObjects()
 	Player:draw()
 	PlayerShot:draw()
-
-	for i, alien in pairs(Aliens) do
-		Aliens[i]:draw()
-	end
-
 	Explosion:draw()
 end
 
