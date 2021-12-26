@@ -47,11 +47,17 @@ end
 
 -- Combine alien handling so we only have to loop through once
 function UpdateAndDrawAliens()
+	NewAlienGlobalSpeed = AlienGlobalSpeed
+	NewAlienGlobalRowsStepped = AlienGlobalRowsStepped
+
 	for i, alien in pairs(Aliens) do
 		Aliens[i]:update()
 		Aliens[i]:checkWallCollision()
 		Aliens[i]:draw()
 	end
+
+	AlienGlobalSpeed = NewAlienGlobalSpeed
+	AlienGlobalRowsStepped = NewAlienGlobalRowsStepped
 end
 
 function PlayerWallCollision()

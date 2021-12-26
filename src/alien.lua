@@ -37,14 +37,14 @@ function CreateAlien(i, j)
 		checkWallCollision = function (self)
 			if self.x + self.w > 240 then
 				if self.y == self.targetY then
-					AlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
+					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
 				end
-				AlienGlobalSpeed = -AlienConsts.speed
+				NewAlienGlobalSpeed = -AlienConsts.speed
 			elseif self.x < 0 then
 				if self.y == self.targetY then
-					AlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
+					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
 				end
-				AlienGlobalSpeed = AlienConsts.speed
+				NewAlienGlobalSpeed = AlienConsts.speed
 			end
 		end
 	}
