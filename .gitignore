@@ -1,6 +1,9 @@
 # Build file
 build.lua
 
+# Exclude all screenshots and videos
+*.gif
+
 # Logs
 logs
 *.log
