@@ -6,3 +6,8 @@ TilePx = 8
 BtnLeft = 2
 BtnRight = 3
 BtnA = 4
+
+-- Game states
+StateTitle = 1
+StatePlaying = 2
+StateGameOver = 3

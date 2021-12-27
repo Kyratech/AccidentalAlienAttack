@@ -16,9 +16,12 @@
 	},
 	"files": [
 		"consts.lua",
-		"gameLoop.lua",
+		"loopMaster.lua",
+		"loopPlaying.lua",
+		"loopGameOver.lua",
 		"player.lua",
 		"explosion.lua",
+		"playerExplosion.lua",
 		"alien.lua",
 		"animations.lua",
 		"animationUtils.lua",

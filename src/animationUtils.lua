@@ -15,7 +15,7 @@ function AnimateOneshot(gameObject, animation)
 	if gameObject.ani.delayCounter > animation.frameDelay then
 		gameObject.ani.currentCounter = gameObject.ani.currentCounter + 1
 
-		if gameObject.ani.currentCounter > animation.length + 1 then
+		if gameObject.ani.currentCounter > animation.length then
 			gameObject:disable()
 		else
 			gameObject.ani.currentFrame = animation.sprites[gameObject.ani.currentCounter]

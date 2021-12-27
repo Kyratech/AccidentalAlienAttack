@@ -18,7 +18,9 @@ function CreatePlayer()
 		y = 120,
 		w = PlayerConsts.width*TilePx,
 		h = PlayerConsts.height*TilePx,
+		active = true,
 		speed = 0,
+		deathTimer = 0,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -32,12 +34,47 @@ function CreatePlayer()
 				PlayerConsts.clrIndex)
 		end,
 		update = function (self)
-			self.x = self.x + self.speed
-			if self.speed > 0 then
-				Animate(self, PlayerRightAni)
-			elseif self.speed < 0 then
-				Animate(self, PlayerLeftAni)
+			if self.active == true then
+				self.x = self.x + self.speed
+				if self.speed > 0 then
+					Animate(self, PlayerRightAni)
+				elseif self.speed < 0 then
+					Animate(self, PlayerLeftAni)
+				end
+			else
+				self.deathTimer = self.deathTimer - 1
+
+				Animate(self, PlayerDeadAni)
+
+				if self.deathTimer == 160 then
+					PlayerExplosionSecondary:enable(Player.x, Player.y)
+				elseif self.deathTimer <= 0 then
+					Lives = Lives - 1
+					if Lives > 0 then
+						self:enable()
+					else
+						GameState = StateGameOver
+					end
+				end
 			end
+		end,
+		enable = function (self)
+			self.active = true
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerLeftAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerDeadAni.sprites[1]
+		end,
+		-- Different to disable because this affects game state
+		die = function (self)
+			self.deathTimer = 180
+			PlayerExplosionPrimary:enable(Player.x, Player.y)
+			self:disable()
 		end
 	}
 end
@@ -75,7 +112,7 @@ end
 
 function PlayerShoot()
 	if PlayerShot.speed == 0 then
-		PlayerShot.x = Player.x
+		PlayerShot.x = Player.x + 3
 		PlayerShot.y = Player.y
 		PlayerShot.speed = PlayerShotConsts.speed
 	end

@@ -113,7 +113,14 @@ function CreateAlienShot()
 		end,
 		collision = function (self)
 			-- Check bottom of screen
-			if self.y > 120 then
+			if self.y > 130 then
+				self:reset()
+			end
+
+			if Collide(self, Player) then
+				if Player.active == true then
+					Player:die()
+				end
 				self:reset()
 			end
 		end

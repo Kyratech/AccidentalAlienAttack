@@ -1,11 +1,2 @@
-function TIC()
-	cls(BgColour)
-	Input()
-	Update()
-	Collisions()
-	Draw()
-	UpdateAndDrawAliens()
-	UpdateAndDrawAlienShots()
-end
-
+-- Anything needed to actually execute the game
 Init()

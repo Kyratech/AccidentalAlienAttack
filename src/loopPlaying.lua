@@ -1,4 +1,16 @@
-function Init()
+function PlayingLoop()
+	cls(BgColour)
+	Input()
+	Update()
+	Collisions()
+	Draw()
+	UpdateAndDrawAliens()
+	UpdateAndDrawAlienShots()
+end
+
+function StartGame()
+	Lives = 3
+
 	-- Player
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
@@ -25,6 +37,8 @@ function Init()
 	end
 
 	Explosion = CreateExplosion()
+	PlayerExplosionPrimary = CreateExplosion()
+	PlayerExplosionSecondary = CreatePlayerExplosion()
 end
 
 function Input()
@@ -37,7 +51,9 @@ function Input()
 	end
 
 	if btn(BtnA) then
-		PlayerShoot()
+		if Player.active == true then
+			PlayerShoot()
+		end
 	end
 end
 
@@ -45,6 +61,8 @@ function Update()
 	Player:update()
 	PlayerShot:update()
 	Explosion:update()
+	PlayerExplosionPrimary:update()
+	PlayerExplosionSecondary:update()
 end
 
 function Collisions()
@@ -111,14 +129,21 @@ function Collide(a, b)
 end
 
 function Draw()
+	DrawUi()
 	DrawGameObjects()
-	DrawDebug("Live aliens: " .. LiveAliens)
 end
 
 function DrawGameObjects()
 	Player:draw()
 	PlayerShot:draw()
 	Explosion:draw()
+	PlayerExplosionSecondary:draw()
+	PlayerExplosionPrimary:draw()
+end
+
+function DrawUi()
+	print("Lives:", 5, 1, 6)
+	print(Lives, 40, 1, 5)
 end
 
 function DrawDebug(text)
