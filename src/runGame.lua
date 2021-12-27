@@ -5,6 +5,7 @@ function TIC()
 	Collisions()
 	Draw()
 	UpdateAndDrawAliens()
+	UpdateAndDrawAlienShots()
 end
 
 Init()

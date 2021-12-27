@@ -22,6 +22,12 @@ Alien1Ani = {
 	sprites = { 288, 289, 290, 291 }
 }
 
+AlienShotAni = {
+	frameDelay = 5,
+	length = 6,
+	sprites = { 279, 280, 281, 282, 283, 284 }
+}
+
 ExplosionAni = {
 	frameDelay = 5,
 	length = 5,

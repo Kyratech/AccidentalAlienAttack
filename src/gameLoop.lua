@@ -7,14 +7,21 @@ function Init()
 	Aliens = {}
 	local alienCountX = 9
 	local alienCountY = 4
+	LiveAliens = 50
 	AlienGlobalSpeed = AlienConsts.speed
 	AlienGlobalRowsStepped = 0
-
 	for i = 0, alienCountX, 1 do
 		for j = 0, alienCountY, 1 do
 			local alien = CreateAlien(i, j)
 			table.insert(Aliens, alien)
 		end
+	end
+
+	AlienShots = {}
+	local alienShotCount = 3
+	for i = 0, alienShotCount, 1 do
+		local alienShot = CreateAlienShot()
+		table.insert(AlienShots, alienShot)
 	end
 
 	Explosion = CreateExplosion()
@@ -60,6 +67,14 @@ function UpdateAndDrawAliens()
 	AlienGlobalRowsStepped = NewAlienGlobalRowsStepped
 end
 
+function UpdateAndDrawAlienShots()
+	for i, alienShot in pairs(AlienShots) do
+		AlienShots[i]:update()
+		AlienShots[i]:collision()
+		AlienShots[i]:draw()
+	end
+end
+
 function PlayerWallCollision()
 	if Player.x < 0 then
 		Player.x = 0
@@ -79,6 +94,7 @@ function PlayerShotCollision()
 		if Collide(PlayerShot, Aliens[i]) then
 			Explosion:enable(Aliens[i].x, Aliens[i].y)
 			table.remove(Aliens, i)
+			LiveAliens = LiveAliens - 1
 			PlayerShotReset()
 		end
 	end
@@ -96,6 +112,7 @@ end
 
 function Draw()
 	DrawGameObjects()
+	DrawDebug("Live aliens: " .. LiveAliens)
 end
 
 function DrawGameObjects()
