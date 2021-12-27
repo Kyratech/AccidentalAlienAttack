@@ -13,5 +13,6 @@ end
 
 function GoDraw()
 	print("GAME OVER!", 50, 60, 6)
-	print("Press A to play again", 50, 70, 5)
+	print("Your score was: " .. Score, 50, 70, 6)
+	print("Press A to play again", 50, 80, 5)
 end

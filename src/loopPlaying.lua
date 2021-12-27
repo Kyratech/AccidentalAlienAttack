@@ -10,6 +10,7 @@ end
 
 function StartGame()
 	Lives = 3
+	Score = 0
 
 	-- Player
 	Player = CreatePlayer()
@@ -110,12 +111,19 @@ function PlayerShotCollision()
 	-- Check aliens
 	for i, alien in pairs(Aliens) do
 		if Collide(PlayerShot, Aliens[i]) then
-			Explosion:enable(Aliens[i].x, Aliens[i].y)
-			table.remove(Aliens, i)
-			LiveAliens = LiveAliens - 1
-			PlayerShotReset()
+			KillAlien(i)
 		end
 	end
+end
+
+function KillAlien(i)
+	Explosion:enable(Aliens[i].x, Aliens[i].y)
+	
+	Score = Score + 1
+	table.remove(Aliens, i)
+	LiveAliens = LiveAliens - 1
+	
+	PlayerShotReset()
 end
 
 function Collide(a, b)
@@ -144,6 +152,9 @@ end
 function DrawUi()
 	print("Lives:", 5, 1, 6)
 	print(Lives, 40, 1, 5)
+
+	print("Score:", 70, 1, 6)
+	print(Score, 105, 1, 5)
 end
 
 function DrawDebug(text)
