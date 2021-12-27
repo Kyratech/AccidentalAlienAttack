@@ -1,4 +1,14 @@
 {
+	"name": "AccidentalAlienAssaultGame",
+	"version": "0.1.0",
+	"license": "GPL-3.0",
+	"author": {
+		"name": "Kyratech"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Mattadon/AccidentalAlienAttack.git"
+	},
 	"scripts": {
 		"watch": "tic-bundle -c .ticbundle.json"
 	},
