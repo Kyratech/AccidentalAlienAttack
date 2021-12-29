@@ -16,6 +16,21 @@ function StartGame()
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
 
+	StartLevel()
+
+	AlienShots = {}
+	local alienShotCount = 3
+	for i = 0, alienShotCount, 1 do
+		local alienShot = CreateAlienShot()
+		table.insert(AlienShots, alienShot)
+	end
+
+	Explosion = CreateExplosion()
+	PlayerExplosionPrimary = CreateExplosion()
+	PlayerExplosionSecondary = CreatePlayerExplosion()
+end
+
+function StartLevel()
 	-- Aliens
 	Aliens = {}
 	local alienCountX = 9
@@ -29,17 +44,6 @@ function StartGame()
 			table.insert(Aliens, alien)
 		end
 	end
-
-	AlienShots = {}
-	local alienShotCount = 3
-	for i = 0, alienShotCount, 1 do
-		local alienShot = CreateAlienShot()
-		table.insert(AlienShots, alienShot)
-	end
-
-	Explosion = CreateExplosion()
-	PlayerExplosionPrimary = CreateExplosion()
-	PlayerExplosionSecondary = CreatePlayerExplosion()
 end
 
 function Input()
@@ -122,6 +126,10 @@ function KillAlien(i)
 	Score = Score + 1
 	table.remove(Aliens, i)
 	LiveAliens = LiveAliens - 1
+
+	if LiveAliens == 0 then
+		StartLevel()
+	end
 	
 	PlayerShotReset()
 end
