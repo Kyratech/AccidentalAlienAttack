@@ -17,6 +17,7 @@
 	"files": [
 		"consts.lua",
 		"loopMaster.lua",
+		"loopTitle.lua",
 		"loopPlaying.lua",
 		"loopGameOver.lua",
 		"player.lua",

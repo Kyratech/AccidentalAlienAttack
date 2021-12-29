@@ -1,10 +1,12 @@
 function Init()
-	GameState = StatePlaying
+	GameState = StateTitle
 	StartGame()
 end
 
 function TIC()
-	if GameState == StatePlaying then
+	if GameState == StateTitle then
+		TitleLoop()
+	elseif GameState == StatePlaying then
 		PlayingLoop()
 	elseif GameState == StateGameOver then
 		GameOverLoop()
