@@ -33,10 +33,16 @@ end
 function StartLevel()
 	-- Aliens
 	Aliens = {}
+	MaxAliens = 50
 	local alienCountX = 9
 	local alienCountY = 4
 	LiveAliens = 50
-	AlienGlobalSpeed = AlienConsts.speed
+
+	-- How fast the aliens should move
+	AlienGlobalSpeed = CalculateAlienSpeed(LiveAliens, LiveAliens)
+	-- The actual translation of the aliens
+	AlienGlobalVelocity = AlienGlobalSpeed
+	
 	AlienGlobalRowsStepped = 0
 	for i = 0, alienCountX, 1 do
 		for j = 0, alienCountY, 1 do
@@ -77,7 +83,7 @@ end
 
 -- Combine alien handling so we only have to loop through once
 function UpdateAndDrawAliens()
-	NewAlienGlobalSpeed = AlienGlobalSpeed
+	NewAlienGlobalVelocity = AlienGlobalVelocity
 	NewAlienGlobalRowsStepped = AlienGlobalRowsStepped
 
 	for i, alien in pairs(Aliens) do
@@ -86,7 +92,7 @@ function UpdateAndDrawAliens()
 		Aliens[i]:draw()
 	end
 
-	AlienGlobalSpeed = NewAlienGlobalSpeed
+	AlienGlobalVelocity = NewAlienGlobalVelocity
 	AlienGlobalRowsStepped = NewAlienGlobalRowsStepped
 end
 
@@ -129,6 +135,13 @@ function KillAlien(i)
 
 	if LiveAliens == 0 then
 		StartLevel()
+	else
+		AlienGlobalSpeed = CalculateAlienSpeed(MaxAliens, LiveAliens)
+		if AlienGlobalVelocity > 0 then
+			AlienGlobalVelocity = AlienGlobalSpeed
+		else
+			AlienGlobalVelocity = -AlienGlobalSpeed
+		end
 	end
 	
 	PlayerShotReset()

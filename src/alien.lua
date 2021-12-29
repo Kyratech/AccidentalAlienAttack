@@ -1,8 +1,15 @@
 AlienConsts = {
-	speed = 0.25,
 	width = 1,
 	height = 1,
 	clrIndex = 12
+}
+
+AlienSpeeds = {
+	speedFull = 0.125,
+	speedHalf = 0.25,
+	speedQuarter = 0.5,
+	speedFour = 1,
+	speedOne = 2
 }
 
 AlienShotConsts = {
@@ -32,7 +39,7 @@ function CreateAlien(i, j)
 				AlienConsts.clrIndex)
 		end,
 		update = function (self)
-			self.x = self.x + AlienGlobalSpeed
+			self.x = self.x + AlienGlobalVelocity
 
 			self.targetY = 10 + AlienGlobalRowsStepped * 10 + j * 10
 			if self.y < self.targetY then
@@ -46,12 +53,12 @@ function CreateAlien(i, j)
 				if self.y == self.targetY then
 					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
 				end
-				NewAlienGlobalSpeed = -AlienConsts.speed
+				NewAlienGlobalVelocity = -AlienGlobalSpeed
 			elseif self.x < 0 then
 				if self.y == self.targetY then
 					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
 				end
-				NewAlienGlobalSpeed = AlienConsts.speed
+				NewAlienGlobalVelocity = AlienGlobalSpeed
 			end
 		end
 	}
@@ -125,4 +132,18 @@ function CreateAlienShot()
 			end
 		end
 	}
+end
+
+function CalculateAlienSpeed(maxAliens, liveAliens)
+	if liveAliens == 1 then
+		return AlienSpeeds.speedOne
+	elseif liveAliens <= 4 then
+		return AlienSpeeds.speedFour
+	elseif maxAliens // liveAliens == 1 then
+		return AlienSpeeds.speedFull
+	elseif maxAliens // liveAliens == 2 then
+		return AlienSpeeds.speedHalf
+	else
+		return AlienSpeeds.speedQuarter
+	end
 end
