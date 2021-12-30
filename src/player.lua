@@ -73,6 +73,7 @@ function CreatePlayer()
 		-- Different to disable because this affects game state
 		die = function (self)
 			self.deathTimer = 180
+			AlienGlobalRowsStepped = 0
 			PlayerExplosionPrimary:enable(Player.x, Player.y)
 			self:disable()
 		end

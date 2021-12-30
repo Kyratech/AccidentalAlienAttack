@@ -25,6 +25,8 @@ function CreateAlien(i, j)
 		y = 10 + j * 10,
 		w = AlienConsts.width * TilePx,
 		h = AlienConsts.height * TilePx,
+		column = i,
+		row = j,
 		targetY = 10 + j * 10,
 		ani = {
 			delayCounter = 0,
@@ -39,13 +41,17 @@ function CreateAlien(i, j)
 				AlienConsts.clrIndex)
 		end,
 		update = function (self)
-			self.x = self.x + AlienGlobalVelocity
-
-			self.targetY = 10 + AlienGlobalRowsStepped * 10 + j * 10
-			if self.y < self.targetY then
-				self.y = self.y + 1
-			end
+			self.targetY = 10 + AlienGlobalRowsStepped * 10 + self.row * 10
 			
+			if self.y > self.targetY then
+				self.y = self.y - 1
+			else
+				if self.y < self.targetY then
+					self.y = self.y + 1
+				end
+				self.x = self.x + AlienGlobalVelocity
+			end
+
 			Animate(self, Alien1Ani)
 		end,
 		checkWallCollision = function (self)
