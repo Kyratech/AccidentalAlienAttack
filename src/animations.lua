@@ -1,19 +1,19 @@
 PlayerRightAni = {
 	frameDelay = 5,
 	length = 3,
-	sprites = { 256, 257, 258 }
+	sprites = { 336, 338, 340 }
 }
 
 PlayerLeftAni = {
 	frameDelay = 5,
 	length = 3,
-	sprites = { 258, 257, 256 }
+	sprites = { 340, 338, 336 }
 }
 
 PlayerDeadAni = {
 	frameDelay = 1,
 	length = 1,
-	sprites = { 259 }
+	sprites = { 342 }
 }
 
 PlayerShotAni = {

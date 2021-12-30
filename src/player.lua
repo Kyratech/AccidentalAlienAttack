@@ -1,7 +1,9 @@
 PlayerConsts = {
 	speed = 1,
-	width = 1,
-	height = 1,
+	widthPx = 10,
+	heightPx = 9,
+	sprOffsetX = -3,
+	sprOffsetY = -7,
 	clrIndex = 12
 }
 
@@ -14,10 +16,10 @@ PlayerShotConsts = {
 
 function CreatePlayer()
 	return {
-		x = (240/2)-(PlayerConsts.width*TilePx/2),
+		x = (240/2)-(PlayerConsts.widthPx*TilePx/2),
 		y = 120,
-		w = PlayerConsts.width*TilePx,
-		h = PlayerConsts.height*TilePx,
+		w = PlayerConsts.widthPx,
+		h = PlayerConsts.heightPx,
 		active = true,
 		speed = 0,
 		deathTimer = 0,
@@ -29,9 +31,14 @@ function CreatePlayer()
 		draw = function (self)
 			spr(
 				self.ani.currentFrame,
-				self.x,
-				self.y,
-				PlayerConsts.clrIndex)
+				self.x + PlayerConsts.sprOffsetX,
+				self.y + PlayerConsts.sprOffsetY,
+				PlayerConsts.clrIndex,
+				1,
+				0,
+				0,
+				2,
+				2)
 		end,
 		update = function (self)
 			if self.active == true then
@@ -74,7 +81,7 @@ function CreatePlayer()
 		die = function (self)
 			self.deathTimer = 180
 			AlienGlobalRowsStepped = 0
-			PlayerExplosionPrimary:enable(Player.x, Player.y)
+			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			self:disable()
 		end
 	}
@@ -113,7 +120,7 @@ end
 
 function PlayerShoot()
 	if PlayerShot.speed == 0 then
-		PlayerShot.x = Player.x + 3
+		PlayerShot.x = Player.x + 4
 		PlayerShot.y = Player.y
 		PlayerShot.speed = PlayerShotConsts.speed
 	end

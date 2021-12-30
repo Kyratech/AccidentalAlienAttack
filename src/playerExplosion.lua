@@ -16,8 +16,8 @@ function CreatePlayerExplosion()
 		},
 		enable = function (self, x, y)
 			self.active = true
-			self.x = x - 4
-			self.y = y - 8
+			self.x = x - 3
+			self.y = y - 7
 			self.ani.delayCounter = 0
 			self.ani.currentCounter = 1
 			self.ani.currentFrame = PlayerExplosionAni.sprites[1]
