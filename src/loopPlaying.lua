@@ -61,7 +61,7 @@ function Input()
 		Player.speed = 0
 	end
 
-	if btn(BtnA) then
+	if btnp(BtnA) then
 		if Player.active == true then
 			PlayerShoot()
 		end
