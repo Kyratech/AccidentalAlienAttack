@@ -16,6 +16,8 @@ function StartGame()
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
 
+	AlienCarrier = CreateCarrier()
+
 	StartLevel()
 
 	AlienShots = {}
@@ -50,6 +52,8 @@ function StartLevel()
 			table.insert(Aliens, alien)
 		end
 	end
+
+	AlienCarrier:ready()
 end
 
 function Input()
@@ -71,6 +75,7 @@ end
 function Update()
 	Player:update()
 	PlayerShot:update()
+	AlienCarrier:update()
 	Explosion:update()
 	PlayerExplosionPrimary:update()
 	PlayerExplosionSecondary:update()
@@ -79,6 +84,7 @@ end
 function Collisions()
 	PlayerWallCollision()
 	PlayerShotCollision()
+	AlienCarrier:checkCollision()
 end
 
 -- Combine alien handling so we only have to loop through once
@@ -124,6 +130,15 @@ function PlayerShotCollision()
 			KillAlien(i)
 		end
 	end
+
+	if Collide(PlayerShot, AlienCarrier) then
+		Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+		AlienCarrier:disable()
+
+		Score = Score + 5
+
+		PlayerShotReset()
+	end
 end
 
 function KillAlien(i)
@@ -165,6 +180,7 @@ end
 function DrawGameObjects()
 	Player:draw()
 	PlayerShot:draw()
+	AlienCarrier:draw()
 	Explosion:draw()
 	PlayerExplosionSecondary:draw()
 	PlayerExplosionPrimary:draw()

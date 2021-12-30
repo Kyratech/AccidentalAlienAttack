@@ -1,5 +1,6 @@
 # Build file
 build.lua
+meta.lua
 
 # Exclude all screenshots and videos
 *.gif
