@@ -2,7 +2,6 @@ function PlayingLoop()
 	cls(BgColour)
 	Input()
 	Update()
-	Collisions()
 	Draw()
 	UpdateAndDrawAliens()
 	UpdateAndDrawAlienShots()
@@ -15,6 +14,7 @@ function StartGame()
 	-- Player
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
+	PlayerShield = CreatePlayerShield()
 
 	AlienCarrier = CreateCarrier()
 
@@ -67,24 +67,28 @@ function Input()
 
 	if btnp(BtnA) then
 		if Player.active == true then
-			PlayerShoot()
+			PlayerShot:shoot()
 		end
 	end
 end
 
 function Update()
 	Player:update()
-	PlayerShot:update()
-	AlienCarrier:update()
-	Explosion:update()
-	PlayerExplosionPrimary:update()
-	PlayerExplosionSecondary:update()
-end
+	Player:checkCollision()
 
-function Collisions()
-	PlayerWallCollision()
-	PlayerShotCollision()
+	PlayerShot:update()
+	PlayerShot:checkCollision()
+
+	PlayerShield:update()
+
+	AlienCarrier:update()
 	AlienCarrier:checkCollision()
+
+	Explosion:update()
+
+	PlayerExplosionPrimary:update()
+
+	PlayerExplosionSecondary:update()
 end
 
 -- Combine alien handling so we only have to loop through once
@@ -110,37 +114,6 @@ function UpdateAndDrawAlienShots()
 	end
 end
 
-function PlayerWallCollision()
-	if Player.x < 0 then
-		Player.x = 0
-	elseif Player.x + Player.w > 240 then
-		Player.x = 240 - Player.w
-	end
-end
-
-function PlayerShotCollision()
-	-- Check off top of screen
-	if PlayerShot.y < 0 then
-		PlayerShotReset()
-	end
-
-	-- Check aliens
-	for i, alien in pairs(Aliens) do
-		if Collide(PlayerShot, Aliens[i]) then
-			KillAlien(i)
-		end
-	end
-
-	if Collide(PlayerShot, AlienCarrier) then
-		Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
-		AlienCarrier:disable()
-
-		Score = Score + 5
-
-		PlayerShotReset()
-	end
-end
-
 function KillAlien(i)
 	Explosion:enable(Aliens[i].x, Aliens[i].y)
 	
@@ -158,8 +131,6 @@ function KillAlien(i)
 			AlienGlobalVelocity = -AlienGlobalSpeed
 		end
 	end
-	
-	PlayerShotReset()
 end
 
 function Collide(a, b)
@@ -180,6 +151,7 @@ end
 function DrawGameObjects()
 	Player:draw()
 	PlayerShot:draw()
+	PlayerShield:draw()
 	AlienCarrier:draw()
 	Explosion:draw()
 	PlayerExplosionSecondary:draw()

@@ -131,7 +131,7 @@ function CreateAlienShot()
 			end
 
 			if Collide(self, Player) then
-				if Player.active == true then
+				if Player.active == true and Player.shielded == false then
 					Player:die()
 				end
 				self:reset()

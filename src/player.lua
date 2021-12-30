@@ -4,13 +4,18 @@ PlayerConsts = {
 	heightPx = 9,
 	sprOffsetX = -3,
 	sprOffsetY = -7,
-	clrIndex = 12
+	clrIndex = 12,
+	respawnShieldLength = 120, 
 }
 
 PlayerShotConsts = {
 	speed = 2,
 	storeX = 300,
 	storeY = 150,
+	clrIndex = 0
+}
+
+PlayerShieldConsts = {
 	clrIndex = 0
 }
 
@@ -23,6 +28,8 @@ function CreatePlayer()
 		active = true,
 		speed = 0,
 		deathTimer = 0,
+		shielded = false,
+		shieldTimer = 0,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -42,6 +49,17 @@ function CreatePlayer()
 		end,
 		update = function (self)
 			if self.active == true then
+				if self.shielded == true then
+					self.shieldTimer = self.shieldTimer - 1
+
+					if self.shieldTimer == 70 then
+						PlayerShield:startDeactivation()
+					elseif self.shieldTimer <= 0 then
+						self.shielded = false
+						PlayerShield:disable()
+					end
+				end
+
 				self.x = self.x + self.speed
 				if self.speed > 0 then
 					Animate(self, PlayerRightAni)
@@ -58,7 +76,7 @@ function CreatePlayer()
 				elseif self.deathTimer <= 0 then
 					Lives = Lives - 1
 					if Lives > 0 then
-						self:enable()
+						self:respawn()
 					else
 						GameState = StateGameOver
 					end
@@ -77,12 +95,24 @@ function CreatePlayer()
 			self.ani.currentCounter = 1
 			self.ani.currentFrame = PlayerDeadAni.sprites[1]
 		end,
-		-- Different to disable because this affects game state
+		respawn = function (self)
+			self.shielded = true
+			self.shieldTimer = PlayerConsts.respawnShieldLength
+			PlayerShield:enable()
+			self:enable()
+		end,
 		die = function (self)
 			self.deathTimer = 180
 			AlienGlobalRowsStepped = 0
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			self:disable()
+		end,
+		checkCollision = function (self)
+			if self.x < 0 then
+				self.x = 0
+			elseif self.x + self.w > 240 then
+				self.x = 240 - self.w
+			end
 		end
 	}
 end
@@ -114,20 +144,97 @@ function CreatePlayerShot()
 			if self.speed > 0 then
 				Animate(self, PlayerShotAni)
 			end
+		end,
+		checkCollision = function (self)
+			-- Check off top of screen
+			if self.y < 0 then
+				PlayerShot:reset()
+			end
+
+			-- Check aliens
+			for i, alien in pairs(Aliens) do
+				if Collide(self, Aliens[i]) then
+					KillAlien(i)
+					PlayerShot:reset()
+				end
+			end
+
+			if Collide(self, AlienCarrier) then
+				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+				AlienCarrier:disable()
+
+				Score = Score + 5
+
+				PlayerShot:reset()
+			end
+		end,
+		shoot = function (self)
+			if self.speed == 0 then
+				self.x = Player.x + 4
+				self.y = Player.y
+				self.speed = PlayerShotConsts.speed
+			end
+		end,
+		reset = function (self)
+			self.x = PlayerShotConsts.storeX
+			self.y = PlayerShotConsts.storeY
+			self.speed = 0
 		end
 	}
 end
 
-function PlayerShoot()
-	if PlayerShot.speed == 0 then
-		PlayerShot.x = Player.x + 4
-		PlayerShot.y = Player.y
-		PlayerShot.speed = PlayerShotConsts.speed
-	end
-end
+function CreatePlayerShield()
+	return {
+		x = 0,
+		y = Player.y - 7,
+		active = false,
+		deactivating = false,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = PlayerShieldAni.sprites[1]
+		},
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					PlayerShieldConsts.clrIndex,
+					1,
+					0,
+					0,
+					2,
+					2
+				)
+			end
+		end,
+		update = function (self)
+			self.x = Player.x - 3
 
-function PlayerShotReset()
-	PlayerShot.x = PlayerShotConsts.storeX
-	PlayerShot.y = PlayerShotConsts.storeY
-	PlayerShot.speed = 0
+			if self.active == true then
+				if self.deactivating == true then
+					AnimateOneshot(self, PlayerShieldEndAni)
+				else
+					Animate(self, PlayerShieldAni)
+				end
+			end
+		end,
+		enable = function (self)
+			self.active = true
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerShieldAni.sprites[1]
+		end,
+		startDeactivation = function (self)
+			self.deactivating = true
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerShieldEndAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.deactivating = false
+		end
+	}
 end

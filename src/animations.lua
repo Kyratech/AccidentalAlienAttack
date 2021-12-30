@@ -16,6 +16,18 @@ PlayerDeadAni = {
 	sprites = { 342 }
 }
 
+PlayerShieldAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 368 }
+}
+
+PlayerShieldEndAni = {
+	frameDelay = 10,
+	length = 7,
+	sprites = { 368, 370, 372, 374, 376, 378, 380 }
+}
+
 PlayerShotAni = {
 	frameDelay = 5,
 	length = 2,
