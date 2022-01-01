@@ -172,8 +172,8 @@ function DrawUi()
 	print("Score:", 70, 1, 6)
 	print(Score, 105, 1, 5)
 
-	-- DrawDebug(AlienGlobalRowsStepped)
-	-- DrawMouseDebug()
+	DrawDebug(AlienGlobalRowsStepped)
+	DrawMouseDebug()
 end
 
 function DrawDebug(text)

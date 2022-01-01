@@ -107,10 +107,10 @@ function CreatePlayer()
 			self:disable()
 		end,
 		checkCollision = function (self)
-			if self.x < 0 then
-				self.x = 0
-			elseif self.x + self.w > 240 then
-				self.x = 240 - self.w
+			if self.x < LeftWallX then
+				self.x = LeftWallX
+			elseif self.x + self.w > RightWallX then
+				self.x = RightWallX - self.w
 			end
 		end
 	}

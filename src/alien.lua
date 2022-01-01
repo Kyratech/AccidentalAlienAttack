@@ -21,7 +21,7 @@ AlienShotConsts = {
 
 function CreateAlien(i, j)
 	return {
-		x = 10 + i * 16,
+		x = LeftWallX + 10 + i * 16,
 		y = 10 + j * 10,
 		w = AlienConsts.width * TilePx,
 		h = AlienConsts.height * TilePx,
@@ -60,12 +60,12 @@ function CreateAlien(i, j)
 					Player:die()
 					NewAlienGlobalRowsStepped = 0
 				end
-			elseif self.x + self.w > 240 then
+			elseif self.x + self.w > RightWallX then
 				if self.y == self.targetY then
 					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
 				end
 				NewAlienGlobalVelocity = -AlienGlobalSpeed
-			elseif self.x < 0 then
+			elseif self.x < LeftWallX then
 				if self.y == self.targetY then
 					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
 				end
