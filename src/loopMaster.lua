@@ -1,6 +1,5 @@
 function Init()
-	GameState = StateTitle
-	StartGame()
+	TitleScreen()
 end
 
 function TIC()

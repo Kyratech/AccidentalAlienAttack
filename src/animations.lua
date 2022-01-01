@@ -63,3 +63,27 @@ PlayerExplosionAni = {
 	length = 5,
 	sprites = { 292, 294, 296, 298, 300 }
 }
+
+AlienStartAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 80 }
+}
+
+HumanStartAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 82 }
+}
+
+AlienSadAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 112 }
+}
+
+HumanSadAni = {
+	frameDelay = 30,
+	length = 2,
+	sprites = { 114, 116 }
+}

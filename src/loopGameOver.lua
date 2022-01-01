@@ -1,7 +1,33 @@
 function GameOverLoop()
 	cls(BgColour)
 	GoInput()
+	GoUpdate()
 	GoDraw()
+end
+
+function GameOver()
+	GameState = StateGameOver
+
+	local columnWidth = 50
+
+	HumanDialogue = CreateDialogue("GAME OVER!", HumanSadAni, 30, 10, true, columnWidth)
+	AlienDialogue = CreateDialogue("I am so sorry...", AlienSadAni, 50, 13, false, columnWidth)
+
+	ScoreText = {
+		text = "You scored " .. Score .. " points!",
+		y = 80,
+		draw = function (self)
+			PrintCentred(self.text, 120, self.y, 12)
+		end
+	}
+
+	RestartText = {
+		text = "Press [A] to play again.",
+		y = 90,
+		draw = function (self)
+			PrintCentred(self.text, 120, self.y, 12)
+		end
+	}
 end
 
 function GoInput()
@@ -11,8 +37,13 @@ function GoInput()
 	end
 end
 
+function GoUpdate()
+	HumanDialogue:update()
+end
+
 function GoDraw()
-	print("GAME OVER!", 50, 60, 6)
-	print("Your score was: " .. Score, 50, 70, 6)
-	print("Press A to play again", 50, 80, 5)
+	HumanDialogue:draw()
+	AlienDialogue:draw()
+	ScoreText:draw()
+	RestartText:draw()
 end

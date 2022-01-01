@@ -78,7 +78,7 @@ function CreatePlayer()
 					if Lives > 0 then
 						self:respawn()
 					else
-						GameState = StateGameOver
+						GameOver()
 					end
 				end
 			end
