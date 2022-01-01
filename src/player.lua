@@ -22,7 +22,7 @@ PlayerShieldConsts = {
 function CreatePlayer()
 	return {
 		x = (240/2)-(PlayerConsts.widthPx*TilePx/2),
-		y = 120,
+		y = 118,
 		w = PlayerConsts.widthPx,
 		h = PlayerConsts.heightPx,
 		active = true,
@@ -103,7 +103,6 @@ function CreatePlayer()
 		end,
 		die = function (self)
 			self.deathTimer = 180
-			AlienGlobalRowsStepped = 0
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			self:disable()
 		end,

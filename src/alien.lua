@@ -54,8 +54,13 @@ function CreateAlien(i, j)
 
 			Animate(self, Alien1Ani)
 		end,
-		checkWallCollision = function (self)
-			if self.x + self.w > 240 then
+		checkCollision = function (self)
+			if self.y + self.h >= GroundY then
+				if Player.active == true and Player.shielded == false then
+					Player:die()
+					NewAlienGlobalRowsStepped = 0
+				end
+			elseif self.x + self.w > 240 then
 				if self.y == self.targetY then
 					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
 				end
@@ -126,13 +131,14 @@ function CreateAlienShot()
 		end,
 		collision = function (self)
 			-- Check bottom of screen
-			if self.y > 130 then
+			if self.y + self.h > GroundY then
 				self:reset()
 			end
 
 			if Collide(self, Player) then
 				if Player.active == true and Player.shielded == false then
 					Player:die()
+					AlienGlobalRowsStepped = 0
 				end
 				self:reset()
 			end

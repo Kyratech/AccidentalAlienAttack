@@ -1,6 +1,7 @@
 -- Global constants
 BgColour = 0
 TilePx = 8
+GroundY = 125
 
 -- Button aliases
 BtnLeft = 2

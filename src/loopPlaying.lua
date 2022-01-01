@@ -98,7 +98,7 @@ function UpdateAndDrawAliens()
 
 	for i, alien in pairs(Aliens) do
 		Aliens[i]:update()
-		Aliens[i]:checkWallCollision()
+		Aliens[i]:checkCollision()
 		Aliens[i]:draw()
 	end
 
@@ -144,8 +144,15 @@ function Collide(a, b)
 end
 
 function Draw()
+	DrawBg()
 	DrawUi()
 	DrawGameObjects()
+end
+
+function DrawBg()
+	local cols=30
+	local rows=17
+	map(30,0,cols,rows)
 end
 
 function DrawGameObjects()
@@ -164,8 +171,16 @@ function DrawUi()
 
 	print("Score:", 70, 1, 6)
 	print(Score, 105, 1, 5)
+
+	-- DrawDebug(AlienGlobalRowsStepped)
+	-- DrawMouseDebug()
 end
 
 function DrawDebug(text)
-	print(text, 5, 1, 7)
+	print(text, 5, 11, 7)
+end
+
+function DrawMouseDebug()
+	local x,y,left,middle,right,scrollx,scrolly = mouse()
+	print("(" .. x .. "," .. y .. ")", 5, 21, 7)
 end
