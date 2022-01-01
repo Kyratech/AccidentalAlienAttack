@@ -19,10 +19,16 @@ AlienShotConsts = {
 	clrIndex = 0
 }
 
+function CreateAlien(i, j, type)
+	if type == 1 then
+		return CreateAlien(i, j)
+	end
+end
+
 function CreateAlien(i, j)
 	return {
-		x = LeftWallX + 10 + i * 16,
-		y = 10 + j * 10,
+		x = LeftWallX + 10 + (i - 1) * 16,
+		y = 20 + (j - 1) * 10,
 		w = AlienConsts.width * TilePx,
 		h = AlienConsts.height * TilePx,
 		column = i,

@@ -18,7 +18,7 @@ function StartGame()
 
 	AlienCarrier = CreateCarrier()
 
-	StartLevel()
+	StartLevel(Formation1)
 
 	AlienShots = {}
 	local alienShotCount = 3
@@ -32,26 +32,32 @@ function StartGame()
 	PlayerExplosionSecondary = CreatePlayerExplosion()
 end
 
-function StartLevel()
+function StartLevel(formation)
 	-- Aliens
 	Aliens = {}
 	MaxAliens = 50
-	local alienCountX = 9
-	local alienCountY = 4
-	LiveAliens = 50
+	local alienCountX = 10
+	local alienCountY = 5
+	LiveAliens = 0
 
+	AlienGlobalRowsStepped = 0
+	for i = 1, alienCountX, 1 do
+		for j = 1, alienCountY, 1 do
+			local index = i + (j - 1) * alienCountX
+			local alienType = formation[index]
+
+			if alienType ~= 0 then
+				local alien = CreateAlien(i, j, alienType)
+				table.insert(Aliens, alien)
+				LiveAliens = LiveAliens + 1
+			end
+		end
+	end
+	
 	-- How fast the aliens should move
 	AlienGlobalSpeed = CalculateAlienSpeed(LiveAliens, LiveAliens)
 	-- The actual translation of the aliens
 	AlienGlobalVelocity = AlienGlobalSpeed
-	
-	AlienGlobalRowsStepped = 0
-	for i = 0, alienCountX, 1 do
-		for j = 0, alienCountY, 1 do
-			local alien = CreateAlien(i, j)
-			table.insert(Aliens, alien)
-		end
-	end
 
 	AlienCarrier:ready()
 end
@@ -122,7 +128,7 @@ function KillAlien(i)
 	LiveAliens = LiveAliens - 1
 
 	if LiveAliens == 0 then
-		StartLevel()
+		StartLevel(Formation2)
 	else
 		AlienGlobalSpeed = CalculateAlienSpeed(MaxAliens, LiveAliens)
 		if AlienGlobalVelocity > 0 then
@@ -172,8 +178,8 @@ function DrawUi()
 	print("Score:", 70, 1, 6)
 	print(Score, 105, 1, 5)
 
-	DrawDebug(AlienGlobalRowsStepped)
-	DrawMouseDebug()
+	-- DrawDebug(AlienGlobalRowsStepped)
+	-- DrawMouseDebug()
 end
 
 function DrawDebug(text)

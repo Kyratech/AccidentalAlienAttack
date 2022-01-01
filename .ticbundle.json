@@ -25,6 +25,7 @@
 		"playerExplosion.lua",
 		"alien.lua",
 		"alienCarrier.lua",
+		"alienFormations.lua",
 		"animations.lua",
 		"drawingUtils.lua",
 		"animationUtils.lua",
