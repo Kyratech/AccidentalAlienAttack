@@ -28,12 +28,13 @@ end
 function CreateAlien(i, j)
 	return {
 		x = LeftWallX + 10 + (i - 1) * 16,
-		y = 20 + (j - 1) * 10,
+		y = -50 + (j - 1) * 10,
 		w = AlienConsts.width * TilePx,
 		h = AlienConsts.height * TilePx,
 		column = i,
 		row = j,
-		targetY = 10 + j * 10,
+		targetY = 20 + (j - 1) * 10,
+		hitWall = false,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -47,15 +48,15 @@ function CreateAlien(i, j)
 				AlienConsts.clrIndex)
 		end,
 		update = function (self)
-			self.targetY = 10 + AlienGlobalRowsStepped * 10 + self.row * 10
+			self.targetY = 20 + AlienGlobalRowsStepped * 10 + (self.row - 1) * 10
 			
 			if self.y > self.targetY then
 				self.y = self.y - 1
+			elseif self.y < self.targetY then
+				self.y = self.y + 1
 			else
-				if self.y < self.targetY then
-					self.y = self.y + 1
-				end
 				self.x = self.x + AlienGlobalVelocity
+				self.hitWall = false
 			end
 
 			Animate(self, Alien1Ani)
@@ -67,13 +68,15 @@ function CreateAlien(i, j)
 					NewAlienGlobalRowsStepped = 0
 				end
 			elseif self.x + self.w > RightWallX then
-				if self.y == self.targetY then
+				if self.hitWall == false then
 					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
+					self.hitWall = true
 				end
 				NewAlienGlobalVelocity = -AlienGlobalSpeed
 			elseif self.x < LeftWallX then
-				if self.y == self.targetY then
+				if self.hitWall == false then
 					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
+					self.hitWall = true
 				end
 				NewAlienGlobalVelocity = AlienGlobalSpeed
 			end
