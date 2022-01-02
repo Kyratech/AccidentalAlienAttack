@@ -46,6 +46,12 @@ AlienShotAni = {
 	sprites = { 279, 280, 281, 282, 283, 284 }
 }
 
+AlienShotParticleAni = {
+	frameDelay = 5,
+	length = 3,
+	sprites = { 285, 286, 287 }
+}
+
 CarrierAni = {
 	frameDelay = 10,
 	length = 4,

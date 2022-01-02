@@ -23,7 +23,8 @@ function StartGame()
 	AlienShots = {}
 	local alienShotCount = 3
 	for i = 0, alienShotCount, 1 do
-		local alienShot = CreateAlienShot()
+		local alienShotParticle = CreateAlienShotParticles()
+		local alienShot = CreateAlienShot(alienShotParticle)
 		table.insert(AlienShots, alienShot)
 	end
 
@@ -118,12 +119,14 @@ function UpdateAndDrawAlienShots()
 		AlienShots[i]:update()
 		AlienShots[i]:collision()
 		AlienShots[i]:draw()
+		AlienShots[i].particle:update()
+		AlienShots[i].particle:draw()
 	end
 end
 
 function KillAlien(i)
 	Explosion:enable(Aliens[i].x, Aliens[i].y)
-	
+
 	Score = Score + 1
 	table.remove(Aliens, i)
 	LiveAliens = LiveAliens - 1

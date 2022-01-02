@@ -15,7 +15,7 @@ AlienSpeeds = {
 AlienShotConsts = {
 	speed = 0.5,
 	storeX = 300,
-	storeY = 130,
+	storeY = 0,
 	clrIndex = 0
 }
 
@@ -49,7 +49,7 @@ function CreateAlien(i, j)
 		end,
 		update = function (self)
 			self.targetY = 20 + AlienGlobalRowsStepped * 10 + (self.row - 1) * 10
-			
+
 			if self.y > self.targetY then
 				self.y = self.y - 1
 			elseif self.y < self.targetY then
@@ -84,7 +84,7 @@ function CreateAlien(i, j)
 	}
 end
 
-function CreateAlienShot()
+function CreateAlienShot(shotParticle)
 	return {
 		x = AlienShotConsts.storeX,
 		y = AlienShotConsts.storeY,
@@ -92,6 +92,7 @@ function CreateAlienShot()
 		h = 4,
 		speed = 0,
 		countdown = 60,
+		particle = shotParticle,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -141,6 +142,7 @@ function CreateAlienShot()
 		collision = function (self)
 			-- Check bottom of screen
 			if self.y + self.h > GroundY then
+				self.particle:enable(self.x, self.y)
 				self:reset()
 			end
 
@@ -150,6 +152,46 @@ function CreateAlienShot()
 					AlienGlobalRowsStepped = 0
 				end
 				self:reset()
+			end
+		end
+	}
+end
+
+function CreateAlienShotParticles()
+	return {
+		x = AlienShotConsts.storeX,
+		y = AlienShotConsts.storeY,
+		active = false,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = AlienShotParticleAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = AlienShotParticleAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = AlienShotConsts.storeX
+			self.y = AlienShotConsts.storeY
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x - 2,
+					self.y - 2,
+					AlienShotConsts.clrIndex)
+			end
+		end,
+		update = function (self)
+			if self.active == true then
+				AnimateOneshot(self, AlienShotParticleAni)
 			end
 		end
 	}
