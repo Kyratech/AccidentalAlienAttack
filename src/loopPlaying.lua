@@ -35,9 +35,9 @@ end
 function StartLevel(formation)
 	-- Aliens
 	Aliens = {}
-	MaxAliens = 50
 	local alienCountX = 10
 	local alienCountY = 5
+	MaxAliens = 0
 	LiveAliens = 0
 
 	AlienGlobalRowsStepped = 0
@@ -49,6 +49,7 @@ function StartLevel(formation)
 			if alienType ~= 0 then
 				local alien = CreateAlien(i, j, alienType)
 				table.insert(Aliens, alien)
+				MaxAliens = MaxAliens + 1
 				LiveAliens = LiveAliens + 1
 			end
 		end
@@ -59,7 +60,7 @@ function StartLevel(formation)
 	-- The actual translation of the aliens
 	AlienGlobalVelocity = AlienGlobalSpeed
 
-	AlienCarrier:ready()
+	AlienCarrier:prepare()
 end
 
 function Input()

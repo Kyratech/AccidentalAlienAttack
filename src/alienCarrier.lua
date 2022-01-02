@@ -3,7 +3,7 @@ CarrierConsts = {
 	height = 1,
 	clrIndex = 12,
 	speed = 0.5,
-	y = 1,
+	y = 10,
 	storeX = -16
 }
 
@@ -15,7 +15,8 @@ function CreateCarrier()
 		h = CarrierConsts.height * TilePx,
 		speed = 0,
 		active = false,
-		countdown = 180,
+		-- After what percentage of ships destroyed should the carrier spawn
+		spawnWhenAliensRemaining = -1,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -38,24 +39,23 @@ function CreateCarrier()
 				self.x = self.x + self.speed
 
 				Animate(self, CarrierAni)
-			elseif self.countdown > 0 then
-				self.countdown = self.countdown - 1
-
-				if self.countdown == 0 then
-					self:enable()
-				end
+			elseif LiveAliens <= self.spawnWhenAliensRemaining then
+				self:enable()
 			end
 		end,
 		checkCollision = function (self)
-			if self.x > 240 then
-				self.active = false
+			if self.speed > 0 and self.x > 240 then
+				self:disable()
+			elseif self.speed < 0 and self.x < 0 - self.w then
+				self:disable()
 			end
 		end,
-		ready = function (self)
-			self.countdown = math.random(180, 600)
+		prepare = function (self)
+			self.spawnWhenAliensRemaining = math.random(1, MaxAliens)
 		end,
 		enable = function (self)
 			self.active = true
+			self.spawnWhenAliensRemaining = -1
 			local direction = math.random(1, 2)
 			if direction == 1 then
 				self.x = -16
