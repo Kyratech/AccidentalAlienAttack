@@ -160,6 +160,7 @@ function CreatePlayerShot()
 
 			if Collide(self, AlienCarrier) then
 				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+				ExtraLifePowerup:enable(AlienCarrier.x + 4, AlienCarrier.y)
 				AlienCarrier:disable()
 
 				Score = Score + 5

@@ -23,6 +23,7 @@
 		"player.lua",
 		"explosion.lua",
 		"playerExplosion.lua",
+		"powerup.lua",
 		"alien.lua",
 		"alienCarrier.lua",
 		"alienFormations.lua",

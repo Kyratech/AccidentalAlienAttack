@@ -31,6 +31,8 @@ function StartGame()
 	Explosion = CreateExplosion()
 	PlayerExplosionPrimary = CreateExplosion()
 	PlayerExplosionSecondary = CreatePlayerExplosion()
+
+	ExtraLifePowerup = Create1UpPowerup()
 end
 
 function StartLevel(formation)
@@ -97,6 +99,9 @@ function Update()
 	PlayerExplosionPrimary:update()
 
 	PlayerExplosionSecondary:update()
+
+	ExtraLifePowerup:update()
+	ExtraLifePowerup:checkCollision()
 end
 
 -- Combine alien handling so we only have to loop through once
@@ -173,6 +178,7 @@ function DrawGameObjects()
 	Explosion:draw()
 	PlayerExplosionSecondary:draw()
 	PlayerExplosionPrimary:draw()
+	ExtraLifePowerup:draw()
 end
 
 function DrawUi()
