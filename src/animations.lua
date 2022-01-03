@@ -34,10 +34,22 @@ PlayerShotAni = {
 	sprites = { 272, 273 }
 }
 
-Alien1Ani = {
+AlienRedAni = {
 	frameDelay = 10,
 	length = 4,
 	sprites = { 288, 289, 290, 291 }
+}
+
+AlienBlueAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 322, 323, 324, 325 }
+}
+
+AlienGreenAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 326, 327, 328, 329 }
 }
 
 AlienShotAni = {

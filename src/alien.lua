@@ -21,11 +21,15 @@ AlienShotConsts = {
 
 function CreateAlien(i, j, type)
 	if type == 1 then
-		return CreateAlien(i, j)
+		return CreateBasicAlien(i, j, AlienRedAni)
+	elseif type == 2 then
+		return CreateBasicAlien(i, j, AlienBlueAni)
+	elseif type == 3 then
+		return CreateBasicAlien(i, j, AlienGreenAni)
 	end
 end
 
-function CreateAlien(i, j)
+function CreateBasicAlien(i, j, animation)
 	return {
 		x = LeftWallX + 10 + (i - 1) * 16,
 		y = -50 + (j - 1) * 10,
@@ -38,7 +42,7 @@ function CreateAlien(i, j)
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
-			currentFrame = Alien1Ani.sprites[1]
+			currentFrame = animation.sprites[1]
 		},
 		draw = function (self)
 			spr(
@@ -59,7 +63,7 @@ function CreateAlien(i, j)
 				self.hitWall = false
 			end
 
-			Animate(self, Alien1Ani)
+			Animate(self, animation)
 		end,
 		checkCollision = function (self)
 			if self.y + self.h >= GroundY then
