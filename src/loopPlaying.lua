@@ -32,7 +32,8 @@ function StartGame()
 	PlayerExplosionPrimary = CreateExplosion()
 	PlayerExplosionSecondary = CreatePlayerExplosion()
 
-	ExtraLifePowerup = Create1UpPowerup()
+	ShieldPowerup = CreateShieldPowerup()
+	ExtraLifePowerup = CreateExtraLifePowerup()
 end
 
 function StartLevel(formation)
@@ -100,6 +101,8 @@ function Update()
 
 	PlayerExplosionSecondary:update()
 
+	ShieldPowerup:update()
+	ShieldPowerup:checkCollision()
 	ExtraLifePowerup:update()
 	ExtraLifePowerup:checkCollision()
 end
@@ -178,6 +181,7 @@ function DrawGameObjects()
 	Explosion:draw()
 	PlayerExplosionSecondary:draw()
 	PlayerExplosionPrimary:draw()
+	ShieldPowerup:draw()
 	ExtraLifePowerup:draw()
 end
 

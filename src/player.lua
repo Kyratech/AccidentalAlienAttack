@@ -5,7 +5,8 @@ PlayerConsts = {
 	sprOffsetX = -3,
 	sprOffsetY = -7,
 	clrIndex = 12,
-	respawnShieldLength = 120, 
+	respawnShieldLength = 120,
+	powerupShieldLength = 480
 }
 
 PlayerShotConsts = {
@@ -96,9 +97,7 @@ function CreatePlayer()
 			self.ani.currentFrame = PlayerDeadAni.sprites[1]
 		end,
 		respawn = function (self)
-			self.shielded = true
-			self.shieldTimer = PlayerConsts.respawnShieldLength
-			PlayerShield:enable()
+			self:activateShield(PlayerConsts.respawnShieldLength)
 			self:enable()
 		end,
 		die = function (self)
@@ -112,6 +111,11 @@ function CreatePlayer()
 			elseif self.x + self.w > RightWallX then
 				self.x = RightWallX - self.w
 			end
+		end,
+		activateShield = function (self, duration)
+			self.shielded = true
+			self.shieldTimer = duration
+			PlayerShield:enable()
 		end
 	}
 end
@@ -160,7 +164,7 @@ function CreatePlayerShot()
 
 			if Collide(self, AlienCarrier) then
 				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
-				ExtraLifePowerup:enable(AlienCarrier.x + 4, AlienCarrier.y)
+				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
 				AlienCarrier:disable()
 
 				Score = Score + 5
