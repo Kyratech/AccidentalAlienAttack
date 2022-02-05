@@ -34,6 +34,8 @@ function StartGame()
 
 	ShieldPowerup = CreateShieldPowerup()
 	ExtraLifePowerup = CreateExtraLifePowerup()
+
+	PowerupUi = CreatePowerupUi()
 end
 
 function StartLevel(formation)
@@ -191,6 +193,8 @@ function DrawUi()
 
 	print("Score:", 70, 1, 6)
 	print(Score, 105, 1, 5)
+
+	PowerupUi:draw()
 
 	-- DrawDebug(AlienGlobalRowsStepped)
 	-- DrawMouseDebug()

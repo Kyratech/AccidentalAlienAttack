@@ -27,6 +27,7 @@
 		"alien.lua",
 		"alienCarrier.lua",
 		"alienFormations.lua",
+		"ui.lua",
 		"animations.lua",
 		"drawingUtils.lua",
 		"animationUtils.lua",

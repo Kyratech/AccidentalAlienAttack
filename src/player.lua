@@ -103,6 +103,7 @@ function CreatePlayer()
 		die = function (self)
 			self.deathTimer = 180
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
+			PowerupUi:setIcon(PowerupIcons.none)
 			self:disable()
 		end,
 		checkCollision = function (self)
@@ -229,6 +230,7 @@ function CreatePlayerShield()
 			self.ani.delayCounter = 0
 			self.ani.currentCounter = 1
 			self.ani.currentFrame = PlayerShieldAni.sprites[1]
+			PowerupUi:setIcon(PowerupIcons.shield)
 		end,
 		startDeactivation = function (self)
 			self.deactivating = true
@@ -239,6 +241,7 @@ function CreatePlayerShield()
 		disable = function (self)
 			self.active = false
 			self.deactivating = false
+			PowerupUi:setIcon(PowerupIcons.none)
 		end
 	}
 end
