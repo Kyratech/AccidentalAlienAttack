@@ -34,6 +34,7 @@ function StartGame()
 
 	ShieldPowerup = CreateShieldPowerup()
 	ExtraLifePowerup = CreateExtraLifePowerup()
+	ScoreMultiplierPowerup = CreateScorePowerup()
 
 	PowerupUi = CreatePowerupUi()
 end
@@ -105,6 +106,8 @@ function Update()
 
 	ShieldPowerup:update()
 	ShieldPowerup:checkCollision()
+	ScoreMultiplierPowerup:update()
+	ScoreMultiplierPowerup:checkCollision()
 	ExtraLifePowerup:update()
 	ExtraLifePowerup:checkCollision()
 end
@@ -137,7 +140,6 @@ end
 function KillAlien(i)
 	Explosion:enable(Aliens[i].x, Aliens[i].y)
 
-	Score = Score + 1
 	table.remove(Aliens, i)
 	LiveAliens = LiveAliens - 1
 
@@ -184,6 +186,7 @@ function DrawGameObjects()
 	PlayerExplosionSecondary:draw()
 	PlayerExplosionPrimary:draw()
 	ShieldPowerup:draw()
+	ScoreMultiplierPowerup:draw()
 	ExtraLifePowerup:draw()
 end
 

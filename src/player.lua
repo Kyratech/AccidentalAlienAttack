@@ -6,7 +6,8 @@ PlayerConsts = {
 	sprOffsetY = -7,
 	clrIndex = 12,
 	respawnShieldLength = 120,
-	powerupShieldLength = 480
+	powerupShieldLength = 480,
+	scoreMultiplierLength = 480
 }
 
 PlayerShotConsts = {
@@ -20,6 +21,12 @@ PlayerShieldConsts = {
 	clrIndex = 0
 }
 
+PlayerStatuses = {
+	none = 0,
+	shield = 1,
+	scoreMultiplier = 2
+}
+
 function CreatePlayer()
 	return {
 		x = (240/2)-(PlayerConsts.widthPx*TilePx/2),
@@ -29,8 +36,8 @@ function CreatePlayer()
 		active = true,
 		speed = 0,
 		deathTimer = 0,
-		shielded = false,
-		shieldTimer = 0,
+		status = PlayerStatuses.none,
+		statusTimer = 0,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -50,14 +57,13 @@ function CreatePlayer()
 		end,
 		update = function (self)
 			if self.active == true then
-				if self.shielded == true then
-					self.shieldTimer = self.shieldTimer - 1
+				if self.status ~= PlayerStatuses.none then
+					self.statusTimer = self.statusTimer - 1
 
-					if self.shieldTimer == 70 then
-						PlayerShield:startDeactivation()
-					elseif self.shieldTimer <= 0 then
-						self.shielded = false
-						PlayerShield:disable()
+					if self.statusTimer == 70 then
+						self:beginEndOfStatus()
+					elseif self.statusTimer <= 0 then
+						self:endStatus()
 					end
 				end
 
@@ -97,7 +103,7 @@ function CreatePlayer()
 			self.ani.currentFrame = PlayerDeadAni.sprites[1]
 		end,
 		respawn = function (self)
-			self:activateShield(PlayerConsts.respawnShieldLength)
+			self:activateStatus(PlayerStatuses.shield, PlayerConsts.respawnShieldLength)
 			self:enable()
 		end,
 		die = function (self)
@@ -113,10 +119,32 @@ function CreatePlayer()
 				self.x = RightWallX - self.w
 			end
 		end,
-		activateShield = function (self, duration)
-			self.shielded = true
-			self.shieldTimer = duration
-			PlayerShield:enable()
+		activateStatus = function (self, newStatus, duration)
+			self.status = newStatus
+			self.statusTimer = duration
+
+			if newStatus == PlayerStatuses.shield then
+				PlayerShield:enable()
+				PowerupUi:setIcon(PowerupIcons.shield)
+			elseif newStatus == PlayerStatuses.scoreMultiplier then
+				PowerupUi:setIcon(PowerupIcons.scoreMultiplier)
+			end
+		end,
+		beginEndOfStatus = function (self)
+			if self.status == PlayerStatuses.shield then
+				PlayerShield:startDeactivation()
+			end
+
+			PowerupUi:setFlashing(true)
+		end,
+		endStatus = function (self)
+			if self.status == PlayerStatuses.shield then
+				PlayerShield:disable()
+			end
+			
+			self.status = PlayerStatuses.none
+			PowerupUi:setIcon(PowerupIcons.none)
+			PowerupUi:setFlashing(false)
 		end
 	}
 end
@@ -159,6 +187,13 @@ function CreatePlayerShot()
 			for i, alien in pairs(Aliens) do
 				if Collide(self, Aliens[i]) then
 					KillAlien(i)
+
+					if Player.status == PlayerStatuses.scoreMultiplier then
+						Score = Score + 2
+					else
+						Score = Score + 1
+					end
+
 					PlayerShot:reset()
 				end
 			end
@@ -230,7 +265,6 @@ function CreatePlayerShield()
 			self.ani.delayCounter = 0
 			self.ani.currentCounter = 1
 			self.ani.currentFrame = PlayerShieldAni.sprites[1]
-			PowerupUi:setIcon(PowerupIcons.shield)
 		end,
 		startDeactivation = function (self)
 			self.deactivating = true
@@ -241,7 +275,6 @@ function CreatePlayerShield()
 		disable = function (self)
 			self.active = false
 			self.deactivating = false
-			PowerupUi:setIcon(PowerupIcons.none)
 		end
 	}
 end

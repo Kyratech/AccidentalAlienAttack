@@ -67,7 +67,7 @@ function CreateBasicAlien(i, j, animation)
 		end,
 		checkCollision = function (self)
 			if self.y + self.h >= GroundY then
-				if Player.active == true and Player.shielded == false then
+				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()
 					NewAlienGlobalRowsStepped = 0
 				end
@@ -151,7 +151,7 @@ function CreateAlienShot(shotParticle)
 			end
 
 			if Collide(self, Player) then
-				if Player.active == true and Player.shielded == false then
+				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()
 					AlienGlobalRowsStepped = 0
 				end

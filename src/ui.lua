@@ -10,6 +10,7 @@ CreatePowerupUi = function()
 		x = 1,
 		y = 98,
 		currentIcon = PowerupIcons.none,
+		flashing = false,
 		draw = function(self)
 			spr(
 				62,
@@ -21,15 +22,21 @@ CreatePowerupUi = function()
 				0,
 				2,
 				2)
-			spr(
-				self.currentIcon,
-				self.x + 4,
-				self.y + 4,
-				0
-			)
+
+			if not self.flashing or time()%250>125 then
+				spr(
+					self.currentIcon,
+					self.x + 4,
+					self.y + 4,
+					0
+				)
+			end
 		end,
 		setIcon = function(self, spriteIndex)
 			self.currentIcon = spriteIndex
+		end,
+		setFlashing = function(self, isFlashing)
+			self.flashing = isFlashing
 		end
 	}
 end

@@ -1,14 +1,17 @@
 -- Each subsequent powerup should have a higher score
 PowerupFrequency = {
 	shield = 4,
-	extraLife = 5
+	scoreMultiplier = 8,
+	extraLife = 9
 }
-MaxFrequencyScore = 5
+MaxFrequencyScore = 9
 
 ActivateRandomPowerup = function(x, y)
 	local powerupIndex = math.random(MaxFrequencyScore)
 	if powerupIndex <= PowerupFrequency.shield then
 		ShieldPowerup:enable(x, y)
+	elseif powerupIndex <= PowerupFrequency.scoreMultiplier then
+		ScoreMultiplierPowerup:enable(x, y)
 	elseif powerupIndex <= PowerupFrequency.extraLife then
 		ExtraLifePowerup:enable(x, y)
 	end
@@ -33,7 +36,13 @@ end
 
 CreateShieldPowerup = function ()
 	return CreatePowerup(258, function()
-		Player:activateShield(PlayerConsts.powerupShieldLength)
+		Player:activateStatus(PlayerStatuses.shield, PlayerConsts.powerupShieldLength)
+	end)
+end
+
+CreateScorePowerup = function ()
+	return CreatePowerup(257, function()
+		Player:activateStatus(PlayerStatuses.scoreMultiplier, PlayerConsts.scoreMultiplierLength)
 	end)
 end
 
