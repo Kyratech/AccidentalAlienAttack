@@ -2,9 +2,10 @@
 PowerupFrequency = {
 	shield = 4,
 	scoreMultiplier = 8,
-	extraLife = 9
+	extraLife = 9,
+	timestop = 11
 }
-MaxFrequencyScore = 9
+MaxFrequencyScore = 11
 
 ActivateRandomPowerup = function(x, y)
 	local powerupIndex = math.random(MaxFrequencyScore)
@@ -14,6 +15,8 @@ ActivateRandomPowerup = function(x, y)
 		ScoreMultiplierPowerup:enable(x, y)
 	elseif powerupIndex <= PowerupFrequency.extraLife then
 		ExtraLifePowerup:enable(x, y)
+	elseif powerupIndex <= PowerupFrequency.timestop then
+		TimestopPowerup:enable(x, y)
 	end
 end
 
@@ -43,6 +46,12 @@ end
 CreateScorePowerup = function ()
 	return CreatePowerup(257, function()
 		Player:activateStatus(PlayerStatuses.scoreMultiplier, PlayerConsts.scoreMultiplierLength)
+	end)
+end
+
+CreateTimeStopPowerup = function ()
+	return CreatePowerup(259, function()
+		Player:activateStatus(PlayerStatuses.timestop, PlayerConsts.timestopLength)
 	end)
 end
 

@@ -58,7 +58,7 @@ function CreateBasicAlien(i, j, animation)
 				self.y = self.y - 1
 			elseif self.y < self.targetY then
 				self.y = self.y + 1
-			else
+			elseif Player.status ~= PlayerStatuses.timestop then
 				self.x = self.x + AlienGlobalVelocity
 				self.hitWall = false
 			end
@@ -112,7 +112,9 @@ function CreateAlienShot(shotParticle)
 			end
 		end,
 		update = function (self)
-			self.y = self.y + self.speed
+			if Player.status ~= PlayerStatuses.timestop then
+				self.y = self.y + self.speed
+			end
 
 			if self.countdown > 0 then
 				self.countdown = self.countdown - 1

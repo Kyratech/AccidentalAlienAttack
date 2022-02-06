@@ -35,6 +35,7 @@ function StartGame()
 	ShieldPowerup = CreateShieldPowerup()
 	ExtraLifePowerup = CreateExtraLifePowerup()
 	ScoreMultiplierPowerup = CreateScorePowerup()
+	TimestopPowerup = CreateTimeStopPowerup()
 
 	PowerupUi = CreatePowerupUi()
 end
@@ -110,6 +111,8 @@ function Update()
 	ScoreMultiplierPowerup:checkCollision()
 	ExtraLifePowerup:update()
 	ExtraLifePowerup:checkCollision()
+	TimestopPowerup:update()
+	TimestopPowerup:checkCollision()
 end
 
 -- Combine alien handling so we only have to loop through once
@@ -188,6 +191,7 @@ function DrawGameObjects()
 	ShieldPowerup:draw()
 	ScoreMultiplierPowerup:draw()
 	ExtraLifePowerup:draw()
+	TimestopPowerup:draw()
 end
 
 function DrawUi()

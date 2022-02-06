@@ -7,7 +7,8 @@ PlayerConsts = {
 	clrIndex = 12,
 	respawnShieldLength = 120,
 	powerupShieldLength = 480,
-	scoreMultiplierLength = 480
+	scoreMultiplierLength = 480,
+	timestopLength = 240
 }
 
 PlayerShotConsts = {
@@ -24,7 +25,8 @@ PlayerShieldConsts = {
 PlayerStatuses = {
 	none = 0,
 	shield = 1,
-	scoreMultiplier = 2
+	scoreMultiplier = 2,
+	timestop = 3
 }
 
 function CreatePlayer()
@@ -128,6 +130,8 @@ function CreatePlayer()
 				PowerupUi:setIcon(PowerupIcons.shield)
 			elseif newStatus == PlayerStatuses.scoreMultiplier then
 				PowerupUi:setIcon(PowerupIcons.scoreMultiplier)
+			elseif newStatus == PlayerStatuses.timestop then
+				PowerupUi:setIcon(PowerupIcons.timestop)
 			end
 		end,
 		beginEndOfStatus = function (self)
