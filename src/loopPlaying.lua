@@ -155,6 +155,14 @@ function UpdateAndDrawAlienShots()
 	end
 end
 
+function ScorePoints(x)
+	local scoreIncrease = x
+	if Player.status == PlayerStatuses.scoreMultiplier then
+		scoreIncrease = scoreIncrease * 2
+	end
+	Score = Score + scoreIncrease
+end
+
 function KillAlien(i)
 	Explosion:enable(Aliens[i].x, Aliens[i].y)
 
