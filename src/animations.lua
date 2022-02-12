@@ -47,7 +47,7 @@ PlayerMissileExhaustAni = {
 }
 
 PlayerMissileBurstAni = {
-	frameDelay = 5,
+	frameDelay = 2,
 	length = 5,
 	sprites = { 345, 346, 347, 348, 349 }
 }

@@ -301,6 +301,8 @@ function CreatePlayerMissile()
 			-- Check aliens
 			for i, alien in pairs(Aliens) do
 				if Collide(self, Aliens[i]) then
+					local alienY = Aliens[i].y;
+
 					Player:getWeaponPower(Aliens[i].weaponType)
 					KillAlien(i)
 
@@ -310,27 +312,30 @@ function CreatePlayerMissile()
 						Score = Score + 1
 					end
 
-					PlayerMissileBurstLeft:enable(self.x - 3, self.y, 0, -4)
-
+					self:createBursts(alienY)
 					self:reset()
 				end
 			end
 
 			if Collide(self, AlienCarrier) then
+				local alienY = AlienCarrier.y;
+
 				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
 				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
 				AlienCarrier:disable()
 
 				Score = Score + 5
 
+				self:createBursts(alienY)
 				self:reset()
 			end
 		end,
-		shoot = function (self, weaponPayload)
+		shoot = function (self)
 			if self.speed == 0 then
 				self.x = Player.x + 4
 				self.y = Player.y
 				self.speed = PlayerMissileConsts.speed
+				self.type = Player.weaponType
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
 			end
@@ -341,6 +346,17 @@ function CreatePlayerMissile()
 			self.speed = 0
 
 			PlayerMissileExhaust:update(self.x, self.y + 8)
+		end,
+		createBursts = function (self, alienY)
+			if self.type == PlayerWeapons.vertical then
+				PlayerMissileBurstLeft:enable(self.x - 3, alienY, 0, -2)
+			elseif self.type == PlayerWeapons.horizontal then
+				PlayerMissileBurstLeft:enable(self.x - 3, alienY, -2, 0)
+				PlayerMissileBurstRight:enable(self.x - 3, alienY, 2, 0)
+			elseif self.type == PlayerWeapons.diagonal then
+				PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
+				PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
+			end
 		end
 	}
 end
