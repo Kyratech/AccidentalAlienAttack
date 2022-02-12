@@ -21,20 +21,21 @@ AlienShotConsts = {
 
 function CreateAlien(i, j, type)
 	if type == 1 then
-		return CreateBasicAlien(i, j, AlienRedAni)
+		return CreateBasicAlien(i, j, AlienRedAni, PlayerWeapons.horizontal)
 	elseif type == 2 then
-		return CreateBasicAlien(i, j, AlienBlueAni)
+		return CreateBasicAlien(i, j, AlienBlueAni, PlayerWeapons.diagonal)
 	elseif type == 3 then
-		return CreateBasicAlien(i, j, AlienGreenAni)
+		return CreateBasicAlien(i, j, AlienGreenAni, PlayerWeapons.vertical)
 	end
 end
 
-function CreateBasicAlien(i, j, animation)
+function CreateBasicAlien(i, j, animation, specialWeapon)
 	return {
 		x = LeftWallX + 10 + (i - 1) * 16,
 		y = -50 + (j - 1) * 10,
 		w = AlienConsts.width * TilePx,
 		h = AlienConsts.height * TilePx,
+		weaponType = specialWeapon,
 		column = i,
 		row = j,
 		targetY = 20 + (j - 1) * 10,

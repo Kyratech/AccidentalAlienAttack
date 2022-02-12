@@ -29,6 +29,13 @@ PlayerStatuses = {
 	timestop = 3
 }
 
+PlayerWeapons = {
+	none = "none",
+	vertical = "vertical",
+	horizontal = "horizontal",
+	diagonal = "diagonal"
+}
+
 function CreatePlayer()
 	return {
 		x = (240/2)-(PlayerConsts.widthPx*TilePx/2),
@@ -40,6 +47,8 @@ function CreatePlayer()
 		deathTimer = 0,
 		status = PlayerStatuses.none,
 		statusTimer = 0,
+		weaponType = PlayerWeapons.none,
+		weaponPower = 0,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -113,6 +122,14 @@ function CreatePlayer()
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			PowerupUi:setIcon(PowerupIcons.none)
 			self:disable()
+		end,
+		getWeaponPower = function (self, weapon)
+			if (self.weaponType ~= weapon) then
+				self.weaponType = weapon
+				self.weaponPower = 1
+			elseif (self.weaponPower < 4) then
+				self.weaponPower = self.weaponPower + 1
+			end
 		end,
 		checkCollision = function (self)
 			if self.x < LeftWallX then
@@ -190,6 +207,7 @@ function CreatePlayerShot()
 			-- Check aliens
 			for i, alien in pairs(Aliens) do
 				if Collide(self, Aliens[i]) then
+					Player:getWeaponPower(Aliens[i].weaponType)
 					KillAlien(i)
 
 					if Player.status == PlayerStatuses.scoreMultiplier then
