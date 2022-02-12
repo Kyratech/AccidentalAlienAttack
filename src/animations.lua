@@ -34,6 +34,24 @@ PlayerShotAni = {
 	sprites = { 272, 273 }
 }
 
+PlayerMissileAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 344 }
+}
+
+PlayerMissileExhaustAni = {
+	frameDelay = 5,
+	length = 2,
+	sprites = { 360, 361 }
+}
+
+PlayerMissileBurstAni = {
+	frameDelay = 5,
+	length = 5,
+	sprites = { 345, 346, 347, 348, 349 }
+}
+
 AlienRedAni = {
 	frameDelay = 10,
 	length = 4,

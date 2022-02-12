@@ -10,6 +10,7 @@ GroundY = 125
 BtnLeft = 2
 BtnRight = 3
 BtnA = 4
+BtnB = 5
 
 -- Game states
 StateTitle = 1

@@ -15,6 +15,10 @@ function StartGame()
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
 	PlayerShield = CreatePlayerShield()
+	PlayerMissile = CreatePlayerMissile()
+	PlayerMissileExhaust = CreatePlayerMissileExhaust()
+	PlayerMissileBurstLeft = CreatePlayerMissileBurst()
+	PlayerMissileBurstRight = CreatePlayerMissileBurst()
 
 	AlienCarrier = CreateCarrier()
 
@@ -85,6 +89,10 @@ function Input()
 		if Player.active == true then
 			PlayerShot:shoot()
 		end
+	elseif btnp(BtnB) then
+		if Player.active == true and Player.weaponPower == 4 then
+			PlayerMissile:shoot()
+		end
 	end
 end
 
@@ -94,6 +102,12 @@ function Update()
 
 	PlayerShot:update()
 	PlayerShot:checkCollision()
+	PlayerMissile:update()
+	PlayerMissile:checkCollision()
+	PlayerMissileBurstLeft:update()
+	PlayerMissileBurstRight:update()
+	PlayerMissileBurstLeft:checkCollision()
+	PlayerMissileBurstRight:checkCollision()
 
 	PlayerShield:update()
 
@@ -184,6 +198,9 @@ end
 function DrawGameObjects()
 	Player:draw()
 	PlayerShot:draw()
+	PlayerMissile:draw()
+	PlayerMissileBurstLeft:draw()
+	PlayerMissileBurstRight:draw()
 	PlayerShield:draw()
 	AlienCarrier:draw()
 	Explosion:draw()
