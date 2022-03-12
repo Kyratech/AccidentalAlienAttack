@@ -9,5 +9,7 @@ function TIC()
 		PlayingLoop()
 	elseif GameState == StateGameOver then
 		GameOverLoop()
+	elseif GameState == StateDialogue then
+		DialogueLoop()
 	end
 end

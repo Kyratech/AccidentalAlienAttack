@@ -221,16 +221,16 @@ function DrawGameObjects()
 end
 
 function DrawUi()
-	-- print("Lives:", 5, 1, 6)
-	-- print(Lives, 40, 1, 5)
+	print("Lives:", 5, 1, 6)
+	print(Lives, 40, 1, 5)
 
-	-- print("Score:", 70, 1, 6)
-	-- print(Score, 105, 1, 5)
+	print("Score:", 70, 1, 6)
+	print(Score, 105, 1, 5)
 
 	PowerupUi:draw()
 	SpecialWeaponUi:draw()
 
-	DrawDebug("Weapon: " .. Player.weaponType .. ". power: " .. Player.weaponPower)
+	-- DrawDebug("Weapon: " .. Player.weaponType .. ". power: " .. Player.weaponPower)
 	-- DrawMouseDebug()
 end
 

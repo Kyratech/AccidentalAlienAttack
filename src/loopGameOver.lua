@@ -5,17 +5,16 @@ function GameOverLoop()
 	GoDraw()
 end
 
-function GameOver()
+function GameOver(script, numberOfLines)
 	GameState = StateGameOver
 
-	local columnWidth = 50
+	local columnWidth = 20
 
-	HumanDialogue = CreateDialogue("GAME OVER!", HumanSadAni, 30, 10, true, columnWidth)
-	AlienDialogue = CreateDialogue("I am so sorry...", AlienSadAni, 50, 13, false, columnWidth)
+	DialogueObject = CreateDialogueScreen(script, numberOfLines, columnWidth)
 
 	ScoreText = {
 		text = "You scored " .. Score .. " points!",
-		y = 80,
+		y = 110,
 		draw = function (self)
 			PrintCentred(self.text, 120, self.y, 12)
 		end
@@ -23,7 +22,7 @@ function GameOver()
 
 	RestartText = {
 		text = "Press [A] to play again.",
-		y = 90,
+		y = 120,
 		draw = function (self)
 			PrintCentred(self.text, 120, self.y, 12)
 		end
@@ -32,18 +31,17 @@ end
 
 function GoInput()
 	if btn(BtnA) then
-		GameState = StatePlaying
-		StartGame()
+		GameState = StateDialogue
+		DialogueInit(ScriptIntro, 3)
 	end
 end
 
 function GoUpdate()
-	HumanDialogue:update()
+	DialogueObject:update()
 end
 
 function GoDraw()
-	HumanDialogue:draw()
-	AlienDialogue:draw()
+	DialogueObject:draw()
 	ScoreText:draw()
 	RestartText:draw()
 end
