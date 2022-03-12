@@ -44,9 +44,13 @@ DialogueIconLeft = {
 	human = true
 }
 
+DialogueConsts = {
+	lineHeight = 16,
+	lineGapHeight = 8
+}
+
 function CreateDialogueScreen(script, numberOfLines, columnWidth)
 	local dialogueLines = {}
-	local verticalGapBetweenLines = GetVerticalGapBetweenLines(numberOfLines)
 
 	for i = 1, numberOfLines do
 		local lineText = script[i].text
@@ -54,7 +58,7 @@ function CreateDialogueScreen(script, numberOfLines, columnWidth)
 		table.insert(dialogueLines, CreateDialogueLine(
 			lineText,
 			lineAni,
-			GetLineY(verticalGapBetweenLines, i),
+			GetLineY(i, numberOfLines),
 			DialogueTextColours[script[i].speaker],
 			DialogueIconLeft[script[i].speaker],
 			columnWidth
@@ -76,13 +80,17 @@ function CreateDialogueScreen(script, numberOfLines, columnWidth)
 	}
 end
 
-function GetVerticalGapBetweenLines(numberOfLines)
-	local emptyVerticalSpace = ScreenHeight - numberOfLines * 16
-	return emptyVerticalSpace / (numberOfLines + 1)
+function GetFirstLineOffset(numberOfLines)
+	local totalLineHeight = DialogueConsts.lineHeight * numberOfLines
+	local totalLineGapHeight = DialogueConsts.lineGapHeight * (numberOfLines - 1)
+	local totalMarginAroundLines = ScreenHeight - totalLineHeight - totalLineGapHeight
+	return totalMarginAroundLines / 2 
 end
 
-function GetLineY(verticalGap, lineNumber)
-	return verticalGap * lineNumber + 16 * (lineNumber - 1)
+function GetLineY(lineNumber, numberOfLines)
+	local firstLineOffset = GetFirstLineOffset(numberOfLines)
+	local heightOfPreviousLines = (DialogueConsts.lineHeight + DialogueConsts.lineGapHeight) * (lineNumber - 1)
+	return firstLineOffset + heightOfPreviousLines
 end
 
 function CreateDialogueLine(str, ani, y, textColour, iconLeft, columnWidth)
