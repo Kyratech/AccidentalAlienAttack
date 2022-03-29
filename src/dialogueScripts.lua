@@ -16,6 +16,24 @@ ScriptIntro = {
 	}
 }
 
+ScriptGameOverGood = {
+	{
+		text = "I think that was the last of them.",
+		ani = DialogueAlienAnis.relief,
+		speaker = "alien"
+	},
+	{
+		text = "As if there was any doubt.",
+		ani = DialogueHumanAnis.cocky,
+		speaker = "human"
+	},
+	{
+		text = "Thank you, overly cocky human.",
+		ani = DialogueAlienAnis.nervousLaugh,
+		speaker = "alien"
+	},
+}
+
 ScriptGameOverBad = {
 	{
 		text = "We're done! We've got nothing left!",

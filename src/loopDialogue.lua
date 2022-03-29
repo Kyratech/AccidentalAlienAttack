@@ -19,7 +19,7 @@ function DialogueInit(script, numberOfLines)
 	}
 
 	footerText = {
-		text = "press a to end transmission",
+		text = "press a to close transmission",
 		y = 112,
 		draw = function (self)
 			PrintCustomCentred(self.text, 120, self.y)

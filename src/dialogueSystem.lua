@@ -13,6 +13,11 @@ DialogueAlienAnis = {
 		frameDelay = 1,
 		length = 1,
 		sprites = { 144 }
+	},
+	relief = {
+		frameDelay = 1,
+		length = 1,
+		sprites = { 176 }
 	}
 }
 

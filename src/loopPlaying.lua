@@ -22,7 +22,10 @@ function StartGame()
 
 	AlienCarrier = CreateCarrier()
 
-	StartLevel(Formation1)
+	CurrentStage = 1
+	CurrentLevel = 1
+
+	StartLevel(Formations[CurrentStage][CurrentLevel])
 
 	AlienShots = {}
 	local alienShotCount = 3
@@ -74,6 +77,27 @@ function StartLevel(formation)
 	AlienGlobalVelocity = AlienGlobalSpeed
 
 	AlienCarrier:prepare()
+end
+
+function EndLevel()
+	CurrentLevel = CurrentLevel + 1
+
+	if CurrentLevel > NumberOfLevelsPerStage then
+		EndStage()
+	else
+		StartLevel(Formations[CurrentStage][CurrentLevel])
+	end
+end
+
+function EndStage()
+	CurrentLevel = 0
+	CurrentStage = CurrentStage + 1
+
+	if CurrentStage > NumberOfStages then
+		GameOver(ScriptGameOverGood, 3)
+	else
+		StartLevel(Formations[CurrentStage][CurrentLevel])
+	end
 end
 
 function Input()
@@ -170,7 +194,7 @@ function KillAlien(i)
 	LiveAliens = LiveAliens - 1
 
 	if LiveAliens == 0 then
-		StartLevel(Formation2)
+		EndLevel()
 	else
 		AlienGlobalSpeed = CalculateAlienSpeed(MaxAliens, LiveAliens)
 		if AlienGlobalVelocity > 0 then
