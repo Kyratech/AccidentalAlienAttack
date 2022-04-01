@@ -36,6 +36,11 @@ DialogueHumanAnis = {
 		frameDelay = 30,
 		length = 2,
 		sprites = { 114, 116 }
+	},
+	pout = {
+		frameDelay = 1,
+		length = 1,
+		sprites = { 146 }
 	}
 }
 

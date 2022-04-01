@@ -5,7 +5,9 @@ function DialogueLoop()
 	DialogueDraw()
 end
 
-function DialogueInit(script, numberOfLines)
+function DialogueInit(script, numberOfLines, endDialogueFunction)
+	EndDialogueFunction = endDialogueFunction
+
 	local columnWidth = 20
 
 	DialogueObject = CreateDialogueScreen(script, numberOfLines, columnWidth)
@@ -19,7 +21,7 @@ function DialogueInit(script, numberOfLines)
 	}
 
 	footerText = {
-		text = "press a to close transmission",
+		text = "end transmission",
 		y = 112,
 		draw = function (self)
 			PrintCustomCentred(self.text, 120, self.y)
@@ -29,8 +31,7 @@ end
 
 function DialogueInput()
 	if btnp(BtnA) then
-		GameState = StatePlaying
-		StartGame()
+		EndDialogueFunction()
 	end
 end
 

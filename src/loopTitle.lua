@@ -12,7 +12,13 @@ end
 function TitleInput()
 	if btnp(BtnA) then
 		GameState = StateDialogue
-		DialogueInit(ScriptIntro, 3)
+		DialogueInit(
+			ScriptIntro,
+			3,
+			function()
+				GameState = StatePlaying
+				StartGame()
+			end)
 	end
 end
 

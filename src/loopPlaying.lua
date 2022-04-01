@@ -90,13 +90,20 @@ function EndLevel()
 end
 
 function EndStage()
-	CurrentLevel = 0
+	CurrentLevel = 1
 	CurrentStage = CurrentStage + 1
 
 	if CurrentStage > NumberOfStages then
 		GameOver(ScriptGameOverGood, 3)
 	else
-		StartLevel(Formations[CurrentStage][CurrentLevel])
+		GameState = StateDialogue
+		DialogueInit(
+			ScriptStageInterludes[CurrentStage - 1],
+			ScriptStageInterludesLengths[CurrentStage - 1],
+			function()
+				GameState = StatePlaying
+				StartLevel(Formations[CurrentStage][CurrentLevel])
+			end)
 	end
 end
 
