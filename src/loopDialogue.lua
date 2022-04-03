@@ -14,17 +14,17 @@ function DialogueInit(script, numberOfLines, endDialogueFunction)
 
 	headerText = {
 		text = "incoming transmission",
-		y = 16,
+		y = 8,
 		draw = function (self)
-			PrintCustomCentred(self.text, 120, self.y)
+			PrintCustomCentredDecorated(self.text, 120, self.y)
 		end
 	}
 
 	footerText = {
 		text = "end transmission",
-		y = 112,
+		y = ScreenHeight - 16,
 		draw = function (self)
-			PrintCustomCentred(self.text, 120, self.y)
+			PrintCustomCentredDecorated(self.text, 120, self.y)
 		end
 	}
 end
@@ -44,4 +44,6 @@ function DialogueDraw()
 
 	headerText:draw()
 	footerText:draw()
+
+	DrawContinuePrompt(ScreenWidth - 60, ScreenHeight - 8)
 end

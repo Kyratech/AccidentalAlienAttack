@@ -44,8 +44,10 @@ function StartGame()
 	ScoreMultiplierPowerup = CreateScorePowerup()
 	TimestopPowerup = CreateTimeStopPowerup()
 
+	HeaderUi = CreateHeaderUi()
 	PowerupUi = CreatePowerupUi()
 	SpecialWeaponUi = CreateSpecialWeaponUi()
+	LevelUi = CreateLevelUi()
 end
 
 function StartLevel(formation)
@@ -252,14 +254,10 @@ function DrawGameObjects()
 end
 
 function DrawUi()
-	print("Lives:", 5, 1, 6)
-	print(Lives, 40, 1, 5)
-
-	print("Score:", 70, 1, 6)
-	print(Score, 105, 1, 5)
-
+	HeaderUi:draw()
 	PowerupUi:draw()
 	SpecialWeaponUi:draw()
+	LevelUi:draw()
 
 	-- DrawDebug("Weapon: " .. Player.weaponType .. ". power: " .. Player.weaponPower)
 	-- DrawMouseDebug()

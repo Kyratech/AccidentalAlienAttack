@@ -19,6 +19,48 @@ WeaponIconsSpriteIndexes = {
 	diagonal = 140
 }
 
+ButtonIcons = {
+	A = {
+		tic = 12,
+		pc = 250
+	},
+	B = {
+		tic = 13,
+		pc = 251
+	},
+	X = {
+		tic = 14,
+		pc = 252
+	},
+	Y= {
+		tic = 15,
+		pc = 253
+	}
+}
+
+function DrawContinuePrompt(x, y)
+	local index = ButtonIcons.A.tic
+	spr(index, x, y, 0)
+	print(": Continue", x + 10, y + 2, 12)
+end
+
+CreateHeaderUi = function()
+	return {
+		y = 1,
+		draw = function(self)
+			spr(208, 1, self.y, 0, 1, 0, 0, 2, 1)
+			PrintCustom("LIVES", 16, self.y)
+			spr(210, 41, self.y, 0)
+			print(Lives, 44, self.y + 1, 12)
+
+			spr(208, ScreenWidth - 17, self.y, 0, 1, 1, 0, 2, 1)
+			PrintCustomRightAligned("SCORE", ScreenWidth - 15, self.y)
+			spr(210, ScreenWidth - 42, self.y, 0)
+			PrintRightAligned(Score, ScreenWidth - 43, self.y + 1, 12)
+		end
+	}
+end
+
 CreatePowerupUi = function()
 	return {
 		x = 223,
@@ -26,6 +68,8 @@ CreatePowerupUi = function()
 		currentIcon = PowerupIcons.none,
 		flashing = false,
 		draw = function(self)
+			PrintCustom("PWR", self.x + 1, self.y - 8)
+
 			spr(
 				62,
 				self.x,
@@ -58,8 +102,10 @@ end
 CreateSpecialWeaponUi = function()
 	return {
 		x = 223,
-		y = 20,
+		y = 42,
 		draw = function(self)
+			PrintCustom("SPW", self.x + 1, self.y - 8)
+
 			spr(
 				60,
 				self.x,
@@ -120,6 +166,46 @@ CreateSpecialWeaponUi = function()
 				5,
 				WeaponColours[Player.weaponType]
 			)
+		end
+	}
+end
+
+CreateLevelUi = function()
+	return {
+		x = 1,
+		y = 72,
+		draw = function(self)
+			-- Stage
+			PrintCustom("ZNE", self.x + 1, self.y - 8)
+
+			spr(
+				62,
+				self.x,
+				self.y,
+				-1,
+				1,
+				0,
+				0,
+				2,
+				2)
+
+			print(string.format("%02d", CurrentStage), self.x + 3, self.y + 6, 12)
+
+			-- Level
+			PrintCustom("WAV", self.x + 1, self.y + 18)
+
+			spr(
+				62,
+				self.x,
+				self.y + 26,
+				-1,
+				1,
+				0,
+				0,
+				2,
+				2)
+
+			print(string.format("%02d", CurrentLevel), self.x + 3, self.y + 32, 12)
 		end
 	}
 end
