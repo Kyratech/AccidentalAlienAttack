@@ -53,7 +53,7 @@ function CreateBasicAlien(i, j, animation, specialWeapon)
 				AlienConsts.clrIndex)
 		end,
 		update = function (self)
-			self.targetY = 20 + AlienGlobalRowsStepped * 10 + (self.row - 1) * 10
+			self.targetY = 20 + AlienGlobalRowsStepped * 10 * GameSettings.baseAlienDescentRate + (self.row - 1) * 10
 
 			if self.y > self.targetY then
 				self.y = self.y - 1
@@ -136,7 +136,7 @@ function CreateAlienShot(shotParticle)
 				if self.speed == 0 then
 					self.x = Aliens[i].x + 2
 					self.y = Aliens[i].y + 8
-					self.speed = AlienShotConsts.speed
+					self.speed = AlienShotConsts.speed * GameSettings.baseAlienShotSpeed
 				end
 			end
 		end,
@@ -206,14 +206,14 @@ end
 
 function CalculateAlienSpeed(maxAliens, liveAliens)
 	if liveAliens == 1 then
-		return AlienSpeeds.speedOne
+		return AlienSpeeds.speedOne * GameSettings.baseAlienSpeed
 	elseif liveAliens <= 4 then
-		return AlienSpeeds.speedFour
+		return AlienSpeeds.speedFour * GameSettings.baseAlienSpeed
 	elseif maxAliens // liveAliens == 1 then
-		return AlienSpeeds.speedFull
+		return AlienSpeeds.speedFull * GameSettings.baseAlienSpeed
 	elseif maxAliens // liveAliens == 2 then
-		return AlienSpeeds.speedHalf
+		return AlienSpeeds.speedHalf * GameSettings.baseAlienSpeed
 	else
-		return AlienSpeeds.speedQuarter
+		return AlienSpeeds.speedQuarter * GameSettings.baseAlienSpeed
 	end
 end

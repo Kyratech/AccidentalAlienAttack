@@ -1,3 +1,32 @@
+function ScrollOptionsH(self)
+	if btnp(BtnLeft) then
+		self.selectedOption = self.selectedOption - 1
+
+		if self.selectedOption == 0 then
+			self.selectedOption = self.optionsCount
+		end
+	end
+
+	if btnp(BtnRight) then
+		self.selectedOption = self.selectedOption + 1
+
+		if self.selectedOption > self.optionsCount then
+			self.selectedOption = 1
+		end
+	end
+
+	if btnp(BtnA) then
+		for i = 1, OptionsMenuOptionsCount do
+			OptionsMenuOptions[i]:save()
+		end
+		OptionsMenuOpen = false
+	end
+
+	if btnp(BtnB) then
+		OptionsMenuOpen = false
+	end
+end
+
 MainMenuOptionsCount = 2
 MainMenuOptions = {
 	{
@@ -34,7 +63,7 @@ MainMenuConsts = {
 	lineHeight = 12
 }
 
-OptionsMenuOptionsCount = 1
+OptionsMenuOptionsCount = 4
 OptionsMenuOptions = {
 	{
 		options = {
@@ -62,32 +91,7 @@ OptionsMenuOptions = {
 				print(self.options[i].label, x + 120 + 40 * (i - 1), y, textColour)
 			end
 		end,
-		input = function (self)
-			if btnp(BtnLeft) then
-				self.selectedOption = self.selectedOption - 1
-
-				if self.selectedOption == 0 then
-					self.selectedOption = self.optionsCount
-				end
-			end
-
-			if btnp(BtnRight) then
-				self.selectedOption = self.selectedOption + 1
-
-				if self.selectedOption > self.optionsCount then
-					self.selectedOption = 1
-				end
-			end
-
-			if btnp(BtnA) then
-				GameSettings.buttonPrompts = self.options[self.selectedOption].value
-				OptionsMenuOpen = false
-			end
-
-			if btnp(BtnB) then
-				OptionsMenuOpen = false
-			end
-		end,
+		input = ScrollOptionsH,
 		getCurrent = function (self)
 			local currentValue = GameSettings.buttonPrompts
 
@@ -96,6 +100,153 @@ OptionsMenuOptions = {
 					self.selectedOption = i
 				end
 			end
+		end,
+		save = function (self)
+			GameSettings.buttonPrompts = self.options[self.selectedOption].value
+		end
+	},
+	{
+		options = {
+			{
+				label = ".00",
+				value = 0
+			},
+			{
+				label = ".25",
+				value = 0.25
+			},
+			{
+				label = ".50",
+				value = 0.5
+			},
+			{
+				label = "1.0",
+				value = 1
+			},
+		},
+		optionsCount = 4,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Alien speed", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 20 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			local currentValue = GameSettings.baseAlienSpeed
+
+			for i = 1, self.optionsCount do
+				if self.options[i].value == currentValue then
+					self.selectedOption = i
+				end
+			end
+		end,
+		save = function (self)
+			GameSettings.baseAlienSpeed = self.options[self.selectedOption].value
+		end
+	},
+	{
+		options = {
+			{
+				label = ".25",
+				value = 0.25
+			},
+			{
+				label = ".50",
+				value = 0.5
+			},
+			{
+				label = "1.0",
+				value = 1
+			},
+			{
+				label = "2.0",
+				value = 2
+			}
+		},
+		optionsCount = 4,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Alien shot speed", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 20 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			local currentValue = GameSettings.baseAlienShotSpeed
+
+			for i = 1, self.optionsCount do
+				if self.options[i].value == currentValue then
+					self.selectedOption = i
+				end
+			end
+		end,
+		save = function (self)
+			GameSettings.baseAlienShotSpeed = self.options[self.selectedOption].value
+		end
+	},
+	{
+		options = {
+			{
+				label = ".00",
+				value = 0
+			},
+			{
+				label = ".50",
+				value = 0.5
+			},
+			{
+				label = "1.0",
+				value = 1
+			},
+			{
+				label = "2.0",
+				value = 2
+			}
+		},
+		optionsCount = 4,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Alien descent rate", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 20 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			local currentValue = GameSettings.baseAlienDescentRate
+
+			for i = 1, self.optionsCount do
+				if self.options[i].value == currentValue then
+					self.selectedOption = i
+				end
+			end
+		end,
+		save = function (self)
+			GameSettings.baseAlienDescentRate = self.options[self.selectedOption].value
 		end
 	}
 }
