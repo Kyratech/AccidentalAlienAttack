@@ -16,11 +16,13 @@
 	},
 	"files": [
 		"consts.lua",
+		"settings.lua",
 		"loopMaster.lua",
 		"loopTitle.lua",
 		"loopPlaying.lua",
 		"loopGameOver.lua",
 		"loopDialogue.lua",
+		"menu.lua",
 		"player.lua",
 		"playerShot.lua",
 		"playerMissile.lua",

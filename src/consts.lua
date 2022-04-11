@@ -10,6 +10,8 @@ RightWallX = 218
 GroundY = 125
 
 -- Button aliases
+BtnUp = 0
+BtnDown = 1
 BtnLeft = 2
 BtnRight = 3
 BtnA = 4

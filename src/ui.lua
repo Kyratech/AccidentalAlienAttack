@@ -38,10 +38,9 @@ ButtonIcons = {
 	}
 }
 
-function DrawContinuePrompt(x, y)
-	local index = ButtonIcons.A.tic
-	spr(index, x, y, 0)
-	print(": Continue", x + 10, y + 2, 12)
+function DrawButtonPrompt(buttonSpr, str, x, y)
+	spr(buttonSpr[(GameSettings.buttonPrompts)], x, y, 0)
+	print(": " .. str, x + 10, y + 2, 12)
 end
 
 CreateHeaderUi = function()
