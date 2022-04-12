@@ -13,6 +13,6 @@
 		"watch": "tic-bundle -c .ticbundle.json"
 	},
 	"dependencies": {
-		"tic-bundle": "^3.2.2"
+		"tic-bundle": "^3.3.0"
 	}
 }

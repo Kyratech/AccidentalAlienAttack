@@ -39,8 +39,10 @@
 		"animations.lua",
 		"drawingUtils.lua",
 		"animationUtils.lua",
-		"runGame.lua",
-		"assetMetadata.lua"
+		"runGame.lua"
+	],
+	"assets": [
+		"metadata.lua"
 	],
 	"after": null
 }
