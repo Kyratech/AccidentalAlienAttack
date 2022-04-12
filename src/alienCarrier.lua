@@ -59,10 +59,10 @@ function CreateCarrier()
 			local direction = math.random(1, 2)
 			if direction == 1 then
 				self.x = -16
-				self.speed = CarrierConsts.speed
+				self.speed = CarrierConsts.speed * GameSettings.baseAlienCarrierSpeed
 			else
 				self.x = 240
-				self.speed = -CarrierConsts.speed
+				self.speed = -CarrierConsts.speed * GameSettings.baseAlienCarrierSpeed
 			end
 		end,
 		disable = function (self)

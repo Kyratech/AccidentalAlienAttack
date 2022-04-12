@@ -28,8 +28,7 @@ function StartGame()
 	StartLevel(Formations[CurrentStage][CurrentLevel])
 
 	AlienShots = {}
-	local alienShotCount = 3
-	for i = 0, alienShotCount, 1 do
+	for i = 1, GameSettings.activeAlienShots, 1 do
 		local alienShotParticle = CreateAlienShotParticles()
 		local alienShot = CreateAlienShot(alienShotParticle)
 		table.insert(AlienShots, alienShot)

@@ -63,7 +63,7 @@ MainMenuConsts = {
 	lineHeight = 12
 }
 
-OptionsMenuOptionsCount = 4
+OptionsMenuOptionsCount = 6
 OptionsMenuOptions = {
 	{
 		options = {
@@ -151,6 +151,98 @@ OptionsMenuOptions = {
 		end,
 		save = function (self)
 			GameSettings.baseAlienSpeed = self.options[self.selectedOption].value
+		end
+	},
+	{
+		options = {
+			{
+				label = ".25",
+				value = 0.25
+			},
+			{
+				label = ".50",
+				value = 0.5
+			},
+			{
+				label = "1.0",
+				value = 1
+			}
+		},
+		optionsCount = 3,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Carrier speed", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 20 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			local currentValue = GameSettings.baseAlienCarrierSpeed
+
+			for i = 1, self.optionsCount do
+				if self.options[i].value == currentValue then
+					self.selectedOption = i
+				end
+			end
+		end,
+		save = function (self)
+			GameSettings.baseAlienCarrierSpeed = self.options[self.selectedOption].value
+		end
+	},
+	{
+		options = {
+			{
+				label = ".00",
+				value = 0
+			},
+			{
+				label = ".50",
+				value = 2
+			},
+			{
+				label = "1.0",
+				value = 4
+			},
+			{
+				label = "1.5",
+				value = 6
+			}
+		},
+		optionsCount = 4,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Alien attack rate", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 20 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			local currentValue = GameSettings.activeAlienShots
+
+			for i = 1, self.optionsCount do
+				if self.options[i].value == currentValue then
+					self.selectedOption = i
+				end
+			end
+		end,
+		save = function (self)
+			GameSettings.activeAlienShots = self.options[self.selectedOption].value
 		end
 	},
 	{
