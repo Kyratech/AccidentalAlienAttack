@@ -357,6 +357,34 @@ OptionsMenuConsts = {
 	lineHeight = 12
 }
 
+PauseMenuOptionsCount = 2
+PauseMenuOptions = {
+	{
+		draw = function(self, x, y)
+			print("Resume", x, y, 12)
+		end,
+		input = function(self)
+			if btnp(BtnA) then
+				Paused = false
+			end
+		end
+	},
+	{
+		draw = function(self, x, y)
+			print("Return to title", x, y, 12)
+		end,
+		input = function(self)
+			if btnp(BtnA) then
+				TitleScreen()
+			end
+		end
+	}
+}
+PauseMenuConsts = {
+	arrowHOffset = 10,
+	lineHeight = 12
+}
+
 function CreateMenu(menuOptions, menuOptionsCount, menuConsts, x, y)
 	return {
 		x = x,

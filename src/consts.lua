@@ -19,6 +19,7 @@ BtnLeft = 2
 BtnRight = 3
 BtnA = 4
 BtnB = 5
+BtnX = 6
 
 -- Game states
 StateTitle = 1

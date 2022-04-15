@@ -1,17 +1,25 @@
 function PlayingLoop()
 	cls(BgColour)
-	Input()
-	Update()
-	Draw()
-	UpdateAndDrawAliens()
-	UpdateAndDrawAlienShots()
+	if Paused == true then
+		Draw()
+		PrintCustomCentred("Paused", HalfScreenWidth, 40)
+		PauseMenu:input()
+		PauseMenu:draw()
+		InputPause()
+	else
+		Input()
+		Update()
+		Draw()
+		UpdateAndDrawAliens()
+		UpdateAndDrawAlienShots()
+		InputPause()
+	end
 end
 
 function StartGame()
 	Lives = 3
 	Score = 0
 
-	-- Player
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
 	PlayerShield = CreatePlayerShield()
@@ -43,10 +51,13 @@ function StartGame()
 	ScoreMultiplierPowerup = CreateScorePowerup()
 	TimestopPowerup = CreateTimeStopPowerup()
 
+	Paused = false
+
 	HeaderUi = CreateHeaderUi()
 	PowerupUi = CreatePowerupUi()
 	SpecialWeaponUi = CreateSpecialWeaponUi()
 	LevelUi = CreateLevelUi()
+	PauseMenu = CreateMenu(PauseMenuOptions, PauseMenuOptionsCount, PauseMenuConsts, ScreenWidth / 2 - 44, 60)
 end
 
 function StartLevel(formation)
@@ -105,6 +116,12 @@ function EndStage()
 				GameState = StatePlaying
 				StartLevel(Formations[CurrentStage][CurrentLevel])
 			end)
+	end
+end
+
+function InputPause()
+	if btnp(BtnX) then
+		Paused = not Paused
 	end
 end
 

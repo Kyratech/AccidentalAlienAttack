@@ -35,6 +35,8 @@ InstructionPages = {
 			DrawButtonPrompt(ButtonIcons.A, "Shoot", 16, 40)
 
 			DrawButtonPrompt(ButtonIcons.B, "Special weapon", 16, 56)
+
+			DrawButtonPrompt(ButtonIcons.X, "Pause game", 16, 72)
 	
 			DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
 			DrawButtonPrompt(ButtonIcons.B, "Back", 2, ScreenHeight - 8)
