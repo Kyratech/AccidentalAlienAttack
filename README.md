@@ -2,6 +2,27 @@
 
 A clone of Space Invaders made in the [TIC-80](https://github.com/nesbox/TIC-80) fantasy console as a holiday project.
 
+## Features
+
+- 10 exciting (citation needed) levels!
+- 3 different special weapons!
+- 4 different powerups!
+- Basic visual novel style cutscenes!
+- Difficulty and accessibility settings!
+- Ingame manual!
+
+## Roadmap
+
+Unordered TODO list before the game hits 1.0.0.
+
+- Saving high scores.
+- High score screen.
+- Additional ways to earn bonus points.
+- Better level transitions.
+- 3 new alien types.
+- 3 new special weapons.
+- 30 new levels (for a total of 40).
+
 ## Requirements
 
 The free version of TIC-80 does not have support for exporting or importing cartridges (games) as script files, so to build this project, you will need to have TIC-80 Pro.
@@ -36,15 +57,11 @@ Run the cartridge file using `CTRL + R`.
 
 ### Changes to non-script assets
 
-Getting changes to sprites etc is a little fiddly with my external editor workflow. I do the following:
+Update: As of version 3.3.0 of ticBundle, changes made to non-script assets are easier to work with. Following is the new workflow:
 
-1. Make my changes to the sprites in TIC-80.
-2. Save the cartridge in TIC-80 (`CTRL + S`).
-3. Open the modified `build.lua` in my IDE.
-4. Copy the asset metadata from the bottom of the file to `assetMetadata.lua`.
-5. This triggers a project rebuild containing the updated assets.
-
-This may not be the best workflow, but it's worked for me in this little toy project. It may be a wise idea to change step 2 so that you save to a different catridge file so that the automatic rebuild doesn't immediately overwrite your sprite changes. Either way, the sprite changes will exist in memory until you run `load build.lua` again.
+1. When the compiled `build.lua` file is loaded, make my changes to the sprites in TIC-80.
+2. Save the cartridge as a different file `src/metadata.lua`.
+3. Make some small change to another file so that the watch script notices the change and triggers a rebuild.
 
 ## Contributions
 
