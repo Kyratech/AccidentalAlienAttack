@@ -8,7 +8,7 @@ OptionsMenuOpen = false
 function TitleScreen()
 	GameState = StateTitle
 
-	MainMenu = CreateMenu(MainMenuOptions, MainMenuOptionsCount, MainMenuConsts, ScreenWidth / 2 - 20, 80)
+	MainMenu = CreateMenu(MainMenuOptions, MainMenuOptionsCount, MainMenuConsts, ScreenWidth / 2 - 30, 80)
 	OptionsMenu = CreateMenu(OptionsMenuOptions, OptionsMenuOptionsCount, OptionsMenuConsts, 10, 20)
 end
 
@@ -35,7 +35,7 @@ function TitleDraw()
 	
 		MainMenu:draw()
 	
-		-- PrintCentred("Press A to start", 120, 70, 12)
-		PrintCentred("A game by Kyratech", 120, 110, 2)
+		print("Developed by @KyraTech_13", 2, ScreenHeight - 8, 2)
+		print(Version, ScreenWidth - 40, ScreenHeight - 8, 2, true)
 	end
 end

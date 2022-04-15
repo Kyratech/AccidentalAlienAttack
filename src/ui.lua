@@ -32,9 +32,13 @@ ButtonIcons = {
 		tic = 14,
 		pc = 252
 	},
-	Y= {
+	Y = {
 		tic = 15,
 		pc = 253
+	},
+	arrow = {
+		tic = 11,
+		pc = 11
 	}
 }
 

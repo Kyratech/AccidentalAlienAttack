@@ -11,5 +11,7 @@ function TIC()
 		GameOverLoop()
 	elseif GameState == StateDialogue then
 		DialogueLoop()
+	elseif GameState == StateInstructions then
+		InstructionLoop()
 	end
 end

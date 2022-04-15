@@ -1,8 +1,11 @@
+Version = "0.1.0"
+
 -- Global constants
 BgColour = 0
 TilePx = 8
 
 ScreenWidth = 240
+HalfScreenWidth = ScreenWidth / 2
 ScreenHeight = 136
 
 LeftWallX = 22
@@ -22,3 +25,4 @@ StateTitle = 1
 StatePlaying = 2
 StateGameOver = 3
 StateDialogue = 4
+StateInstructions = 5

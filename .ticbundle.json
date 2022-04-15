@@ -22,6 +22,7 @@
 		"loopPlaying.lua",
 		"loopGameOver.lua",
 		"loopDialogue.lua",
+		"loopInstructions.lua",
 		"menu.lua",
 		"player.lua",
 		"playerShot.lua",

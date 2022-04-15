@@ -45,5 +45,5 @@ function DialogueDraw()
 	headerText:draw()
 	footerText:draw()
 
-	DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 60, ScreenHeight - 8)
+	DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
 end
