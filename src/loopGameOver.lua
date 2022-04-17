@@ -19,8 +19,10 @@ GameOverPages = {
 	},
 	{
 		draw = function()
-			PrintCentred("Final score", HalfScreenWidth, 60, 12)
-			PrintCentred(Score, HalfScreenWidth, 68, 3)
+			PrintCentred("Final score", HalfScreenWidth, 32, 12)
+			PrintCentred(Score, HalfScreenWidth, 40, 3)
+
+			HighScoresInput:draw()
 
 			PrintCustomCentredDecorated("performance review", HalfScreenWidth, 8)
 			PrintCustomCentredDecorated("performance review", HalfScreenWidth, ScreenHeight - 16)
@@ -30,9 +32,7 @@ GameOverPages = {
 		update = function()
 		end,
 		input = function()
-			if btnp(BtnA) then
-				TitleScreen()
-			end
+			HighScoresInput:input()
 		end
 	}
 }
@@ -50,4 +50,8 @@ function GameOver(script, numberOfLines)
 	GameOverPage = 1
 
 	DialogueObject = CreateDialogueScreen(script, numberOfLines, 20)
+	HighScoresInput = GetInitialsInput(
+		function ()
+			TitleScreen()
+		end)
 end

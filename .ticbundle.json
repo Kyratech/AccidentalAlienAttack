@@ -24,6 +24,7 @@
 		"loopDialogue.lua",
 		"loopInstructions.lua",
 		"menu.lua",
+		"highScores.lua",
 		"player.lua",
 		"playerShot.lua",
 		"playerMissile.lua",

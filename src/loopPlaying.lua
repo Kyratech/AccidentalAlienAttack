@@ -17,7 +17,7 @@ function PlayingLoop()
 end
 
 function StartGame()
-	Lives = 3
+	Lives = 1
 	Score = 0
 
 	Player = CreatePlayer()
