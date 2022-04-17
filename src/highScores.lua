@@ -160,9 +160,14 @@ CreateHighScoresTable = function ()
 
 			for i = 1, 5 do
 				if newScore.score > self.topScores[i].score then
+					for j = 5, i, -1 do
+						self.topScores[j] = self.topScores[j - 1]
+					end
 					self.topScores[i] = newScore
 					newRanking = i
-					SaveHighScore(i, newScore)
+					for j = 1, 5 do
+						SaveHighScore(j, self.topScores[j])
+					end
 					break
 				end
 			end
