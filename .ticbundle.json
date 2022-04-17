@@ -23,6 +23,7 @@
 		"loopGameOver.lua",
 		"loopDialogue.lua",
 		"loopInstructions.lua",
+		"modeHighScores.lua",
 		"menu.lua",
 		"highScores.lua",
 		"player.lua",

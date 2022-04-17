@@ -22,7 +22,7 @@ GameOverPages = {
 			PrintCentred("Final score", HalfScreenWidth, 32, 12)
 			PrintCentred(Score, HalfScreenWidth, 40, 3)
 
-			HighScoresInput:draw()
+			InitialsInput:draw()
 
 			PrintCustomCentredDecorated("performance review", HalfScreenWidth, 8)
 			PrintCustomCentredDecorated("performance review", HalfScreenWidth, ScreenHeight - 16)
@@ -32,15 +32,15 @@ GameOverPages = {
 		update = function()
 		end,
 		input = function()
-			HighScoresInput:input()
+			InitialsInput:input()
 		end
 	},
 	{
 		draw = function()
 			HighScoresTable:draw()
 
-			PrintCustomCentredDecorated("performance review", HalfScreenWidth, 8)
-			PrintCustomCentredDecorated("performance review", HalfScreenWidth, ScreenHeight - 16)
+			PrintCustomCentredDecorated("high scores", HalfScreenWidth, 8)
+			PrintCustomCentredDecorated("high scores", HalfScreenWidth, ScreenHeight - 16)
 
 			DrawButtonPrompt(ButtonIcons.A, "Finish", ScreenWidth - 56, ScreenHeight - 8)
 		end,
@@ -67,10 +67,10 @@ function GameOver(script, numberOfLines)
 	GameOverPage = 1
 
 	DialogueObject = CreateDialogueScreen(script, numberOfLines, 20)
-	HighScoresInput = CreateInitialsInput(
+	InitialsInput = CreateInitialsInput(
 		function ()
 			local newScore = {
-				name = HighScoresInput:getName(),
+				name = InitialsInput:getName(),
 				score = Score
 			}
 			HighScoresTable:updateHighScores(newScore)

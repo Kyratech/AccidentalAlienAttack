@@ -106,28 +106,34 @@ function CreateInitialsInput(submit)
 end
 
 CreateHighScoresTable = function ()
+	local topScores = {
+		GetHighScore(1),
+		GetHighScore(2),
+		GetHighScore(3)
+	}
+
+	local topScoreStrings = {
+		SerialiseHighScore(topScores[1]),
+		SerialiseHighScore(topScores[2]),
+		SerialiseHighScore(topScores[3])
+	}
+
 	return {
 		y = 40,
 		newScoreRanking = 4,
 		newScoreString = "",
-		topScores = {
-			GetHighScore(1),
-			GetHighScore(2),
-			GetHighScore(3)
-		},
-		topScoreStrings = {"placeholder", "placeholder", "placeholder"},
+		topScores = topScores,
+		topScoreStrings = topScoreStrings,
 		draw = function (self)
-			PrintCentred("High scores", HalfScreenWidth, self.y, 12)
-
 			for i = 1, 3 do
 				local colour = 12
 				if i == self.newScoreRanking then
 					colour = 3
 				end
-				PrintCentredMonospace(self.topScoreStrings[i], HalfScreenWidth, self.y + 8 + i * 8, colour)
+				PrintCentredMonospace(self.topScoreStrings[i], HalfScreenWidth, self.y + (i - 1) * 8, colour)
 			end
 
-			PrintCentredMonospace(self.newScoreString, HalfScreenWidth, self.y + 48, 3)
+			PrintCentredMonospace(self.newScoreString, HalfScreenWidth, self.y + 32, 3)
 		end,
 		updateHighScores = function (self, newScore)
 			local newRanking = 4
@@ -148,7 +154,7 @@ CreateHighScoresTable = function ()
 			self.topScoreStrings = {
 				SerialiseHighScore(self.topScores[1]),
 				SerialiseHighScore(self.topScores[2]),
-				SerialiseHighScore(self.topScores[3]),
+				SerialiseHighScore(self.topScores[3])
 			}
 			self.newScoreRanking = newRanking
 			self.newScoreString = SerialiseHighScore(newScore)

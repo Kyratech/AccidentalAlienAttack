@@ -3,11 +3,14 @@
 -- desc: A clone of the atari space invaders game
 -- script: lua
 
+Version = "0.1.0"
+
 -- Global constants
 BgColour = 0
 TilePx = 8
 
 ScreenWidth = 240
+HalfScreenWidth = ScreenWidth / 2
 ScreenHeight = 136
 
 LeftWallX = 22
@@ -21,18 +24,23 @@ BtnLeft = 2
 BtnRight = 3
 BtnA = 4
 BtnB = 5
+BtnX = 6
 
 -- Game states
 StateTitle = 1
 StatePlaying = 2
 StateGameOver = 3
 StateDialogue = 4
+StateInstructions = 5
+StateHighScores = 6
 
 GameSettings = {
 	buttonPrompts = "tic",
 	baseAlienSpeed = 1,
 	baseAlienShotSpeed = 1,
-	baseAlienDescentRate = 1
+	baseAlienDescentRate = 1,
+	baseAlienCarrierSpeed = 1,
+	activeAlienShots = 4
 }
 
 function Init()
@@ -48,6 +56,10 @@ function TIC()
 		GameOverLoop()
 	elseif GameState == StateDialogue then
 		DialogueLoop()
+	elseif GameState == StateInstructions then
+		InstructionLoop()
+	elseif GameState == StateHighScores then
+		HighScoresLoop()
 	end
 end
 
@@ -61,7 +73,7 @@ OptionsMenuOpen = false
 function TitleScreen()
 	GameState = StateTitle
 
-	MainMenu = CreateMenu(MainMenuOptions, MainMenuOptionsCount, MainMenuConsts, ScreenWidth / 2 - 20, 80)
+	MainMenu = CreateMenu(MainMenuOptions, MainMenuOptionsCount, MainMenuConsts, ScreenWidth / 2 - 30, 80)
 	OptionsMenu = CreateMenu(OptionsMenuOptions, OptionsMenuOptionsCount, OptionsMenuConsts, 10, 20)
 end
 
@@ -88,25 +100,33 @@ function TitleDraw()
 	
 		MainMenu:draw()
 	
-		-- PrintCentred("Press A to start", 120, 70, 12)
-		PrintCentred("A game by Kyratech", 120, 110, 2)
+		print("Developed by @KyraTech_13", 2, ScreenHeight - 8, 2)
+		print(Version, ScreenWidth - 40, ScreenHeight - 8, 2, true)
 	end
 end
 
 function PlayingLoop()
 	cls(BgColour)
-	Input()
-	Update()
-	Draw()
-	UpdateAndDrawAliens()
-	UpdateAndDrawAlienShots()
+	if Paused == true then
+		Draw()
+		PrintCustomCentred("Paused", HalfScreenWidth, 40)
+		PauseMenu:input()
+		PauseMenu:draw()
+		InputPause()
+	else
+		Input()
+		Update()
+		Draw()
+		UpdateAndDrawAliens()
+		UpdateAndDrawAlienShots()
+		InputPause()
+	end
 end
 
 function StartGame()
-	Lives = 3
+	Lives = 1
 	Score = 0
 
-	-- Player
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
 	PlayerShield = CreatePlayerShield()
@@ -123,8 +143,7 @@ function StartGame()
 	StartLevel(Formations[CurrentStage][CurrentLevel])
 
 	AlienShots = {}
-	local alienShotCount = 3
-	for i = 0, alienShotCount, 1 do
+	for i = 1, GameSettings.activeAlienShots, 1 do
 		local alienShotParticle = CreateAlienShotParticles()
 		local alienShot = CreateAlienShot(alienShotParticle)
 		table.insert(AlienShots, alienShot)
@@ -139,10 +158,13 @@ function StartGame()
 	ScoreMultiplierPowerup = CreateScorePowerup()
 	TimestopPowerup = CreateTimeStopPowerup()
 
+	Paused = false
+
 	HeaderUi = CreateHeaderUi()
 	PowerupUi = CreatePowerupUi()
 	SpecialWeaponUi = CreateSpecialWeaponUi()
 	LevelUi = CreateLevelUi()
+	PauseMenu = CreateMenu(PauseMenuOptions, PauseMenuOptionsCount, PauseMenuConsts, ScreenWidth / 2 - 44, 60)
 end
 
 function StartLevel(formation)
@@ -201,6 +223,12 @@ function EndStage()
 				GameState = StatePlaying
 				StartLevel(Formations[CurrentStage][CurrentLevel])
 			end)
+	end
+end
+
+function InputPause()
+	if btnp(BtnX) then
+		Paused = not Paused
 	end
 end
 
@@ -367,58 +395,85 @@ function DrawMouseDebug()
 	print("(" .. x .. "," .. y .. ")", 5, 21, 7)
 end
 
+GameOverPages = {
+	{
+		draw = function()
+			DialogueObject:draw()
+
+			PrintCustomCentredDecorated("incoming transmission", HalfScreenWidth, 8)
+			PrintCustomCentredDecorated("end transmission", HalfScreenWidth, ScreenHeight - 16)
+
+			DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
+		end,
+		update = function()
+			DialogueObject:update()
+		end,
+		input = function()
+			if btnp(BtnA) then
+				GameOverPage = GameOverPage + 1
+			end
+		end
+	},
+	{
+		draw = function()
+			PrintCentred("Final score", HalfScreenWidth, 32, 12)
+			PrintCentred(Score, HalfScreenWidth, 40, 3)
+
+			InitialsInput:draw()
+
+			PrintCustomCentredDecorated("performance review", HalfScreenWidth, 8)
+			PrintCustomCentredDecorated("performance review", HalfScreenWidth, ScreenHeight - 16)
+
+			DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
+		end,
+		update = function()
+		end,
+		input = function()
+			InitialsInput:input()
+		end
+	},
+	{
+		draw = function()
+			HighScoresTable:draw()
+
+			PrintCustomCentredDecorated("high scores", HalfScreenWidth, 8)
+			PrintCustomCentredDecorated("high scores", HalfScreenWidth, ScreenHeight - 16)
+
+			DrawButtonPrompt(ButtonIcons.A, "Finish", ScreenWidth - 56, ScreenHeight - 8)
+		end,
+		update = function()
+		end,
+		input = function()
+			if btnp(BtnA) then
+				TitleScreen()
+			end
+		end
+	}
+}
+
 function GameOverLoop()
 	cls(BgColour)
-	GoInput()
-	GoUpdate()
-	GoDraw()
+	GameOverPages[GameOverPage]:input()
+	GameOverPages[GameOverPage]:update()
+	GameOverPages[GameOverPage]:draw()
 end
 
 function GameOver(script, numberOfLines)
 	GameState = StateGameOver
 
-	local columnWidth = 20
+	GameOverPage = 1
 
-	DialogueObject = CreateDialogueScreen(script, numberOfLines, columnWidth)
-
-	ScoreText = {
-		text = "You scored " .. Score .. " points!",
-		y = 110,
-		draw = function (self)
-			PrintCentred(self.text, 120, self.y, 12)
-		end
-	}
-
-	RestartText = {
-		text = "Press [A] to play again.",
-		y = 120,
-		draw = function (self)
-			PrintCentred(self.text, 120, self.y, 12)
-		end
-	}
-end
-
-function GoInput()
-	if btn(BtnA) then
-		GameState = StateDialogue
-		DialogueInit(
-			ScriptIntro,
-			3,
-			function()
-				GameState = StatePlaying
-				StartGame()
-			end)
-	end
-end
-
-function GoUpdate()
-	DialogueObject:update()
-end
-
-function GoDraw()
-	DialogueObject:draw()
-	ScoreText:draw()
-	RestartText:draw()
+	DialogueObject = CreateDialogueScreen(script, numberOfLines, 20)
+	InitialsInput = CreateInitialsInput(
+		function ()
+			local newScore = {
+				name = InitialsInput:getName(),
+				score = Score
+			}
+			HighScoresTable:updateHighScores(newScore)
+			GameOverPage = GameOverPage + 1
+		end)
+	HighScoresTable = CreateHighScoresTable()
 end
 
 function DialogueLoop()
@@ -468,7 +523,193 @@ function DialogueDraw()
 	headerText:draw()
 	footerText:draw()
 
-	DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 60, ScreenHeight - 8)
+	DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
+end
+
+InstructionPages = {
+	{
+		draw = function ()
+			PrintCustomCentred("Objective", HalfScreenWidth, 8)
+			
+			print("An alien has come to your planet", 16, 24, 12)
+			print("on holiday, but their drone swarm", 16, 32, 12)
+			print("seems to have run amok!", 16, 40, 12)
+	
+			print("Do both of you a favour and blow", 16, 56, 12)
+			print("those malfunctioning machines up", 16, 64, 12)
+			print("before they do some damage!", 16, 72, 12)
+	
+			DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
+			DrawButtonPrompt(ButtonIcons.B, "Exit", 2, ScreenHeight - 8)
+		end,
+		input = function ()
+			if btnp(BtnA) then
+				InstructionStep = InstructionStep + 1
+			end
+		
+			if btnp(BtnB) then
+				TitleScreen()
+			end
+		end
+	},
+	{
+		draw = function ()
+			PrintCustomCentred("Controls", HalfScreenWidth, 8)
+			
+			spr(ButtonIcons.arrow[GameSettings.buttonPrompts], 16, 24, 0, 1, 0, 3)
+			spr(ButtonIcons.arrow[GameSettings.buttonPrompts], 24, 24, 0, 1, 0, 1)
+			print(": Move", 34, 26, 12)
+
+			DrawButtonPrompt(ButtonIcons.A, "Shoot", 16, 40)
+
+			DrawButtonPrompt(ButtonIcons.B, "Special weapon", 16, 56)
+
+			DrawButtonPrompt(ButtonIcons.X, "Pause game", 16, 72)
+	
+			DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
+			DrawButtonPrompt(ButtonIcons.B, "Back", 2, ScreenHeight - 8)
+		end,
+		input = function ()
+			if btnp(BtnA) then
+				InstructionStep = InstructionStep + 1
+			end
+		
+			if btnp(BtnB) then
+				InstructionStep = InstructionStep - 1
+			end
+		end
+	},
+	{
+		draw = function ()
+			PrintCustomCentred("Special weapons", HalfScreenWidth, 8)
+			
+			print("Destroy 4 of the same type of drone", 16, 24, 12)
+			print("in a row to unlock a special weapon!", 16, 32, 12)
+
+			spr(288, 16, 48, 12)
+			spr(288, 32, 48, 12)
+			spr(288, 48, 48, 12)
+			spr(288, 64, 48, 12)
+
+			spr(11, 80, 48, 0, 1, 0, 1)
+
+			spr(125, 96, 48, 0)
+
+			print("Use your special weapons quickly, as", 16, 64, 12)
+			print("shooting a different type of drone will", 16, 72, 12)
+			print("reset your special weapon energy!", 16, 80, 12)
+	
+			DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
+			DrawButtonPrompt(ButtonIcons.B, "Back", 2, ScreenHeight - 8)
+		end,
+		input = function ()
+			if btnp(BtnA) then
+				InstructionStep = InstructionStep + 1
+			end
+		
+			if btnp(BtnB) then
+				InstructionStep = InstructionStep - 1
+			end
+		end
+	},
+	{
+		draw = function ()
+			PrintCustomCentred("Powerups", HalfScreenWidth, 8)
+			
+			print("Destroy a carrier drone to make it", 16, 24, 12)
+			print("drop a powerup node.", 16, 32, 12)
+
+			spr(304, 16, 48, 12)
+			spr(305, 24, 48, 12)
+
+			print("Activate a powerup by driving into it!", 16, 64, 12)
+	
+			DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
+			DrawButtonPrompt(ButtonIcons.B, "Back", 2, ScreenHeight - 8)
+		end,
+		input = function ()
+			if btnp(BtnA) then
+				InstructionStep = InstructionStep + 1
+			end
+		
+			if btnp(BtnB) then
+				InstructionStep = InstructionStep - 1
+			end
+		end
+	},
+	{
+		draw = function ()
+			PrintCustomCentred("Powerups cont", HalfScreenWidth, 8)
+			
+			spr(256, 16, 24, 0)
+			print(": Extra life", 26, 26, 12)
+
+			spr(257, 16, 40, 0)
+			print(": Double points", 26, 42, 12)
+
+			spr(258, 16, 56, 0)
+			print(": Temporary shield", 26, 58, 12)
+
+			spr(259, 16, 72, 0)
+			print(": Freeze drones", 26, 74, 12)
+	
+			DrawButtonPrompt(ButtonIcons.A, "Exit", ScreenWidth - 39, ScreenHeight - 8)
+			DrawButtonPrompt(ButtonIcons.B, "Back", 2, ScreenHeight - 8)
+		end,
+		input = function ()
+			if btnp(BtnA) then
+				TitleScreen()
+			end
+		
+			if btnp(BtnB) then
+				InstructionStep = InstructionStep - 1
+			end
+		end
+	}
+}
+
+function InstructionLoop()
+	cls(BgColour)
+	InstructionsInput()
+	InstructionsDraw()
+end
+
+function InstructionsScreen()
+	GameState = StateInstructions
+
+	InstructionStep = 1
+end
+
+function InstructionsInput()
+	InstructionPages[InstructionStep]:input()
+end
+
+function InstructionsDraw()
+	InstructionPages[InstructionStep]:draw()
+end
+
+function HighScoresLoop()
+	cls(BgColour)
+	HighScoresInput()
+	HighScoresDraw()
+end
+
+function HighScoresScreen()
+	GameState = StateHighScores
+
+	HighScoresTable = CreateHighScoresTable()
+end
+
+function HighScoresInput()
+	if btnp(BtnA) then
+		TitleScreen()
+	end
+end
+
+function HighScoresDraw()
+	PrintCustomCentred("High scores", HalfScreenWidth, 8)
+
+	HighScoresTable:draw()
 end
 
 function ScrollOptionsH(self)
@@ -500,7 +741,7 @@ function ScrollOptionsH(self)
 	end
 end
 
-MainMenuOptionsCount = 2
+MainMenuOptionsCount = 4
 MainMenuOptions = {
 	{
 		draw = function(self, x, y)
@@ -521,6 +762,26 @@ MainMenuOptions = {
 	},
 	{
 		draw = function(self, x, y)
+			print("High scores", x, y, 12)
+		end,
+		input = function(self)
+			if btnp(BtnA) then
+				HighScoresScreen()
+			end
+		end
+	},
+	{
+		draw = function(self, x, y)
+			print("How to play", x, y, 12)
+		end,
+		input = function(self)
+			if btnp(BtnA) then
+				InstructionsScreen()
+			end
+		end
+	},
+	{
+		draw = function(self, x, y)
 			print("Options", x, y, 12)
 		end,
 		input = function(self)
@@ -536,7 +797,7 @@ MainMenuConsts = {
 	lineHeight = 12
 }
 
-OptionsMenuOptionsCount = 4
+OptionsMenuOptionsCount = 6
 OptionsMenuOptions = {
 	{
 		options = {
@@ -624,6 +885,98 @@ OptionsMenuOptions = {
 		end,
 		save = function (self)
 			GameSettings.baseAlienSpeed = self.options[self.selectedOption].value
+		end
+	},
+	{
+		options = {
+			{
+				label = ".25",
+				value = 0.25
+			},
+			{
+				label = ".50",
+				value = 0.5
+			},
+			{
+				label = "1.0",
+				value = 1
+			}
+		},
+		optionsCount = 3,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Carrier speed", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 20 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			local currentValue = GameSettings.baseAlienCarrierSpeed
+
+			for i = 1, self.optionsCount do
+				if self.options[i].value == currentValue then
+					self.selectedOption = i
+				end
+			end
+		end,
+		save = function (self)
+			GameSettings.baseAlienCarrierSpeed = self.options[self.selectedOption].value
+		end
+	},
+	{
+		options = {
+			{
+				label = ".00",
+				value = 0
+			},
+			{
+				label = ".50",
+				value = 2
+			},
+			{
+				label = "1.0",
+				value = 4
+			},
+			{
+				label = "1.5",
+				value = 6
+			}
+		},
+		optionsCount = 4,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Alien attack rate", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 20 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			local currentValue = GameSettings.activeAlienShots
+
+			for i = 1, self.optionsCount do
+				if self.options[i].value == currentValue then
+					self.selectedOption = i
+				end
+			end
+		end,
+		save = function (self)
+			GameSettings.activeAlienShots = self.options[self.selectedOption].value
 		end
 	},
 	{
@@ -728,6 +1081,34 @@ OptionsMenuConsts = {
 	lineHeight = 12
 }
 
+PauseMenuOptionsCount = 2
+PauseMenuOptions = {
+	{
+		draw = function(self, x, y)
+			print("Resume", x, y, 12)
+		end,
+		input = function(self)
+			if btnp(BtnA) then
+				Paused = false
+			end
+		end
+	},
+	{
+		draw = function(self, x, y)
+			print("Return to title", x, y, 12)
+		end,
+		input = function(self)
+			if btnp(BtnA) then
+				TitleScreen()
+			end
+		end
+	}
+}
+PauseMenuConsts = {
+	arrowHOffset = 10,
+	lineHeight = 12
+}
+
 function CreateMenu(menuOptions, menuOptionsCount, menuConsts, x, y)
 	return {
 		x = x,
@@ -777,6 +1158,222 @@ function CreateMenu(menuOptions, menuOptionsCount, menuConsts, x, y)
 			end
 		end
 	}
+end
+
+HighScoreMemoryIndexes = {
+	{
+		name = 0,
+		score = 1
+	},
+	{
+		name = 2,
+		score = 3
+	},
+	{
+		name = 4,
+		score = 5
+	}
+}
+
+DefaultHighScores = {
+	{
+		name = "ALP",
+		score = 30
+	},
+	{
+		name = "BET",
+		score = 20
+	},
+	{
+		name = "GAM",
+		score = 10
+	}
+}
+
+function CreateInitialsInput(submit)
+	return {
+		y = 60	,
+		chars = {
+			"A",
+			"A",
+			"A"
+		},
+		editingCharacter = 1,
+		selectedCharacter = 65,
+		draw = function (self)
+			PrintCentred("Please enter your name:", HalfScreenWidth, self.y, 12)
+
+			-- The current value
+			local currentValueLeftX = HalfScreenWidth - 9
+			local combinedString = self.chars[1] .. self.chars[2] .. self.chars[3]
+			print(combinedString, currentValueLeftX, self.y + 12, 3, true)
+			line(
+				currentValueLeftX + (self.editingCharacter - 1) * 6,
+				self.y + 20,
+				currentValueLeftX + (self.editingCharacter - 1) * 6 + 4,
+				self.y + 20,
+				12)
+
+			-- Letter picker
+			local halfWidth = 78
+			for i = 65, 90 do
+				local normalisedI = i - 65
+				local charX = HalfScreenWidth - halfWidth + (normalisedI % 13) * 12
+				local charY = self.y + 28 + math.floor(normalisedI / 13) * 12
+				local textColour = 1
+				if i == self.selectedCharacter then
+					textColour = 3
+				end
+				print(string.char(i), charX, charY, textColour, true)
+			end
+		end,
+		input = function (self)
+			if btnp(BtnLeft) then
+				self:updateSelectedCharacter(self.selectedCharacter - 1)
+			elseif btnp(BtnRight) then
+				self:updateSelectedCharacter(self.selectedCharacter + 1)
+			elseif btnp(BtnUp) then
+				self:updateSelectedCharacter(self.selectedCharacter - 13)
+			elseif btnp(BtnDown) then
+				self:updateSelectedCharacter(self.selectedCharacter + 13)
+			end
+
+			if btnp(BtnA) then
+				if self.editingCharacter ~= 3 then
+					self.editingCharacter = self.editingCharacter + 1
+				else
+					submit()
+				end
+			end
+
+			if btnp(BtnB) and self.selectedCharacter ~= 1 then
+				self.editingCharacter = self.editingCharacter - 1
+			end
+		end,
+		getName = function (self)
+			return self.chars[1] .. self.chars[2] .. self.chars[3]
+		end,
+		updateSelectedCharacter = function (self, newSelectedCharacter)
+			if newSelectedCharacter < 65 then
+				self.selectedCharacter = 65
+			elseif newSelectedCharacter > 90 then
+				self.selectedCharacter = 90
+			else
+				self.selectedCharacter = newSelectedCharacter
+			end
+
+			self.chars[self.editingCharacter] = string.char(self.selectedCharacter)
+		end
+	}
+end
+
+CreateHighScoresTable = function ()
+	local topScores = {
+		GetHighScore(1),
+		GetHighScore(2),
+		GetHighScore(3)
+	}
+
+	local topScoreStrings = {
+		SerialiseHighScore(topScores[1]),
+		SerialiseHighScore(topScores[2]),
+		SerialiseHighScore(topScores[3])
+	}
+
+	return {
+		y = 40,
+		newScoreRanking = 4,
+		newScoreString = "",
+		topScores = topScores,
+		topScoreStrings = topScoreStrings,
+		draw = function (self)
+			for i = 1, 3 do
+				local colour = 12
+				if i == self.newScoreRanking then
+					colour = 3
+				end
+				PrintCentredMonospace(self.topScoreStrings[i], HalfScreenWidth, self.y + (i - 1) * 8, colour)
+			end
+
+			PrintCentredMonospace(self.newScoreString, HalfScreenWidth, self.y + 32, 3)
+		end,
+		updateHighScores = function (self, newScore)
+			local newRanking = 4
+			if newScore.score > self.topScores[1].score then
+				self.topScores[1] = newScore
+				newRanking = 1
+				SaveHighScore(1, newScore)
+			elseif newScore.score > self.topScores[2].score then
+				self.topScores[2] = newScore
+				newRanking = 2
+				SaveHighScore(2, newScore)
+			elseif newScore.score > self.topScores[3].score then
+				self.topScores[3] = newScore
+				newRanking = 3
+				SaveHighScore(3, newScore)
+			end
+
+			self.topScoreStrings = {
+				SerialiseHighScore(self.topScores[1]),
+				SerialiseHighScore(self.topScores[2]),
+				SerialiseHighScore(self.topScores[3])
+			}
+			self.newScoreRanking = newRanking
+			self.newScoreString = SerialiseHighScore(newScore)
+		end
+	}
+end
+
+GetHighScore = function (rank)
+	local highScoreValue = pmem(HighScoreMemoryIndexes[rank].score)
+	local highScoreName = pmem(HighScoreMemoryIndexes[rank].name)
+
+	if highScoreValue == 0 or highScoreName == 0 then
+		return DefaultHighScores[rank]
+	end
+
+	local decodedHighScoreName = DecodeHighScoreName(highScoreName)
+
+	return {
+		name = decodedHighScoreName,
+		score = highScoreValue
+	}
+end
+
+function SaveHighScore (rank, highScore)
+	pmem(HighScoreMemoryIndexes[rank].score, highScore.score)
+	pmem(HighScoreMemoryIndexes[rank].name, EncodeHighScoreName(highScore.name))
+end
+
+EncodeHighScoreName = function(name)
+	local charCodes = {
+		string.byte(string.sub(name, 1, 1)),
+		string.byte(string.sub(name, 2, 2)),
+		string.byte(string.sub(name, 3, 3))
+	}
+
+	return 2^16 * charCodes[1] + 2^8 * charCodes[2] + charCodes[3]
+end
+
+DecodeHighScoreName = function(encodedName)
+	local parts = {
+		math.floor((encodedName % 2^24) / 2^16),
+		math.floor((encodedName % 2^16) / 2^8),
+		encodedName % 2^8
+	}
+
+	return string.char(parts[1]) .. string.char(parts[2]) .. string.char(parts[3])
+end
+
+SerialiseHighScore = function(highScore)
+	local lengthOfScore = 1
+	if highScore.score > 0 then
+		lengthOfScore = math.floor(math.log(highScore.score, 10) + 1)
+	end
+	local numberOfSpaces = 13 - lengthOfScore
+	local spaces = string.rep(" ", numberOfSpaces)
+
+	return highScore.name .. spaces .. highScore.score
 end
 
 PlayerConsts = {
@@ -1794,10 +2391,10 @@ function CreateCarrier()
 			local direction = math.random(1, 2)
 			if direction == 1 then
 				self.x = -16
-				self.speed = CarrierConsts.speed
+				self.speed = CarrierConsts.speed * GameSettings.baseAlienCarrierSpeed
 			else
 				self.x = 240
-				self.speed = -CarrierConsts.speed
+				self.speed = -CarrierConsts.speed * GameSettings.baseAlienCarrierSpeed
 			end
 		end,
 		disable = function (self)
@@ -2304,9 +2901,13 @@ ButtonIcons = {
 		tic = 14,
 		pc = 252
 	},
-	Y= {
+	Y = {
 		tic = 15,
 		pc = 253
+	},
+	arrow = {
+		tic = 11,
+		pc = 11
 	}
 }
 
@@ -2586,6 +3187,10 @@ PlayerExplosionAni = {
 function PrintCentred(str, x, y, colour)
 	local w = print(str, 0, -30)
     print(str, x-(w/2), y, colour)
+end
+
+function PrintCentredMonospace(str, x, y, colour)
+	print(str, x - string.len(str) * 3, y, colour, true)
 end
 
 function PrintRightAligned(str, x, y, colour)
@@ -2936,9 +3541,9 @@ Init()
 -- </SPRITES>
 
 -- <MAP>
--- 005:000000000000000000000010203040506070800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
--- 006:000000000000011121314151610000718191a1b1c1d1e1f1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
--- 007:000000000000021222324252620000728292a2b2c2d2e2f2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 003:000000000000000000000010203040506070800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 004:000000000000011121314151610000718191a1b1c1d1e1f1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 005:000000000000021222324252620000728292a2b2c2d2e2f2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- 014:000000000000000000000000000000000000000000000000000000000000838393a30000000000000000000000000000000000000000000063738383000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- 015:000000000000000000000000000000000000000000000000000000000000848494a40313435323334353435343435343534323335343031364748484000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- 016:000000000000000000000000000000000000000000000000000000000000858595a50414445424344454445444445444544424345444041465758585000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

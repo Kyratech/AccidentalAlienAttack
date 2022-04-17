@@ -27,7 +27,7 @@ function ScrollOptionsH(self)
 	end
 end
 
-MainMenuOptionsCount = 3
+MainMenuOptionsCount = 4
 MainMenuOptions = {
 	{
 		draw = function(self, x, y)
@@ -43,6 +43,16 @@ MainMenuOptions = {
 						GameState = StatePlaying
 						StartGame()
 					end)
+			end
+		end
+	},
+	{
+		draw = function(self, x, y)
+			print("High scores", x, y, 12)
+		end,
+		input = function(self)
+			if btnp(BtnA) then
+				HighScoresScreen()
 			end
 		end
 	},

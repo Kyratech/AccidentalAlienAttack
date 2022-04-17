@@ -13,5 +13,7 @@ function TIC()
 		DialogueLoop()
 	elseif GameState == StateInstructions then
 		InstructionLoop()
+	elseif GameState == StateHighScores then
+		HighScoresLoop()
 	end
 end
