@@ -20,4 +20,6 @@ function HighScoresDraw()
 	PrintCustomCentred("High scores", HalfScreenWidth, 8)
 
 	HighScoresTable:draw()
+
+	DrawButtonPrompt(ButtonIcons.A, "Exit", ScreenWidth - 39, ScreenHeight - 8)
 end
