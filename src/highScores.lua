@@ -1,4 +1,34 @@
-function GetInitialsInput(submit)
+HighScoreMemoryIndexes = {
+	{
+		name = 0,
+		score = 1
+	},
+	{
+		name = 2,
+		score = 3
+	},
+	{
+		name = 4,
+		score = 5
+	}
+}
+
+DefaultHighScores = {
+	{
+		name = "ALP",
+		score = 30
+	},
+	{
+		name = "BET",
+		score = 20
+	},
+	{
+		name = "GAM",
+		score = 10
+	}
+}
+
+function CreateInitialsInput(submit)
 	return {
 		y = 60	,
 		chars = {
@@ -58,6 +88,9 @@ function GetInitialsInput(submit)
 				self.editingCharacter = self.editingCharacter - 1
 			end
 		end,
+		getName = function (self)
+			return self.chars[1] .. self.chars[2] .. self.chars[3]
+		end,
 		updateSelectedCharacter = function (self, newSelectedCharacter)
 			if newSelectedCharacter < 65 then
 				self.selectedCharacter = 65
@@ -70,4 +103,107 @@ function GetInitialsInput(submit)
 			self.chars[self.editingCharacter] = string.char(self.selectedCharacter)
 		end
 	}
+end
+
+CreateHighScoresTable = function ()
+	return {
+		y = 40,
+		newScoreRanking = 4,
+		newScoreString = "",
+		topScores = {
+			GetHighScore(1),
+			GetHighScore(2),
+			GetHighScore(3)
+		},
+		topScoreStrings = {"placeholder", "placeholder", "placeholder"},
+		draw = function (self)
+			PrintCentred("High scores", HalfScreenWidth, self.y, 12)
+
+			for i = 1, 3 do
+				local colour = 12
+				if i == self.newScoreRanking then
+					colour = 3
+				end
+				PrintCentredMonospace(self.topScoreStrings[i], HalfScreenWidth, self.y + 8 + i * 8, colour)
+			end
+
+			PrintCentredMonospace(self.newScoreString, HalfScreenWidth, self.y + 48, 3)
+		end,
+		updateHighScores = function (self, newScore)
+			local newRanking = 4
+			if newScore.score > self.topScores[1].score then
+				self.topScores[1] = newScore
+				newRanking = 1
+				SaveHighScore(1, newScore)
+			elseif newScore.score > self.topScores[2].score then
+				self.topScores[2] = newScore
+				newRanking = 2
+				SaveHighScore(2, newScore)
+			elseif newScore.score > self.topScores[3].score then
+				self.topScores[3] = newScore
+				newRanking = 3
+				SaveHighScore(3, newScore)
+			end
+
+			self.topScoreStrings = {
+				SerialiseHighScore(self.topScores[1]),
+				SerialiseHighScore(self.topScores[2]),
+				SerialiseHighScore(self.topScores[3]),
+			}
+			self.newScoreRanking = newRanking
+			self.newScoreString = SerialiseHighScore(newScore)
+		end
+	}
+end
+
+GetHighScore = function (rank)
+	local highScoreValue = pmem(HighScoreMemoryIndexes[rank].score)
+	local highScoreName = pmem(HighScoreMemoryIndexes[rank].name)
+
+	if highScoreValue == 0 or highScoreName == 0 then
+		return DefaultHighScores[rank]
+	end
+
+	local decodedHighScoreName = DecodeHighScoreName(highScoreName)
+
+	return {
+		name = decodedHighScoreName,
+		score = highScoreValue
+	}
+end
+
+function SaveHighScore (rank, highScore)
+	pmem(HighScoreMemoryIndexes[rank].score, highScore.score)
+	pmem(HighScoreMemoryIndexes[rank].name, EncodeHighScoreName(highScore.name))
+end
+
+EncodeHighScoreName = function(name)
+	local charCodes = {
+		string.byte(string.sub(name, 1, 1)),
+		string.byte(string.sub(name, 2, 2)),
+		string.byte(string.sub(name, 3, 3))
+	}
+
+	return 2^16 * charCodes[1] + 2^8 * charCodes[2] + charCodes[3]
+end
+
+DecodeHighScoreName = function(encodedName)
+	local parts = {
+		math.floor((encodedName % 2^24) / 2^16),
+		math.floor((encodedName % 2^16) / 2^8),
+		encodedName % 2^8
+	}
+
+	return string.char(parts[1]) .. string.char(parts[2]) .. string.char(parts[3])
+end
+
+SerialiseHighScore = function(highScore)
+	local lengthOfScore = 1
+	if highScore.score > 0 then
+		lengthOfScore = math.floor(math.log(highScore.score, 10) + 1)
+	end
+	local numberOfSpaces = 13 - lengthOfScore
+	local spaces = string.rep(" ", numberOfSpaces)
+
+	return highScore.name .. spaces .. highScore.score
 end

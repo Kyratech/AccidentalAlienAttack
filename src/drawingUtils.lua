@@ -3,6 +3,10 @@ function PrintCentred(str, x, y, colour)
     print(str, x-(w/2), y, colour)
 end
 
+function PrintCentredMonospace(str, x, y, colour)
+	print(str, x - string.len(str) * 3, y, colour, true)
+end
+
 function PrintRightAligned(str, x, y, colour)
 	local w = print(str, 0, -30)
 	print(str, x-w, y, colour)
