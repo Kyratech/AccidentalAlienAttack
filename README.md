@@ -9,14 +9,13 @@ A clone of Space Invaders made in the [TIC-80](https://github.com/nesbox/TIC-80)
 - 4 different powerups!
 - Basic visual novel style cutscenes!
 - Difficulty and accessibility settings!
+- Persistent high score recording!
 - Ingame manual!
 
 ## Roadmap
 
 Unordered TODO list before the game hits 1.0.0.
 
-- Saving high scores.
-- High score screen.
 - Additional ways to earn bonus points.
 - Better level transitions.
 - 3 new alien types.
