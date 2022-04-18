@@ -36,6 +36,7 @@
 		"alien.lua",
 		"alienCarrier.lua",
 		"alienFormations.lua",
+		"screenTransition.lua",
 		"dialogueSystem.lua",
 		"dialogueScripts.lua",
 		"ui.lua",

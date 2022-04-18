@@ -17,7 +17,7 @@ function PlayingLoop()
 end
 
 function StartGame()
-	Lives = 1
+	Lives = 3
 	Score = 0
 
 	Player = CreatePlayer()
@@ -32,6 +32,8 @@ function StartGame()
 
 	CurrentStage = 1
 	CurrentLevel = 1
+
+	ScreenTransition = CreateScreenTransition()
 
 	StartLevel(Formations[CurrentStage][CurrentLevel])
 
@@ -61,6 +63,8 @@ function StartGame()
 end
 
 function StartLevel(formation)
+	ScreenTransition:reset()
+
 	-- Aliens
 	Aliens = {}
 	local alienCountX = 10
@@ -105,18 +109,8 @@ function EndStage()
 	CurrentLevel = 1
 	CurrentStage = CurrentStage + 1
 
-	if CurrentStage > NumberOfStages then
-		GameOver(ScriptGameOverGood, 3)
-	else
-		GameState = StateDialogue
-		DialogueInit(
-			ScriptStageInterludes[CurrentStage - 1],
-			ScriptStageInterludesLengths[CurrentStage - 1],
-			function()
-				GameState = StatePlaying
-				StartLevel(Formations[CurrentStage][CurrentLevel])
-			end)
-	end
+	Player:activateStatus(PlayerStatuses.shield, PlayerConsts.powerupShieldLength)
+	ScreenTransition:start()
 end
 
 function InputPause()
@@ -143,6 +137,8 @@ function Input()
 			PlayerMissile:shoot()
 		end
 	end
+
+	ScreenTransition:input()
 end
 
 function Update()
@@ -177,6 +173,8 @@ function Update()
 	ExtraLifePowerup:checkCollision()
 	TimestopPowerup:update()
 	TimestopPowerup:checkCollision()
+
+	ScreenTransition:update()
 end
 
 -- Combine alien handling so we only have to loop through once
@@ -267,6 +265,7 @@ function DrawGameObjects()
 	ScoreMultiplierPowerup:draw()
 	ExtraLifePowerup:draw()
 	TimestopPowerup:draw()
+	ScreenTransition:draw()
 end
 
 function DrawUi()
@@ -275,7 +274,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	-- DrawDebug("Weapon: " .. Player.weaponType .. ". power: " .. Player.weaponPower)
+	-- 	DrawDebug("transition state: " .. ScreenTransition.state)
 	-- DrawMouseDebug()
 end
 

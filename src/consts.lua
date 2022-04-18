@@ -7,6 +7,7 @@ TilePx = 8
 ScreenWidth = 240
 HalfScreenWidth = ScreenWidth / 2
 ScreenHeight = 136
+HalfScreenHeight = ScreenHeight / 2
 
 LeftWallX = 22
 RightWallX = 218
