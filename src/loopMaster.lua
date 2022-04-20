@@ -1,4 +1,5 @@
 function Init()
+	LoadGameSettings()
 	TitleScreen()
 end
 

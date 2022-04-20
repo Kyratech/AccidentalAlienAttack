@@ -18,6 +18,7 @@ function ScrollOptionsH(self)
 	if btnp(BtnA) then
 		for i = 1, OptionsMenuOptionsCount do
 			OptionsMenuOptions[i]:save()
+			SaveGameSettings()
 		end
 		OptionsMenuOpen = false
 	end

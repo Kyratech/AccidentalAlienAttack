@@ -16,6 +16,7 @@
 	},
 	"files": [
 		"consts.lua",
+		"persistentMemory.lua",
 		"settings.lua",
 		"loopMaster.lua",
 		"modeTitle.lua",
