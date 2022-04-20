@@ -53,7 +53,7 @@ function CreateBasicAlien(i, j, animation, specialWeapon)
 				AlienConsts.clrIndex)
 		end,
 		update = function (self)
-			self.targetY = 20 + AlienGlobalRowsStepped * 10 * GameSettings.baseAlienDescentRate + (self.row - 1) * 10
+			self.targetY = 20 + AlienGlobalRowsStepped * 10 * AlienDescentRateOptions[GameSettings.alienDescentRate].value + (self.row - 1) * 10
 
 			if self.y > self.targetY then
 				self.y = self.y - 1
@@ -136,7 +136,7 @@ function CreateAlienShot(shotParticle)
 				if self.speed == 0 then
 					self.x = Aliens[i].x + 2
 					self.y = Aliens[i].y + 8
-					self.speed = AlienShotConsts.speed * GameSettings.baseAlienShotSpeed
+					self.speed = AlienShotConsts.speed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value
 				end
 			end
 		end,
@@ -206,14 +206,14 @@ end
 
 function CalculateAlienSpeed(maxAliens, liveAliens)
 	if liveAliens == 1 then
-		return AlienSpeeds.speedOne * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedOne * AlienSpeedOptions[GameSettings.alienSpeed].value
 	elseif liveAliens <= 4 then
-		return AlienSpeeds.speedFour * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedFour * AlienSpeedOptions[GameSettings.alienSpeed].value
 	elseif maxAliens // liveAliens == 1 then
-		return AlienSpeeds.speedFull * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedFull * AlienSpeedOptions[GameSettings.alienSpeed].value
 	elseif maxAliens // liveAliens == 2 then
-		return AlienSpeeds.speedHalf * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedHalf * AlienSpeedOptions[GameSettings.alienSpeed].value
 	else
-		return AlienSpeeds.speedQuarter * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedQuarter * AlienSpeedOptions[GameSettings.alienSpeed].value
 	end
 end

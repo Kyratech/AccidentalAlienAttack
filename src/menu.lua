@@ -86,16 +86,7 @@ MainMenuConsts = {
 OptionsMenuOptionsCount = 6
 OptionsMenuOptions = {
 	{
-		options = {
-			{
-				label = "TIC-80",
-				value = "tic"
-			},
-			{
-				label = "QWERTY",
-				value = "pc"
-			}
-		},
+		options = ButtonPromptsOptions,
 		optionsCount = 2,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -113,37 +104,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.buttonPrompts
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.buttonPrompts
 		end,
 		save = function (self)
-			GameSettings.buttonPrompts = self.options[self.selectedOption].value
+			GameSettings.buttonPrompts = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".00",
-				value = 0
-			},
-			{
-				label = ".25",
-				value = 0.25
-			},
-			{
-				label = ".50",
-				value = 0.5
-			},
-			{
-				label = "1.0",
-				value = 1
-			},
-		},
+		options = AlienSpeedOptions,
 		optionsCount = 4,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -161,33 +129,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.baseAlienSpeed
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienSpeed
 		end,
 		save = function (self)
-			GameSettings.baseAlienSpeed = self.options[self.selectedOption].value
+			GameSettings.alienSpeed = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".25",
-				value = 0.25
-			},
-			{
-				label = ".50",
-				value = 0.5
-			},
-			{
-				label = "1.0",
-				value = 1
-			}
-		},
+		options = CarrierSpeedOptions,
 		optionsCount = 3,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -205,37 +154,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.baseAlienCarrierSpeed
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienCarrierSpeed
 		end,
 		save = function (self)
-			GameSettings.baseAlienCarrierSpeed = self.options[self.selectedOption].value
+			GameSettings.alienCarrierSpeed = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".00",
-				value = 0
-			},
-			{
-				label = ".50",
-				value = 2
-			},
-			{
-				label = "1.0",
-				value = 4
-			},
-			{
-				label = "1.5",
-				value = 6
-			}
-		},
+		options = AlienAttackRateOptions,
 		optionsCount = 4,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -253,37 +179,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.activeAlienShots
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienAttackRate
 		end,
 		save = function (self)
-			GameSettings.activeAlienShots = self.options[self.selectedOption].value
+			GameSettings.alienAttackRate = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".25",
-				value = 0.25
-			},
-			{
-				label = ".50",
-				value = 0.5
-			},
-			{
-				label = "1.0",
-				value = 1
-			},
-			{
-				label = "2.0",
-				value = 2
-			}
-		},
+		options = AlienShotSpeedOptions,
 		optionsCount = 4,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -301,37 +204,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.baseAlienShotSpeed
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienShotSpeed
 		end,
 		save = function (self)
-			GameSettings.baseAlienShotSpeed = self.options[self.selectedOption].value
+			GameSettings.alienShotSpeed = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".00",
-				value = 0
-			},
-			{
-				label = ".50",
-				value = 0.5
-			},
-			{
-				label = "1.0",
-				value = 1
-			},
-			{
-				label = "2.0",
-				value = 2
-			}
-		},
+		options = AlienDescentRateOptions,
 		optionsCount = 4,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -349,16 +229,10 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.baseAlienDescentRate
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienDescentRate
 		end,
 		save = function (self)
-			GameSettings.baseAlienDescentRate = self.options[self.selectedOption].value
+			GameSettings.alienDescentRate = self.selectedOption
 		end
 	}
 }

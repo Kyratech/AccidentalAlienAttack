@@ -143,7 +143,7 @@ function StartGame()
 	StartLevel(Formations[CurrentStage][CurrentLevel])
 
 	AlienShots = {}
-	for i = 1, GameSettings.activeAlienShots, 1 do
+	for i = 1, GameSettings.alienAttackRate, 1 do
 		local alienShotParticle = CreateAlienShotParticles()
 		local alienShot = CreateAlienShot(alienShotParticle)
 		table.insert(AlienShots, alienShot)
@@ -875,7 +875,7 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.baseAlienSpeed
+			local currentValue = GameSettings.alienSpeed
 
 			for i = 1, self.optionsCount do
 				if self.options[i].value == currentValue then
@@ -884,7 +884,7 @@ OptionsMenuOptions = {
 			end
 		end,
 		save = function (self)
-			GameSettings.baseAlienSpeed = self.options[self.selectedOption].value
+			GameSettings.alienSpeed = self.options[self.selectedOption].value
 		end
 	},
 	{
@@ -919,7 +919,7 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.baseAlienCarrierSpeed
+			local currentValue = GameSettings.alienCarrierSpeed
 
 			for i = 1, self.optionsCount do
 				if self.options[i].value == currentValue then
@@ -928,7 +928,7 @@ OptionsMenuOptions = {
 			end
 		end,
 		save = function (self)
-			GameSettings.baseAlienCarrierSpeed = self.options[self.selectedOption].value
+			GameSettings.alienCarrierSpeed = self.options[self.selectedOption].value
 		end
 	},
 	{
@@ -967,7 +967,7 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.activeAlienShots
+			local currentValue = GameSettings.alienAttackRate
 
 			for i = 1, self.optionsCount do
 				if self.options[i].value == currentValue then
@@ -976,7 +976,7 @@ OptionsMenuOptions = {
 			end
 		end,
 		save = function (self)
-			GameSettings.activeAlienShots = self.options[self.selectedOption].value
+			GameSettings.alienAttackRate = self.options[self.selectedOption].value
 		end
 	},
 	{
@@ -1015,7 +1015,7 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.baseAlienShotSpeed
+			local currentValue = GameSettings.alienShotSpeed
 
 			for i = 1, self.optionsCount do
 				if self.options[i].value == currentValue then
@@ -1024,7 +1024,7 @@ OptionsMenuOptions = {
 			end
 		end,
 		save = function (self)
-			GameSettings.baseAlienShotSpeed = self.options[self.selectedOption].value
+			GameSettings.alienShotSpeed = self.options[self.selectedOption].value
 		end
 	},
 	{
@@ -1063,7 +1063,7 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.baseAlienDescentRate
+			local currentValue = GameSettings.alienDescentRate
 
 			for i = 1, self.optionsCount do
 				if self.options[i].value == currentValue then
@@ -1072,7 +1072,7 @@ OptionsMenuOptions = {
 			end
 		end,
 		save = function (self)
-			GameSettings.baseAlienDescentRate = self.options[self.selectedOption].value
+			GameSettings.alienDescentRate = self.options[self.selectedOption].value
 		end
 	}
 }
@@ -2165,7 +2165,7 @@ function CreateBasicAlien(i, j, animation, specialWeapon)
 				AlienConsts.clrIndex)
 		end,
 		update = function (self)
-			self.targetY = 20 + AlienGlobalRowsStepped * 10 * GameSettings.baseAlienDescentRate + (self.row - 1) * 10
+			self.targetY = 20 + AlienGlobalRowsStepped * 10 * GameSettings.alienDescentRate + (self.row - 1) * 10
 
 			if self.y > self.targetY then
 				self.y = self.y - 1
@@ -2248,7 +2248,7 @@ function CreateAlienShot(shotParticle)
 				if self.speed == 0 then
 					self.x = Aliens[i].x + 2
 					self.y = Aliens[i].y + 8
-					self.speed = AlienShotConsts.speed * GameSettings.baseAlienShotSpeed
+					self.speed = AlienShotConsts.speed * GameSettings.alienShotSpeed
 				end
 			end
 		end,
@@ -2318,15 +2318,15 @@ end
 
 function CalculateAlienSpeed(maxAliens, liveAliens)
 	if liveAliens == 1 then
-		return AlienSpeeds.speedOne * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedOne * GameSettings.alienSpeed
 	elseif liveAliens <= 4 then
-		return AlienSpeeds.speedFour * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedFour * GameSettings.alienSpeed
 	elseif maxAliens // liveAliens == 1 then
-		return AlienSpeeds.speedFull * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedFull * GameSettings.alienSpeed
 	elseif maxAliens // liveAliens == 2 then
-		return AlienSpeeds.speedHalf * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedHalf * GameSettings.alienSpeed
 	else
-		return AlienSpeeds.speedQuarter * GameSettings.baseAlienSpeed
+		return AlienSpeeds.speedQuarter * GameSettings.alienSpeed
 	end
 end
 
@@ -2391,10 +2391,10 @@ function CreateCarrier()
 			local direction = math.random(1, 2)
 			if direction == 1 then
 				self.x = -16
-				self.speed = CarrierConsts.speed * GameSettings.baseAlienCarrierSpeed
+				self.speed = CarrierConsts.speed * GameSettings.alienCarrierSpeed
 			else
 				self.x = 240
-				self.speed = -CarrierConsts.speed * GameSettings.baseAlienCarrierSpeed
+				self.speed = -CarrierConsts.speed * GameSettings.alienCarrierSpeed
 			end
 		end,
 		disable = function (self)

@@ -43,7 +43,7 @@ ButtonIcons = {
 }
 
 function DrawButtonPrompt(buttonSpr, str, x, y)
-	spr(buttonSpr[(GameSettings.buttonPrompts)], x, y, 0)
+	spr(buttonSpr[ButtonPromptsOptions[GameSettings.buttonPrompts].value], x, y, 0)
 	print(": " .. str, x + 10, y + 2, 12)
 end
 

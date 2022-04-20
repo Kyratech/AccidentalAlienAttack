@@ -28,8 +28,8 @@ InstructionPages = {
 		draw = function ()
 			PrintCustomCentred("Controls", HalfScreenWidth, 8)
 			
-			spr(ButtonIcons.arrow[GameSettings.buttonPrompts], 16, 24, 0, 1, 0, 3)
-			spr(ButtonIcons.arrow[GameSettings.buttonPrompts], 24, 24, 0, 1, 0, 1)
+			spr(ButtonIcons.arrow[ButtonPromptsOptions[GameSettings.buttonPrompts].value], 16, 24, 0, 1, 0, 3)
+			spr(ButtonIcons.arrow[ButtonPromptsOptions[GameSettings.buttonPrompts].value], 24, 24, 0, 1, 0, 1)
 			print(": Move", 34, 26, 12)
 
 			DrawButtonPrompt(ButtonIcons.A, "Shoot", 16, 40)
