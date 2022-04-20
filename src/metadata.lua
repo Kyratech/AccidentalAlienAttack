@@ -12,6 +12,7 @@ TilePx = 8
 ScreenWidth = 240
 HalfScreenWidth = ScreenWidth / 2
 ScreenHeight = 136
+HalfScreenHeight = ScreenHeight / 2
 
 LeftWallX = 22
 RightWallX = 218
@@ -34,16 +35,226 @@ StateDialogue = 4
 StateInstructions = 5
 StateHighScores = 6
 
+HighScoreMemoryIndexes = {
+	{
+		name = 0,
+		score = 1
+	},
+	{
+		name = 2,
+		score = 3
+	},
+	{
+		name = 4,
+		score = 5
+	},
+	{
+		name = 6,
+		score = 7
+	},
+	{
+		name = 8,
+		score = 9
+	}
+}
+
+GameSettingsMemoryIndexes = {
+	input = 10,
+	gameplay = 11
+}
+
+-- Extract part of the binary representation of a number.
+-- Assign the least significant bit the index 0.
+-- a is the least significant part of the substring.
+-- b is the most significant part of the substring.
+-- Example for a 32 bit number:
+-- 00000000000000110000000000000000
+-- |       ^      ^               |
+-- |       b      a               |
+-- 31      23     16              0
+-- Returns: 00000011 (3)
+function IsolateBinaryPart(binaryNumber, a, b)
+	local leastSignificantPart = binaryNumber % (2 ^ (b + 1))
+	return RightShift(leastSignificantPart, a)
+end
+
+function LeftShift(x, by)
+	return x * 2 ^ by
+end
+
+function RightShift(x, by)
+	return math.floor(x / 2 ^ by)
+end
+
 GameSettings = {
-	buttonPrompts = "tic",
-	baseAlienSpeed = 1,
-	baseAlienShotSpeed = 1,
-	baseAlienDescentRate = 1,
-	baseAlienCarrierSpeed = 1,
-	activeAlienShots = 4
+	buttonPrompts = 1,
+	alienSpeed = 4,
+	alienShotSpeed = 3,
+	alienDescentRate = 3,
+	alienCarrierSpeed = 3,
+	alienAttackRate = 3
+}
+
+function SaveGameSettings()
+	local encodedInputSettings = EncodeInputSettings(GameSettings)
+	local encodedGameplaySettings = EncodeGameplaySettings(GameSettings)
+
+	pmem(GameSettingsMemoryIndexes.input, encodedInputSettings)
+	pmem(GameSettingsMemoryIndexes.gameplay, encodedGameplaySettings)
+end
+
+function LoadGameSettings()
+	local encodedInputSettings = pmem(GameSettingsMemoryIndexes.input)
+	local encodedGameplaySettings = pmem(GameSettingsMemoryIndexes.gameplay)
+
+	if encodedInputSettings ~= 0 and encodedGameplaySettings ~= 0 then
+		local inputSettings = DecodeInputSettings(encodedInputSettings)
+		local gameplaySettings = DecodeGameplaySettings(encodedGameplaySettings)
+
+		GameSettings = {
+			buttonPrompts = inputSettings.buttonPrompts,
+			alienSpeed = gameplaySettings.alienSpeed,
+			alienShotSpeed = gameplaySettings.alienShotSpeed,
+			alienDescentRate = gameplaySettings.alienDescentRate,
+			alienCarrierSpeed = gameplaySettings.alienCarrierSpeed,
+			alienAttackRate = gameplaySettings.alienAttackRate
+		}
+	end
+end
+
+function EncodeInputSettings(gameSettings)
+	return gameSettings.buttonPrompts
+end
+
+function DecodeInputSettings(encodedInputSettings)
+	return {
+		buttonPrompts = IsolateBinaryPart(encodedInputSettings, 0, 4)
+	}
+end
+
+function EncodeGameplaySettings(gameSettings)
+	local shiftedAlienShotSpeed = LeftShift(gameSettings.alienShotSpeed, 4)
+	local shiftedAlienDescentRate = LeftShift(gameSettings.alienDescentRate, 8)
+	local shiftedAlienCarrierSpeed = LeftShift(gameSettings.alienCarrierSpeed, 12)
+	local shiftedAlienAttackRate = LeftShift(gameSettings.alienAttackRate, 16)
+
+	return gameSettings.alienSpeed + shiftedAlienShotSpeed + shiftedAlienDescentRate + shiftedAlienCarrierSpeed + shiftedAlienAttackRate
+end
+
+function DecodeGameplaySettings(encodedGameplaySettings)
+	return {
+		alienSpeed = IsolateBinaryPart(encodedGameplaySettings, 0, 3),
+		alienShotSpeed = IsolateBinaryPart(encodedGameplaySettings, 4, 7),
+		alienDescentRate = IsolateBinaryPart(encodedGameplaySettings, 8, 11),
+		alienCarrierSpeed = IsolateBinaryPart(encodedGameplaySettings, 12, 15),
+		alienAttackRate = IsolateBinaryPart(encodedGameplaySettings, 16, 19)
+	}
+end
+
+ButtonPromptsOptions = {
+	{
+		label = "TIC-80",
+		value = "tic"
+	},
+	{
+		label = "QWERTY",
+		value = "pc"
+	}
+}
+
+AlienSpeedOptions = {
+	{
+		label = ".00",
+		value = 0
+	},
+	{
+		label = ".25",
+		value = 0.25
+	},
+	{
+		label = ".50",
+		value = 0.5
+	},
+	{
+		label = "1.0",
+		value = 1
+	}
+}
+
+CarrierSpeedOptions = {
+	{
+		label = ".25",
+		value = 0.25
+	},
+	{
+		label = ".50",
+		value = 0.5
+	},
+	{
+		label = "1.0",
+		value = 1
+	}
+}
+
+AlienAttackRateOptions = {
+	{
+		label = ".00",
+		value = 0
+	},
+	{
+		label = ".50",
+		value = 2
+	},
+	{
+		label = "1.0",
+		value = 4
+	},
+	{
+		label = "1.5",
+		value = 6
+	}
+}
+
+AlienShotSpeedOptions = {
+	{
+		label = ".25",
+		value = 0.25
+	},
+	{
+		label = ".50",
+		value = 0.5
+	},
+	{
+		label = "1.0",
+		value = 1
+	},
+	{
+		label = "2.0",
+		value = 2
+	}
+}
+
+AlienDescentRateOptions = {
+	{
+		label = ".00",
+		value = 0
+	},
+	{
+		label = ".50",
+		value = 0.5
+	},
+	{
+		label = "1.0",
+		value = 1
+	},
+	{
+		label = "2.0",
+		value = 2
+	}
 }
 
 function Init()
+	LoadGameSettings()
 	TitleScreen()
 end
 
@@ -73,7 +284,7 @@ OptionsMenuOpen = false
 function TitleScreen()
 	GameState = StateTitle
 
-	MainMenu = CreateMenu(MainMenuOptions, MainMenuOptionsCount, MainMenuConsts, ScreenWidth / 2 - 30, 80)
+	MainMenu = CreateMenu(MainMenuOptions, MainMenuOptionsCount, MainMenuConsts, ScreenWidth / 2 - 30, 64)
 	OptionsMenu = CreateMenu(OptionsMenuOptions, OptionsMenuOptionsCount, OptionsMenuConsts, 10, 20)
 end
 
@@ -124,7 +335,7 @@ function PlayingLoop()
 end
 
 function StartGame()
-	Lives = 1
+	Lives = 3
 	Score = 0
 
 	Player = CreatePlayer()
@@ -140,10 +351,12 @@ function StartGame()
 	CurrentStage = 1
 	CurrentLevel = 1
 
+	ScreenTransition = CreateScreenTransition()
+
 	StartLevel(Formations[CurrentStage][CurrentLevel])
 
 	AlienShots = {}
-	for i = 1, GameSettings.alienAttackRate, 1 do
+	for i = 1, AlienAttackRateOptions[GameSettings.alienAttackRate].value, 1 do
 		local alienShotParticle = CreateAlienShotParticles()
 		local alienShot = CreateAlienShot(alienShotParticle)
 		table.insert(AlienShots, alienShot)
@@ -168,6 +381,8 @@ function StartGame()
 end
 
 function StartLevel(formation)
+	ScreenTransition:reset()
+
 	-- Aliens
 	Aliens = {}
 	local alienCountX = 10
@@ -212,18 +427,8 @@ function EndStage()
 	CurrentLevel = 1
 	CurrentStage = CurrentStage + 1
 
-	if CurrentStage > NumberOfStages then
-		GameOver(ScriptGameOverGood, 3)
-	else
-		GameState = StateDialogue
-		DialogueInit(
-			ScriptStageInterludes[CurrentStage - 1],
-			ScriptStageInterludesLengths[CurrentStage - 1],
-			function()
-				GameState = StatePlaying
-				StartLevel(Formations[CurrentStage][CurrentLevel])
-			end)
-	end
+	Player:activateStatus(PlayerStatuses.shield, PlayerConsts.powerupShieldLength)
+	ScreenTransition:start()
 end
 
 function InputPause()
@@ -250,6 +455,8 @@ function Input()
 			PlayerMissile:shoot()
 		end
 	end
+
+	ScreenTransition:input()
 end
 
 function Update()
@@ -284,6 +491,8 @@ function Update()
 	ExtraLifePowerup:checkCollision()
 	TimestopPowerup:update()
 	TimestopPowerup:checkCollision()
+
+	ScreenTransition:update()
 end
 
 -- Combine alien handling so we only have to loop through once
@@ -374,6 +583,7 @@ function DrawGameObjects()
 	ScoreMultiplierPowerup:draw()
 	ExtraLifePowerup:draw()
 	TimestopPowerup:draw()
+	ScreenTransition:draw()
 end
 
 function DrawUi()
@@ -382,7 +592,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	-- DrawDebug("Weapon: " .. Player.weaponType .. ". power: " .. Player.weaponPower)
+	-- 	DrawDebug("transition state: " .. ScreenTransition.state)
 	-- DrawMouseDebug()
 end
 
@@ -556,8 +766,8 @@ InstructionPages = {
 		draw = function ()
 			PrintCustomCentred("Controls", HalfScreenWidth, 8)
 			
-			spr(ButtonIcons.arrow[GameSettings.buttonPrompts], 16, 24, 0, 1, 0, 3)
-			spr(ButtonIcons.arrow[GameSettings.buttonPrompts], 24, 24, 0, 1, 0, 1)
+			spr(ButtonIcons.arrow[ButtonPromptsOptions[GameSettings.buttonPrompts].value], 16, 24, 0, 1, 0, 3)
+			spr(ButtonIcons.arrow[ButtonPromptsOptions[GameSettings.buttonPrompts].value], 24, 24, 0, 1, 0, 1)
 			print(": Move", 34, 26, 12)
 
 			DrawButtonPrompt(ButtonIcons.A, "Shoot", 16, 40)
@@ -710,6 +920,8 @@ function HighScoresDraw()
 	PrintCustomCentred("High scores", HalfScreenWidth, 8)
 
 	HighScoresTable:draw()
+
+	DrawButtonPrompt(ButtonIcons.A, "Exit", ScreenWidth - 39, ScreenHeight - 8)
 end
 
 function ScrollOptionsH(self)
@@ -732,6 +944,7 @@ function ScrollOptionsH(self)
 	if btnp(BtnA) then
 		for i = 1, OptionsMenuOptionsCount do
 			OptionsMenuOptions[i]:save()
+			SaveGameSettings()
 		end
 		OptionsMenuOpen = false
 	end
@@ -800,16 +1013,7 @@ MainMenuConsts = {
 OptionsMenuOptionsCount = 6
 OptionsMenuOptions = {
 	{
-		options = {
-			{
-				label = "TIC-80",
-				value = "tic"
-			},
-			{
-				label = "QWERTY",
-				value = "pc"
-			}
-		},
+		options = ButtonPromptsOptions,
 		optionsCount = 2,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -827,37 +1031,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.buttonPrompts
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.buttonPrompts
 		end,
 		save = function (self)
-			GameSettings.buttonPrompts = self.options[self.selectedOption].value
+			GameSettings.buttonPrompts = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".00",
-				value = 0
-			},
-			{
-				label = ".25",
-				value = 0.25
-			},
-			{
-				label = ".50",
-				value = 0.5
-			},
-			{
-				label = "1.0",
-				value = 1
-			},
-		},
+		options = AlienSpeedOptions,
 		optionsCount = 4,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -875,33 +1056,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.alienSpeed
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienSpeed
 		end,
 		save = function (self)
-			GameSettings.alienSpeed = self.options[self.selectedOption].value
+			GameSettings.alienSpeed = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".25",
-				value = 0.25
-			},
-			{
-				label = ".50",
-				value = 0.5
-			},
-			{
-				label = "1.0",
-				value = 1
-			}
-		},
+		options = CarrierSpeedOptions,
 		optionsCount = 3,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -919,37 +1081,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.alienCarrierSpeed
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienCarrierSpeed
 		end,
 		save = function (self)
-			GameSettings.alienCarrierSpeed = self.options[self.selectedOption].value
+			GameSettings.alienCarrierSpeed = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".00",
-				value = 0
-			},
-			{
-				label = ".50",
-				value = 2
-			},
-			{
-				label = "1.0",
-				value = 4
-			},
-			{
-				label = "1.5",
-				value = 6
-			}
-		},
+		options = AlienAttackRateOptions,
 		optionsCount = 4,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -967,37 +1106,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.alienAttackRate
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienAttackRate
 		end,
 		save = function (self)
-			GameSettings.alienAttackRate = self.options[self.selectedOption].value
+			GameSettings.alienAttackRate = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".25",
-				value = 0.25
-			},
-			{
-				label = ".50",
-				value = 0.5
-			},
-			{
-				label = "1.0",
-				value = 1
-			},
-			{
-				label = "2.0",
-				value = 2
-			}
-		},
+		options = AlienShotSpeedOptions,
 		optionsCount = 4,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -1015,37 +1131,14 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.alienShotSpeed
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienShotSpeed
 		end,
 		save = function (self)
-			GameSettings.alienShotSpeed = self.options[self.selectedOption].value
+			GameSettings.alienShotSpeed = self.selectedOption
 		end
 	},
 	{
-		options = {
-			{
-				label = ".00",
-				value = 0
-			},
-			{
-				label = ".50",
-				value = 0.5
-			},
-			{
-				label = "1.0",
-				value = 1
-			},
-			{
-				label = "2.0",
-				value = 2
-			}
-		},
+		options = AlienDescentRateOptions,
 		optionsCount = 4,
 		selectedOption = 1,
 		draw = function(self, x, y)
@@ -1063,16 +1156,10 @@ OptionsMenuOptions = {
 		end,
 		input = ScrollOptionsH,
 		getCurrent = function (self)
-			local currentValue = GameSettings.alienDescentRate
-
-			for i = 1, self.optionsCount do
-				if self.options[i].value == currentValue then
-					self.selectedOption = i
-				end
-			end
+			self.selectedOption = GameSettings.alienDescentRate
 		end,
 		save = function (self)
-			GameSettings.alienDescentRate = self.options[self.selectedOption].value
+			GameSettings.alienDescentRate = self.selectedOption
 		end
 	}
 }
@@ -1172,20 +1259,36 @@ HighScoreMemoryIndexes = {
 	{
 		name = 4,
 		score = 5
+	},
+	{
+		name = 6,
+		score = 7
+	},
+	{
+		name = 8,
+		score = 9
 	}
 }
 
 DefaultHighScores = {
 	{
 		name = "ALP",
-		score = 30
+		score = 50
 	},
 	{
 		name = "BET",
-		score = 20
+		score = 40
 	},
 	{
 		name = "GAM",
+		score = 30
+	},
+	{
+		name = "DEL",
+		score = 20
+	},
+	{
+		name = "EPS",
 		score = 10
 	}
 }
@@ -1271,23 +1374,27 @@ CreateHighScoresTable = function ()
 	local topScores = {
 		GetHighScore(1),
 		GetHighScore(2),
-		GetHighScore(3)
+		GetHighScore(3),
+		GetHighScore(4),
+		GetHighScore(5),
 	}
 
 	local topScoreStrings = {
-		SerialiseHighScore(topScores[1]),
-		SerialiseHighScore(topScores[2]),
-		SerialiseHighScore(topScores[3])
+		SerialiseHighScore(1, topScores[1]),
+		SerialiseHighScore(2, topScores[2]),
+		SerialiseHighScore(3, topScores[3]),
+		SerialiseHighScore(4, topScores[4]),
+		SerialiseHighScore(5, topScores[5])
 	}
 
 	return {
 		y = 40,
-		newScoreRanking = 4,
+		newScoreRanking = math.huge,
 		newScoreString = "",
 		topScores = topScores,
 		topScoreStrings = topScoreStrings,
 		draw = function (self)
-			for i = 1, 3 do
+			for i = 1, 5 do
 				local colour = 12
 				if i == self.newScoreRanking then
 					colour = 3
@@ -1295,31 +1402,40 @@ CreateHighScoresTable = function ()
 				PrintCentredMonospace(self.topScoreStrings[i], HalfScreenWidth, self.y + (i - 1) * 8, colour)
 			end
 
-			PrintCentredMonospace(self.newScoreString, HalfScreenWidth, self.y + 32, 3)
+			PrintCentredMonospace(self.newScoreString, HalfScreenWidth, self.y + 48, 3)
 		end,
 		updateHighScores = function (self, newScore)
-			local newRanking = 4
-			if newScore.score > self.topScores[1].score then
-				self.topScores[1] = newScore
-				newRanking = 1
-				SaveHighScore(1, newScore)
-			elseif newScore.score > self.topScores[2].score then
-				self.topScores[2] = newScore
-				newRanking = 2
-				SaveHighScore(2, newScore)
-			elseif newScore.score > self.topScores[3].score then
-				self.topScores[3] = newScore
-				newRanking = 3
-				SaveHighScore(3, newScore)
+			local newRanking = math.huge
+
+			for i = 1, 5 do
+				if newScore.score > self.topScores[i].score then
+					for j = 5, i, -1 do
+						self.topScores[j] = self.topScores[j - 1]
+					end
+					self.topScores[i] = newScore
+					newRanking = i
+					for j = 1, 5 do
+						SaveHighScore(j, self.topScores[j])
+					end
+					break
+				end
 			end
 
 			self.topScoreStrings = {
-				SerialiseHighScore(self.topScores[1]),
-				SerialiseHighScore(self.topScores[2]),
-				SerialiseHighScore(self.topScores[3])
+				SerialiseHighScore(1, self.topScores[1]),
+				SerialiseHighScore(2, self.topScores[2]),
+				SerialiseHighScore(3, self.topScores[3]),
+				SerialiseHighScore(4, self.topScores[4]),
+				SerialiseHighScore(5, self.topScores[5])
 			}
 			self.newScoreRanking = newRanking
-			self.newScoreString = SerialiseHighScore(newScore)
+
+			local newRankingString = "U"
+			if newRanking < math.huge then
+				newRankingString = tostring(newRanking)
+			end
+
+			self.newScoreString = SerialiseHighScore(newRankingString, newScore)
 		end
 	}
 end
@@ -1352,7 +1468,10 @@ EncodeHighScoreName = function(name)
 		string.byte(string.sub(name, 3, 3))
 	}
 
-	return 2^16 * charCodes[1] + 2^8 * charCodes[2] + charCodes[3]
+	local shiftedFirstCharacter = LeftShift(charCodes[1], 16)
+	local shiftedSecondCharacter = LeftShift(charCodes[2], 8)
+
+	return shiftedFirstCharacter + shiftedSecondCharacter + charCodes[3]
 end
 
 DecodeHighScoreName = function(encodedName)
@@ -1365,7 +1484,7 @@ DecodeHighScoreName = function(encodedName)
 	return string.char(parts[1]) .. string.char(parts[2]) .. string.char(parts[3])
 end
 
-SerialiseHighScore = function(highScore)
+SerialiseHighScore = function(rank, highScore)
 	local lengthOfScore = 1
 	if highScore.score > 0 then
 		lengthOfScore = math.floor(math.log(highScore.score, 10) + 1)
@@ -1373,7 +1492,7 @@ SerialiseHighScore = function(highScore)
 	local numberOfSpaces = 13 - lengthOfScore
 	local spaces = string.rep(" ", numberOfSpaces)
 
-	return highScore.name .. spaces .. highScore.score
+	return rank .. " " .. highScore.name .. spaces .. highScore.score
 end
 
 PlayerConsts = {
@@ -2165,7 +2284,7 @@ function CreateBasicAlien(i, j, animation, specialWeapon)
 				AlienConsts.clrIndex)
 		end,
 		update = function (self)
-			self.targetY = 20 + AlienGlobalRowsStepped * 10 * GameSettings.alienDescentRate + (self.row - 1) * 10
+			self.targetY = 20 + AlienGlobalRowsStepped * 10 * AlienDescentRateOptions[GameSettings.alienDescentRate].value + (self.row - 1) * 10
 
 			if self.y > self.targetY then
 				self.y = self.y - 1
@@ -2248,7 +2367,7 @@ function CreateAlienShot(shotParticle)
 				if self.speed == 0 then
 					self.x = Aliens[i].x + 2
 					self.y = Aliens[i].y + 8
-					self.speed = AlienShotConsts.speed * GameSettings.alienShotSpeed
+					self.speed = AlienShotConsts.speed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value
 				end
 			end
 		end,
@@ -2318,15 +2437,15 @@ end
 
 function CalculateAlienSpeed(maxAliens, liveAliens)
 	if liveAliens == 1 then
-		return AlienSpeeds.speedOne * GameSettings.alienSpeed
+		return AlienSpeeds.speedOne * AlienSpeedOptions[GameSettings.alienSpeed].value
 	elseif liveAliens <= 4 then
-		return AlienSpeeds.speedFour * GameSettings.alienSpeed
+		return AlienSpeeds.speedFour * AlienSpeedOptions[GameSettings.alienSpeed].value
 	elseif maxAliens // liveAliens == 1 then
-		return AlienSpeeds.speedFull * GameSettings.alienSpeed
+		return AlienSpeeds.speedFull * AlienSpeedOptions[GameSettings.alienSpeed].value
 	elseif maxAliens // liveAliens == 2 then
-		return AlienSpeeds.speedHalf * GameSettings.alienSpeed
+		return AlienSpeeds.speedHalf * AlienSpeedOptions[GameSettings.alienSpeed].value
 	else
-		return AlienSpeeds.speedQuarter * GameSettings.alienSpeed
+		return AlienSpeeds.speedQuarter * AlienSpeedOptions[GameSettings.alienSpeed].value
 	end
 end
 
@@ -2391,10 +2510,10 @@ function CreateCarrier()
 			local direction = math.random(1, 2)
 			if direction == 1 then
 				self.x = -16
-				self.speed = CarrierConsts.speed * GameSettings.alienCarrierSpeed
+				self.speed = CarrierConsts.speed * CarrierSpeedOptions[GameSettings.alienCarrierSpeed].value
 			else
 				self.x = 240
-				self.speed = -CarrierConsts.speed * GameSettings.alienCarrierSpeed
+				self.speed = -CarrierConsts.speed * CarrierSpeedOptions[GameSettings.alienCarrierSpeed].value
 			end
 		end,
 		disable = function (self)
@@ -2585,6 +2704,92 @@ Formation_Empty = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 }
+
+ScreenTransitionConsts = {
+	speed = 3
+}
+
+ScreenTransitionStates = {
+	disabled = 0,
+	animating = 1,
+	complete = 2
+}
+
+CreateScreenTransition = function ()
+	return {
+		leadingPoint = 0,
+		state = ScreenTransitionStates.disabled,
+		textCountdown = 90,
+		draw = function (self)
+			if self.state ~= ScreenTransitionStates.disabled then
+				local triangleBackX = self.leadingPoint - HalfScreenHeight
+
+				tri(
+					triangleBackX, 0,
+					self.leadingPoint, HalfScreenHeight,
+					triangleBackX, ScreenHeight,
+					0
+				)
+
+				if triangleBackX > 0 then
+					rect(
+						0, 0,
+						triangleBackX, ScreenHeight,
+						0
+					)
+				end
+
+				if self.textCountdown < 60 then
+					PrintCustomCentred("zone", HalfScreenWidth, HalfScreenHeight - 8)
+				end
+
+				if self.textCountdown < 30 then
+					PrintCustomCentred("cleared", HalfScreenWidth, HalfScreenHeight)
+				end
+
+				if self.textCountdown <= 0 then
+					DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
+				end
+			end
+		end,
+		update = function (self)
+			if self.state == ScreenTransitionStates.animating then
+				self.leadingPoint = self.leadingPoint + ScreenTransitionConsts.speed
+
+				if self.leadingPoint >= ScreenWidth + HalfScreenHeight then
+					self.state = ScreenTransitionStates.complete
+				end
+			elseif self.state == ScreenTransitionStates.complete and self.textCountdown > 0 then
+				self.textCountdown = self.textCountdown - 1
+			end
+		end,
+		input = function (self)
+			if self.state == ScreenTransitionStates.complete and btnp(BtnA) then
+				if CurrentStage > NumberOfStages then
+					GameOver(ScriptGameOverGood, 3)
+				else
+					GameState = StateDialogue
+					DialogueInit(
+						ScriptStageInterludes[CurrentStage - 1],
+						ScriptStageInterludesLengths[CurrentStage - 1],
+						function()
+							GameState = StatePlaying
+							StartLevel(Formations[CurrentStage][CurrentLevel])
+						end)
+					Player:activateStatus(PlayerStatuses.shield, 180)
+				end
+			end
+		end,
+		start = function (self)
+			self.state = ScreenTransitionStates.animating
+		end,
+		reset = function (self)
+			self.state = ScreenTransitionStates.disabled
+			self.leadingPoint = 0
+			self.textCountdown = 90
+		end
+	}
+end
 
 DialogueAlienAnis = {
 	worried = {
@@ -2912,7 +3117,7 @@ ButtonIcons = {
 }
 
 function DrawButtonPrompt(buttonSpr, str, x, y)
-	spr(buttonSpr[(GameSettings.buttonPrompts)], x, y, 0)
+	spr(buttonSpr[ButtonPromptsOptions[GameSettings.buttonPrompts].value], x, y, 0)
 	print(": " .. str, x + 10, y + 2, 12)
 end
 
@@ -3345,6 +3550,7 @@ Init()
 -- 072:2222222222222222222222222222222222222222222222221111111111111111
 -- 073:2222266622222677222226712222267f222226712222267f111116711111167f
 -- 074:6666666677777777f1f1f1f17777777777777777777777777777777777777777
+-- 075:0000200000001000000010000000100000011000000010000001100000001000
 -- 076:6000000060000000600000006000000060000000600000006000000060000000
 -- 077:0000000600000006000000060000000600000006000000060000000600000006
 -- 078:6000000060000000600000006000000060000000600000006000000066666666
@@ -3360,6 +3566,7 @@ Init()
 -- 088:0000000000000000000000000000000022222222111111111111111100000000
 -- 089:0001167100211677021106662110677711067744106774400677777767777777
 -- 090:f1f1f1f177777777666666667777777700440044044004407777777777777777
+-- 091:001111000001100000011000001111000011010000101100001f010000100100
 -- 092:6000000060000000600000006000000060000000600000006000000060000000
 -- 093:0000000600000006000000060000000600000006000000060000000600000006
 -- 094:0000ccc00000ccccc0c0777c7c7000c7c7c00c707070cccc0000cccc00007777
@@ -3370,6 +3577,12 @@ Init()
 -- 099:09900006999a2006aaaa2006caa2000600000006112220061112220666666666
 -- 100:6112a0c96120aa996120aa8a61120aa860001000622211126222211166666666
 -- 101:90c2000699a02006aaa02a068a020aa600000aa622200aa62222011666666666
+-- 102:0001111100111111011111111110000011000000100111111011111111111111
+-- 103:1111111111111111111111110000000000000000111111111111111111111111
+-- 104:1111100011111100111111100000011100000011111110011111110111111111
+-- 105:0000000010000100111111111111111111111111111001000001101100011011
+-- 106:0000000000100000111011101110111111101111111000110000110100001100
+-- 107:01010f1001001010010f01100110001001010f1001001010010f011001100010
 -- 108:6000000060000000600000006000000066666666000000000000000000000000
 -- 109:0000000600000006000000060000000666666666000000000000000000000000
 -- 110:0044440004032040400400044204002442003024400000040402204000444400
@@ -3379,7 +3592,13 @@ Init()
 -- 115:66666666660606066666666600000006110000061110aaa61111aaa61111aaa6
 -- 116:666666666ccc6cc6666666666000000060000111600120116011120160111201
 -- 117:6666666666060606666666660000000611000006111000061111000611110006
--- 124:000cc00000cccc000cc00cc00c0cc0c0000cc000000cc00000000000000cc000
+-- 118:1110000011000000100000001000000010011000101001001010010010100100
+-- 119:0000000000000000011111111000000011111111100000001111111110000000
+-- 120:0000011100000011111100010000100111111001000010011111100100001001
+-- 121:0000000100000001000011010000001100111111000011110000001100000001
+-- 122:0000000000000000011000001000000011111000111000001000000000000000
+-- 123:1f010f0110001001110f0101101000111f010f0110001001110f010110100011
+-- 124:000cc00000cccc000cc00cc00c0000c0000cc00000cccc000cc00cc00c0000c0
 -- 125:0000000000c00c000cc00cc0cc0cc0cccc0cc0cc0cc00cc000c00c0000000000
 -- 128:2ffffdee2fffffdd2fffffdd2ffffffdffffffff222fffff2f2fffff222f2222
 -- 129:deeddff2dddddff2dddd1ff2cccd1ff2ddd111fff11112221111d2f22222f222
@@ -3387,15 +3606,31 @@ Init()
 -- 131:11110aa611110116111101161110011600021116222111161221110666666666
 -- 132:601112016011120160111201601aa01161aaaa0061aaaa1161aaa11166666666
 -- 133:1111000611110006111100061110aa06000aaaa6222aaaa61222aaa666666666
--- 140:ccc00ccccc0000ccc00cc00c000cc000000cc000000cc00000000000000cc000
+-- 134:0000011100011100001100000110000101000011110021111002211110022111
+-- 135:1110000000111000111111001111111011111110111111111111111111111111
+-- 140:ccc00ccccc0000ccc0c00c0c000cc000000cc000000cc000000cc000000cc000
 -- 144:222f22222f2ffffd222fffddfffffddd2ffffdd12ffff11d2ffff0cd2ffff00d
 -- 145:2222f222ddddf2f2ddddd222ddddddffd1ddddf2dd11ddf2d00cddf2d00eddf2
 -- 146:666666666ccc6cc6666666666020111161120111611201106110aaaa611a000a
 -- 147:666666666606060666666666111000061110000601100006a000000600000006
+-- 148:0000000100000111000eeeee00ee111100e1e11101e11e1101e111e111e11111
+-- 149:1110000011110000e11100001111f0001111f0001110f000111ff000110f0000
+-- 150:1002111110001111010011110011111101000111e1111000ee11111100eee111
+-- 151:11111111111111111111111011111100111000100001111e111111ee111eee00
+-- 152:1111111111111111111111111111111111111111111111111111111111111111
+-- 153:1111111111111111111111111111111111111111111111111111111111111111
+-- 154:0000000011100000111111001111111111111111111111111111111111111111
 -- 160:2ffffeed2ffffddd2fffffdd2fffffddfffffffd222fffff2f2fffff222f2222
 -- 161:deeddff2dddddff2cccdfff2ccddfff2ddd11ffff1111222d111d2f22222f222
 -- 162:612a0c99620aa999620aaaaa6120aa8860010000602221116222111166666666
 -- 163:0c20a906aa00aa96aa0aaaa6a02aaa9601111a06111110061111100666666666
+-- 164:11e111111111111111111110011110ff000fff00000000010000001000000111
+-- 165:10ff00000ff0f000ff0ff000f0ff00000fff0000fff000000100000011100000
+-- 166:01000eee01111000011111110111111101111111011111110011111100000111
+-- 167:eee0001000011110111111101111111011111110111111101111110011100000
+-- 168:1111111110000000100000001000000010000000100000001011022010110000
+-- 169:1111111100000000000000000000000000000000000000002202202200000000
+-- 170:1111111111111111000111110000001100000001000000010220220100000001
 -- 176:222f22222f2ffffd222fffddfffff11d2ffffddd2ffff0dd2ffff0cd2ffff00d
 -- 177:2222f222dddff2f21dddd222d111ddffddddddf2dd00ddf2d0c0ddf2d00eddf2
 -- 192:2ffffeed2ffffddd2fffffdd2fffffddfffffffd222fffff2f2fffff222f2222
@@ -3543,10 +3778,18 @@ Init()
 -- <MAP>
 -- 003:000000000000000000000010203040506070800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- 004:000000000000011121314151610000718191a1b1c1d1e1f1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
--- 005:000000000000021222324252620000728292a2b2c2d2e2f2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
--- 014:000000000000000000000000000000000000000000000000000000000000838393a30000000000000000000000000000000000000000000063738383000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
--- 015:000000000000000000000000000000000000000000000000000000000000848494a40313435323334353435343435343534323335343031364748484000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
--- 016:000000000000000000000000000000000000000000000000000000000000858595a50414445424344454445444445444544424345444041465758585000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 005:000000000000021222324252620000728292a2b2c2d2e2f20000000000000000000000b4000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 006:0000000000000000000000000000000000000000000000000000000000000000000000b5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 007:0000000000000000000000000000000000000000000000000000000000000000000000b60000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b4000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 008:0000000000000000000000000000000000000000000000000000000000000000000000b70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 009:0000000000000000000000000000000000000000000000000000000000000000000000b70000000000000000000000000000000000000000000000000000898999a9a9a9a90000000000000000000000000068780000b6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 010:000000000000000000000000000000000000000000000000000000000000000000006676860066768600000000000000000000000000000000000000000089899aaaaaaaaa0000495900004959000000000069790000b7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 011:00000000000000000000000000000000000000000000000000000000000000000000677787006777870096a60000000097a797a797a797a70000000000008999a90000000000004a5a00004a5a00000000896a7aa90000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 012:0000000000000000000000000000000000000000000000000000000000000000000066768600667686000000000000000097a797a797a70000000000000089998999a90000495900004959000049590000898999999999a90000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 013:00000000000000000000000000000000000000000000000000000000000000000000677787006777870096a60000000097a797a797a797a70000000000008a9a9a9aaa00004a5a00004a5a00004a5a00008a9a9a9a9a9aaa0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 014:000000000000000000000000000000000000000000000000000000000000838393a300000000000000000000000000000000000000000000637383838393a3000000000000000000000000000000000000000000000000637383000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 015:000000000000000000000000000000000000000000000000000000000000848494a403134353233343534353434353435343233353430313647484848494a4031343534353435323334353435323334353435343530313647484000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 016:000000000000000000000000000000000000000000000000000000000000858595a504144454243444544454444454445444243454440414657585858595a5041444544454445424344454445424344454445444540414657585000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- </MAP>
 
 -- <WAVES>
