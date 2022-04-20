@@ -219,7 +219,10 @@ EncodeHighScoreName = function(name)
 		string.byte(string.sub(name, 3, 3))
 	}
 
-	return 2^16 * charCodes[1] + 2^8 * charCodes[2] + charCodes[3]
+	local shiftedFirstCharacter = LeftShift(charCodes[1], 16)
+	local shiftedSecondCharacter = LeftShift(charCodes[2], 8)
+
+	return shiftedFirstCharacter + shiftedSecondCharacter + charCodes[3]
 end
 
 DecodeHighScoreName = function(encodedName)
