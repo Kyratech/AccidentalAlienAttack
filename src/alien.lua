@@ -1,7 +1,6 @@
 AlienConsts = {
 	width = 1,
-	height = 1,
-	clrIndex = 12
+	height = 1
 }
 
 AlienSpeeds = {
@@ -19,27 +18,61 @@ AlienShotConsts = {
 	clrIndex = 0
 }
 
-function CreateAlien(i, j, type)
-	if type == 1 then
-		return CreateBasicAlien(i, j, AlienRedAni, PlayerWeapons.horizontal)
-	elseif type == 2 then
-		return CreateBasicAlien(i, j, AlienBlueAni, PlayerWeapons.diagonal)
-	elseif type == 3 then
-		return CreateBasicAlien(i, j, AlienGreenAni, PlayerWeapons.vertical)
+AlienFactory = {
+	function(i, j)
+		return CreateAlienBase(i, j, AlienRedAni, PlayerWeapons.horizontal, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateAlienBase(i, j, AlienBlueAni, PlayerWeapons.diagonal, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateAlienBase(i, j, AlienGreenAni, PlayerWeapons.vertical, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateShieldAlien(i, j)
 	end
+}
+
+function CreateAlien(i, j, type)
+	return AlienFactory[type](i, j)
 end
 
-function CreateBasicAlien(i, j, animation, specialWeapon)
+function CreateShieldAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienShieldAni,
+		PlayerWeapons.none,
+		function (self, k)
+			Explosion:enable(self.x, self.y)
+
+			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.vertical, StandardDieFunction)
+			damagedShieldAlien.x = self.x
+			damagedShieldAlien.y = self.y
+			Aliens[k] = damagedShieldAlien
+		end
+	)
+end
+
+function StandardDieFunction(self, i)
+	Explosion:enable(self.x, self.y)
+	Player:getWeaponPower(self.specialWeapon)
+
+	table.remove(Aliens, i)
+	LiveAliens = LiveAliens - 1
+end
+
+function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 	return {
 		x = LeftWallX + 10 + (i - 1) * 16,
 		y = -50 + (j - 1) * 10,
 		w = AlienConsts.width * TilePx,
 		h = AlienConsts.height * TilePx,
-		weaponType = specialWeapon,
 		column = i,
 		row = j,
 		targetY = 20 + (j - 1) * 10,
 		hitWall = false,
+		specialWeapon = specialWeapon,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -50,7 +83,7 @@ function CreateBasicAlien(i, j, animation, specialWeapon)
 				self.ani.currentFrame,
 				self.x,
 				self.y,
-				AlienConsts.clrIndex)
+				animation.clrIndex)
 		end,
 		update = function (self)
 			self.targetY = 20 + AlienGlobalRowsStepped * 10 * AlienDescentRateOptions[GameSettings.alienDescentRate].value + (self.row - 1) * 10
@@ -85,7 +118,8 @@ function CreateBasicAlien(i, j, animation, specialWeapon)
 				end
 				NewAlienGlobalVelocity = AlienGlobalSpeed
 			end
-		end
+		end,
+		die = dieFunction
 	}
 end
 

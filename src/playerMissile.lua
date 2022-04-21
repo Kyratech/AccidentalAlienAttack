@@ -56,7 +56,6 @@ function CreatePlayerMissile()
 				if Collide(self, Aliens[i]) then
 					local alienY = Aliens[i].y;
 
-					Player:getWeaponPower(Aliens[i].weaponType)
 					KillAlien(i)
 
 					ScorePoints(1)
@@ -186,7 +185,6 @@ function CreatePlayerMissileBurst()
 			-- Check aliens
 			for i, alien in pairs(Aliens) do
 				if Collide(self, Aliens[i]) then
-					Player:getWeaponPower(Aliens[i].weaponType)
 					KillAlien(i)
 
 					if Player.status == PlayerStatuses.scoreMultiplier then

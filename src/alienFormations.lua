@@ -3,6 +3,7 @@
 -- 1 - red alien
 -- 2 - blue alien
 -- 3 - green alien
+-- 4 - shield alien
 
 -- NumberOfStages = 1
 -- NumberOfLevelsPerStage = 10
@@ -94,7 +95,7 @@ Formations = {
 			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
 			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
 			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
-			0, 0, 0, 3, 3, 3, 3, 0, 0, 0
+			0, 0, 0, 4, 4, 4, 4, 0, 0, 0
 		},
 		{
 			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,

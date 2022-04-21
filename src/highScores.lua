@@ -227,9 +227,9 @@ end
 
 DecodeHighScoreName = function(encodedName)
 	local parts = {
-		math.floor((encodedName % 2^24) / 2^16),
-		math.floor((encodedName % 2^16) / 2^8),
-		encodedName % 2^8
+		IsolateBinaryPart(encodedName, 16, 23),
+		IsolateBinaryPart(encodedName, 8, 15),
+		IsolateBinaryPart(encodedName, 0, 7)
 	}
 
 	return string.char(parts[1]) .. string.char(parts[2]) .. string.char(parts[3])

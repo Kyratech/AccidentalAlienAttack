@@ -529,10 +529,7 @@ function ScorePoints(x)
 end
 
 function KillAlien(i)
-	Explosion:enable(Aliens[i].x, Aliens[i].y)
-
-	table.remove(Aliens, i)
-	LiveAliens = LiveAliens - 1
+	Aliens[i]:die(i)
 
 	if LiveAliens == 0 then
 		EndLevel()
@@ -1476,9 +1473,9 @@ end
 
 DecodeHighScoreName = function(encodedName)
 	local parts = {
-		math.floor((encodedName % 2^24) / 2^16),
-		math.floor((encodedName % 2^16) / 2^8),
-		encodedName % 2^8
+		IsolateBinaryPart(encodedName, 16, 23),
+		IsolateBinaryPart(encodedName, 8, 15),
+		IsolateBinaryPart(encodedName, 0, 7)
 	}
 
 	return string.char(parts[1]) .. string.char(parts[2]) .. string.char(parts[3])
@@ -1700,7 +1697,6 @@ function CreatePlayerShot()
 			-- Check aliens
 			for i, alien in pairs(Aliens) do
 				if Collide(self, Aliens[i]) then
-					Player:getWeaponPower(Aliens[i].weaponType)
 					KillAlien(i)
 
 					ScorePoints(1)
@@ -1792,7 +1788,6 @@ function CreatePlayerMissile()
 				if Collide(self, Aliens[i]) then
 					local alienY = Aliens[i].y;
 
-					Player:getWeaponPower(Aliens[i].weaponType)
 					KillAlien(i)
 
 					ScorePoints(1)
@@ -1922,7 +1917,6 @@ function CreatePlayerMissileBurst()
 			-- Check aliens
 			for i, alien in pairs(Aliens) do
 				if Collide(self, Aliens[i]) then
-					Player:getWeaponPower(Aliens[i].weaponType)
 					KillAlien(i)
 
 					if Player.status == PlayerStatuses.scoreMultiplier then
@@ -2250,27 +2244,61 @@ AlienShotConsts = {
 	clrIndex = 0
 }
 
-function CreateAlien(i, j, type)
-	if type == 1 then
-		return CreateBasicAlien(i, j, AlienRedAni, PlayerWeapons.horizontal)
-	elseif type == 2 then
-		return CreateBasicAlien(i, j, AlienBlueAni, PlayerWeapons.diagonal)
-	elseif type == 3 then
-		return CreateBasicAlien(i, j, AlienGreenAni, PlayerWeapons.vertical)
+AlienFactory = {
+	function(i, j)
+		return CreateAlienBase(i, j, AlienRedAni, PlayerWeapons.horizontal, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateAlienBase(i, j, AlienBlueAni, PlayerWeapons.diagonal, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateAlienBase(i, j, AlienGreenAni, PlayerWeapons.vertical, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateShieldAlien(i, j)
 	end
+}
+
+function CreateAlien(i, j, type)
+	return AlienFactory[type](i, j)
 end
 
-function CreateBasicAlien(i, j, animation, specialWeapon)
+function CreateShieldAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienShieldAni,
+		PlayerWeapons.none,
+		function (self, k)
+			Explosion:enable(self.x, self.y)
+
+			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.vertical, StandardDieFunction)
+			damagedShieldAlien.x = self.x
+			damagedShieldAlien.y = self.y
+			Aliens[k] = damagedShieldAlien
+		end
+	)
+end
+
+function StandardDieFunction(self, i)
+	Explosion:enable(self.x, self.y)
+	Player:getWeaponPower(self.specialWeapon)
+
+	table.remove(Aliens, i)
+	LiveAliens = LiveAliens - 1
+end
+
+function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 	return {
 		x = LeftWallX + 10 + (i - 1) * 16,
 		y = -50 + (j - 1) * 10,
 		w = AlienConsts.width * TilePx,
 		h = AlienConsts.height * TilePx,
-		weaponType = specialWeapon,
 		column = i,
 		row = j,
 		targetY = 20 + (j - 1) * 10,
 		hitWall = false,
+		specialWeapon = specialWeapon,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -2316,7 +2344,8 @@ function CreateBasicAlien(i, j, animation, specialWeapon)
 				end
 				NewAlienGlobalVelocity = AlienGlobalSpeed
 			end
-		end
+		end,
+		die = dieFunction
 	}
 end
 
@@ -2529,6 +2558,7 @@ end
 -- 1 - red alien
 -- 2 - blue alien
 -- 3 - green alien
+-- 4 - shield alien
 
 -- NumberOfStages = 1
 -- NumberOfLevelsPerStage = 10
@@ -2620,7 +2650,7 @@ Formations = {
 			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
 			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
 			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
-			0, 0, 0, 3, 3, 3, 3, 0, 0, 0
+			0, 0, 0, 4, 4, 4, 4, 0, 0, 0
 		},
 		{
 			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
@@ -3359,6 +3389,18 @@ AlienGreenAni = {
 	sprites = { 326, 327, 328, 329 }
 }
 
+AlienShieldAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 400, 401, 402, 401 }
+}
+
+AlienShieldBrokenAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 416, 417, 418, 417 }
+}
+
 AlienShotAni = {
 	frameDelay = 5,
 	length = 6,
@@ -3598,7 +3640,7 @@ Init()
 -- 121:0000000100000001000011010000001100111111000011110000001100000001
 -- 122:0000000000000000011000001000000011111000111000001000000000000000
 -- 123:1f010f0110001001110f0101101000111f010f0110001001110f010110100011
--- 124:000cc00000cccc000cc00cc00c0000c0000cc00000cccc000cc00cc00c0000c0
+-- 124:000cc00000cccc000cc00cc00c0cc0c0000cc000000cc00000000000000cc000
 -- 125:0000000000c00c000cc00cc0cc0cc0cccc0cc0cc0cc00cc000c00c0000000000
 -- 128:2ffffdee2fffffdd2fffffdd2ffffffdffffffff222fffff2f2fffff222f2222
 -- 129:deeddff2dddddff2dddd1ff2cccd1ff2ddd111fff11112221111d2f22222f222
@@ -3608,7 +3650,7 @@ Init()
 -- 133:1111000611110006111100061110aa06000aaaa6222aaaa61222aaa666666666
 -- 134:0000011100011100001100000110000101000011110021111002211110022111
 -- 135:1110000000111000111111001111111011111110111111111111111111111111
--- 140:ccc00ccccc0000ccc0c00c0c000cc000000cc000000cc000000cc000000cc000
+-- 140:ccc00ccccc0000ccc00cc00c000cc000000cc000000cc00000000000000cc000
 -- 144:222f22222f2ffffd222fffddfffffddd2ffffdd12ffff11d2ffff0cd2ffff00d
 -- 145:2222f222ddddf2f2ddddd222ddddddffd1ddddf2dd11ddf2d00cddf2d00eddf2
 -- 146:666666666ccc6cc6666666666020111161120111611201106110aaaa611a000a
@@ -3773,6 +3815,12 @@ Init()
 -- 133:000000b00000000b0000000b0000000b0000000b0000000b00000aa00000a000
 -- 134:0b000000b0000000b0000000b0000000b0000000000000000000000000000000
 -- 135:000000b00000000b0000000b0000000b0000000b000000000000000000000000
+-- 144:22dddd222dcdddd2dd88ddddd8008ddd8c00cdd888cc88882888888222888822
+-- 145:22dddd222dcdddd2ddd88ddddd8008dd8dc00cd8888cc8882888888222888822
+-- 146:22dddd222dcdddd2dddd88ddddd8008d8ddc00c88888cc882888888222888822
+-- 160:22dddd222dcdddd2ddd88ddd288008dd28c00c8d228cc8222828882222222822
+-- 161:22dddd222dcdddd2ddd88ddddd8008d228c00c82228cc8222288882228222282
+-- 162:22dddd222dcdddd2ddd88dd2dd800822ddc00c82d28cc8822228822822282222
 -- </SPRITES>
 
 -- <MAP>

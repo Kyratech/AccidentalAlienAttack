@@ -42,7 +42,6 @@ function CreatePlayerShot()
 			-- Check aliens
 			for i, alien in pairs(Aliens) do
 				if Collide(self, Aliens[i]) then
-					Player:getWeaponPower(Aliens[i].weaponType)
 					KillAlien(i)
 
 					ScorePoints(1)

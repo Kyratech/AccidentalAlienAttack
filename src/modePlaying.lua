@@ -211,10 +211,7 @@ function ScorePoints(x)
 end
 
 function KillAlien(i)
-	Explosion:enable(Aliens[i].x, Aliens[i].y)
-
-	table.remove(Aliens, i)
-	LiveAliens = LiveAliens - 1
+	Aliens[i]:die(i)
 
 	if LiveAliens == 0 then
 		EndLevel()
