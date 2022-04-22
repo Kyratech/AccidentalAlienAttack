@@ -346,6 +346,9 @@ function StartGame()
 	PlayerMissileBurstLeft = CreatePlayerMissileBurst()
 	PlayerMissileBurstRight = CreatePlayerMissileBurst()
 
+	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
+	SpecialWeaponBlock = CreateSpecialWeaponBlock()
+
 	AlienCarrier = CreateCarrier()
 
 	CurrentStage = 1
@@ -452,7 +455,7 @@ function Input()
 		end
 	elseif btnp(BtnB) then
 		if Player.active == true and Player.weaponPower == 4 then
-			PlayerMissile:shoot()
+			SpecialWeaponPicker[Player.weaponType]()
 		end
 	end
 
@@ -471,6 +474,10 @@ function Update()
 	PlayerMissileBurstRight:update()
 	PlayerMissileBurstLeft:checkCollision()
 	PlayerMissileBurstRight:checkCollision()
+
+	SpecialWeaponBlockProjectile:update()
+	SpecialWeaponBlock:update()
+	SpecialWeaponBlock:checkCollision()
 
 	PlayerShield:update()
 
@@ -571,6 +578,8 @@ function DrawGameObjects()
 	PlayerMissile:draw()
 	PlayerMissileBurstLeft:draw()
 	PlayerMissileBurstRight:draw()
+	SpecialWeaponBlockProjectile:draw()
+	SpecialWeaponBlock:draw()
 	PlayerShield:draw()
 	AlienCarrier:draw()
 	Explosion:draw()
@@ -1998,6 +2007,160 @@ function CreatePlayerShield()
 	}
 end
 
+PlayerWeapons = {
+	none = "none",
+	vertical = "vertical",
+	horizontal = "horizontal",
+	diagonal = "diagonal",
+	block = "block"
+}
+
+SpecialWeaponPicker = {
+	vertical = function ()
+		PlayerMissile:shoot()
+	end,
+	horizontal = function ()
+		PlayerMissile:shoot()
+	end,
+	diagonal = function ()
+		PlayerMissile:shoot()
+	end,
+	block = function ()
+		SpecialWeaponBlockProjectile:shoot()
+	end
+}
+
+SpecialWeaponBlockProjectileConsts = {
+	speed = 0.5,
+	storeX = 340,
+	storeY = 160,
+	clrIndex = 12
+}
+
+BlockHpColours = {
+	2,
+	3,
+	4,
+	5,
+	6
+}
+
+function CreateSpecialWeaponBlockProjectile()
+	return {
+		x = SpecialWeaponBlockProjectileConsts.storeX,
+		y = SpecialWeaponBlockProjectileConsts.storeY,
+		active = false,
+		speed = 0,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
+		},
+		shoot = function (self)
+			if self.active == false then
+				self.active = true
+				self.x = Player.x - 4
+				self.y = Player.y
+				self.speed = -SpecialWeaponBlockProjectileConsts.speed
+				self.ani.delayCounter = 0
+				self.ani.currentCounter = 1
+				self.ani.currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
+			end
+		end,
+		disable = function (self)
+			SpecialWeaponBlock:enable(self.x + 1, self.y)
+			self.active = false
+			self.x = SpecialWeaponBlockProjectileConsts.storeX
+			self.y = SpecialWeaponBlockProjectileConsts.storeY
+			self.speed = 0
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					SpecialWeaponBlockProjectileConsts.clrIndex,
+					1,
+					0,
+					0,
+					2,
+					1)
+			end
+		end,
+		update = function (self)
+			self.y = self.y + self.speed
+
+			if self.active == true then
+				AnimateOneshot(self, SpecialWeaponBlockProjectileAni)
+			end
+		end
+	}
+end
+
+function CreateSpecialWeaponBlock()
+	return {
+		x = SpecialWeaponBlockProjectileConsts.storeX,
+		y = SpecialWeaponBlockProjectileConsts.storeY,
+		w = 14,
+		h = 8,
+		hp = 0,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = SpecialWeaponBlockAni.sprites[1]
+		},
+		draw = function (self)
+			if self.hp > 0 then
+				spr(
+					self.ani.currentFrame,
+					self.x - 1,
+					self.y,
+					SpecialWeaponBlockProjectileConsts.clrIndex,
+					1,
+					0,
+					0,
+					2,
+					1)
+
+				rect(self.x + 6, self.y + 3, 2, 2, BlockHpColours[self.hp])
+			end
+		end,
+		update = function (self)
+		end,
+		checkCollision = function (self)
+			if self.hp > 0 then
+				for i, alien in pairs(Aliens) do
+					if Collide(self, Aliens[i]) then
+						KillAlien(i)
+	
+						ScorePoints(1)
+	
+						self:takeDamage(2)
+						self:disable()
+					end
+				end
+			end
+		end,
+		enable = function (self, x, y)
+			self.x = x
+			self.y = y
+			self.hp = 5
+		end,
+		disable = function (self)
+			self.x = SpecialWeaponBlockProjectileConsts.storeX
+			self.y = SpecialWeaponBlockProjectileConsts.storeY
+		end,
+		takeDamage = function (self, damage)
+			self.hp = self.hp - damage
+
+			if self.hp <= 0 then
+				self:disable()
+			end
+		end
+	}
+end
+
 ExplosionConsts = {
 	storeX = 316,
 	storeY = 150,
@@ -2225,8 +2388,7 @@ end
 
 AlienConsts = {
 	width = 1,
-	height = 1,
-	clrIndex = 12
+	height = 1
 }
 
 AlienSpeeds = {
@@ -2272,7 +2434,7 @@ function CreateShieldAlien(i, j)
 		function (self, k)
 			Explosion:enable(self.x, self.y)
 
-			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.vertical, StandardDieFunction)
+			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.block, StandardDieFunction)
 			damagedShieldAlien.x = self.x
 			damagedShieldAlien.y = self.y
 			Aliens[k] = damagedShieldAlien
@@ -2309,7 +2471,7 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 				self.ani.currentFrame,
 				self.x,
 				self.y,
-				AlienConsts.clrIndex)
+				animation.clrIndex)
 		end,
 		update = function (self)
 			self.targetY = 20 + AlienGlobalRowsStepped * 10 * AlienDescentRateOptions[GameSettings.alienDescentRate].value + (self.row - 1) * 10
@@ -2411,6 +2573,12 @@ function CreateAlienShot(shotParticle)
 			if self.y + self.h > GroundY then
 				self.particle:enable(self.x, self.y)
 				self:reset()
+			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				self.particle:enable(self.x, self.y)
+				self:reset()
+				SpecialWeaponBlock:takeDamage(1)
 			end
 
 			if Collide(self, Player) then
@@ -3113,14 +3281,16 @@ WeaponColours = {
 	none = 0,
 	vertical = 6,
 	horizontal = 2,
-	diagonal = 9
+	diagonal = 9,
+	block = 13
 }
 
 WeaponIconsSpriteIndexes = {
 	none = 0,
 	vertical = 124,
 	horizontal = 125,
-	diagonal = 140
+	diagonal = 140,
+	block = 141
 }
 
 ButtonIcons = {
@@ -3371,34 +3541,51 @@ PlayerMissileBurstAni = {
 	sprites = { 345, 346, 347, 348, 349 }
 }
 
+SpecialWeaponBlockProjectileAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 411, 409, 407, 405}
+}
+
+SpecialWeaponBlockAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 403 }
+}
+
 AlienRedAni = {
 	frameDelay = 10,
 	length = 4,
-	sprites = { 288, 289, 290, 291 }
+	sprites = { 288, 289, 290, 291 },
+	clrIndex = 12
 }
 
 AlienBlueAni = {
 	frameDelay = 10,
 	length = 4,
-	sprites = { 322, 323, 324, 325 }
+	sprites = { 322, 323, 324, 325 },
+	clrIndex = 12
 }
 
 AlienGreenAni = {
 	frameDelay = 10,
 	length = 4,
-	sprites = { 326, 327, 328, 329 }
+	sprites = { 326, 327, 328, 329 },
+	clrIndex = 12
 }
 
 AlienShieldAni = {
 	frameDelay = 10,
 	length = 4,
-	sprites = { 400, 401, 402, 401 }
+	sprites = { 400, 401, 402, 401 },
+	clrIndex = 2
 }
 
 AlienShieldBrokenAni = {
 	frameDelay = 10,
 	length = 4,
-	sprites = { 416, 417, 418, 417 }
+	sprites = { 416, 417, 418, 417 },
+	clrIndex = 2
 }
 
 AlienShotAni = {
@@ -3426,7 +3613,7 @@ ExplosionAni = {
 }
 
 PlayerExplosionAni = {
-	frameDelay = 10,
+	frameDelay = 5,
 	length = 5,
 	sprites = { 292, 294, 296, 298, 300 }
 }
@@ -3651,6 +3838,7 @@ Init()
 -- 134:0000011100011100001100000110000101000011110021111002211110022111
 -- 135:1110000000111000111111001111111011111110111111111111111111111111
 -- 140:ccc00ccccc0000ccc00cc00c000cc000000cc000000cc00000000000000cc000
+-- 141:0ccc0cc0cccc0cccccc00cccccc0ccccccc0ccccccc00ccccccc0ccc0ccc0cc0
 -- 144:222f22222f2ffffd222fffddfffffddd2ffffdd12ffff11d2ffff0cd2ffff00d
 -- 145:2222f222ddddf2f2ddddd222ddddddffd1ddddf2dd11ddf2d00cddf2d00eddf2
 -- 146:666666666ccc6cc6666666666020111161120111611201106110aaaa611a000a
@@ -3818,6 +4006,16 @@ Init()
 -- 144:22dddd222dcdddd2dd88ddddd8008ddd8c00cdd888cc88882888888222888822
 -- 145:22dddd222dcdddd2ddd88ddddd8008dd8dc00cd8888cc8882888888222888822
 -- 146:22dddd222dcdddd2dddd88ddddd8008d8ddc00c88888cc882888888222888822
+-- 147:244ccc99244ccc88233ddd00233dd800233d8800233dc800233ddc88233ddd22
+-- 148:9999c4428888c442008cd33200cdd33200ddd33200ddd332888dd3322222d332
+-- 149:44ccc99944ccc88833ddd80033dd880033d8880033dc880033ddc88833ddd222
+-- 150:99999c4488888c440088cd33008cdd33008ddd33008ddd338888dd3322222d33
+-- 151:222244cc222244cc222233dd222233dd222233dd222233dd222233dd222233dd
+-- 152:cc442222cc442222dd332222dd332222dd332222dd332222dd332222dd332222
+-- 153:2222244c2222244c2222233d2222233d2222233d2222233d2222233d2222233d
+-- 154:c4422222c4422222d3322222d3322222d3322222d3322222d3322222d3322222
+-- 155:2222224422222244222222332222223322222233222222332222223322222233
+-- 156:4422222244222222332222223322222233222222332222223322222233222222
 -- 160:22dddd222dcdddd2ddd88ddd288008dd28c00c8d228cc8222828882222222822
 -- 161:22dddd222dcdddd2ddd88ddddd8008d228c00c82228cc8222288882228222282
 -- 162:22dddd222dcdddd2ddd88dd2dd800822ddc00c82d28cc8822228822822282222

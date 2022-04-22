@@ -77,6 +77,13 @@ function CreatePlayerMissile()
 				self:createBursts(alienY)
 				self:reset()
 			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				SpecialWeaponBlock:takeDamage(1)
+				SpecialWeaponBlock:shove()
+				self:createBursts(self.y)
+				self:reset()
+			end
 		end,
 		shoot = function (self)
 			if self.speed == 0 then

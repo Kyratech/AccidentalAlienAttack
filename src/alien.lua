@@ -46,7 +46,7 @@ function CreateShieldAlien(i, j)
 		function (self, k)
 			Explosion:enable(self.x, self.y)
 
-			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.vertical, StandardDieFunction)
+			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.block, StandardDieFunction)
 			damagedShieldAlien.x = self.x
 			damagedShieldAlien.y = self.y
 			Aliens[k] = damagedShieldAlien
@@ -185,6 +185,12 @@ function CreateAlienShot(shotParticle)
 			if self.y + self.h > GroundY then
 				self.particle:enable(self.x, self.y)
 				self:reset()
+			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				self.particle:enable(self.x, self.y)
+				self:reset()
+				SpecialWeaponBlock:takeDamage(1)
 			end
 
 			if Collide(self, Player) then

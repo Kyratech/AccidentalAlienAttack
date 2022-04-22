@@ -59,6 +59,12 @@ function CreatePlayerShot()
 
 				PlayerShot:reset()
 			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				SpecialWeaponBlock:takeDamage(1)
+				SpecialWeaponBlock:shove()
+				PlayerShot:reset()
+			end
 		end,
 		shoot = function (self)
 			if self.speed == 0 then

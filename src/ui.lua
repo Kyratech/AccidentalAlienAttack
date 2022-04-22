@@ -9,14 +9,16 @@ WeaponColours = {
 	none = 0,
 	vertical = 6,
 	horizontal = 2,
-	diagonal = 9
+	diagonal = 9,
+	block = 13
 }
 
 WeaponIconsSpriteIndexes = {
 	none = 0,
 	vertical = 124,
 	horizontal = 125,
-	diagonal = 140
+	diagonal = 140,
+	block = 141
 }
 
 ButtonIcons = {

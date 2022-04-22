@@ -28,6 +28,9 @@ function StartGame()
 	PlayerMissileBurstLeft = CreatePlayerMissileBurst()
 	PlayerMissileBurstRight = CreatePlayerMissileBurst()
 
+	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
+	SpecialWeaponBlock = CreateSpecialWeaponBlock()
+
 	AlienCarrier = CreateCarrier()
 
 	CurrentStage = 1
@@ -134,7 +137,7 @@ function Input()
 		end
 	elseif btnp(BtnB) then
 		if Player.active == true and Player.weaponPower == 4 then
-			PlayerMissile:shoot()
+			SpecialWeaponPicker[Player.weaponType]()
 		end
 	end
 
@@ -153,6 +156,10 @@ function Update()
 	PlayerMissileBurstRight:update()
 	PlayerMissileBurstLeft:checkCollision()
 	PlayerMissileBurstRight:checkCollision()
+
+	SpecialWeaponBlockProjectile:update()
+	SpecialWeaponBlock:update()
+	SpecialWeaponBlock:checkCollision()
 
 	PlayerShield:update()
 
@@ -253,6 +260,8 @@ function DrawGameObjects()
 	PlayerMissile:draw()
 	PlayerMissileBurstLeft:draw()
 	PlayerMissileBurstRight:draw()
+	SpecialWeaponBlockProjectile:draw()
+	SpecialWeaponBlock:draw()
 	PlayerShield:draw()
 	AlienCarrier:draw()
 	Explosion:draw()
@@ -271,7 +280,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	-- 	DrawDebug("transition state: " .. ScreenTransition.state)
+	-- DrawDebug("block hp" .. SpecialWeaponBlock.hp)
 	-- DrawMouseDebug()
 end
 

@@ -31,6 +31,8 @@
 		"playerShot.lua",
 		"playerMissile.lua",
 		"playerShield.lua",
+		"specialWeapon.lua",
+		"specialWeaponBlock.lua",
 		"explosion.lua",
 		"playerExplosion.lua",
 		"powerup.lua",

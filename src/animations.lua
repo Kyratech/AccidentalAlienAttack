@@ -52,6 +52,18 @@ PlayerMissileBurstAni = {
 	sprites = { 345, 346, 347, 348, 349 }
 }
 
+SpecialWeaponBlockProjectileAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 411, 409, 407, 405}
+}
+
+SpecialWeaponBlockAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 403 }
+}
+
 AlienRedAni = {
 	frameDelay = 10,
 	length = 4,
@@ -112,7 +124,7 @@ ExplosionAni = {
 }
 
 PlayerExplosionAni = {
-	frameDelay = 10,
+	frameDelay = 5,
 	length = 5,
 	sprites = { 292, 294, 296, 298, 300 }
 }
