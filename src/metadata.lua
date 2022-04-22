@@ -598,7 +598,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	-- 	DrawDebug("transition state: " .. ScreenTransition.state)
+	-- DrawDebug("block hp" .. SpecialWeaponBlock.hp)
 	-- DrawMouseDebug()
 end
 
@@ -1723,6 +1723,12 @@ function CreatePlayerShot()
 
 				PlayerShot:reset()
 			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				SpecialWeaponBlock:takeDamage(1)
+				SpecialWeaponBlock:shove()
+				PlayerShot:reset()
+			end
 		end,
 		shoot = function (self)
 			if self.speed == 0 then
@@ -1816,6 +1822,13 @@ function CreatePlayerMissile()
 				ScorePoints(5)
 
 				self:createBursts(alienY)
+				self:reset()
+			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				SpecialWeaponBlock:takeDamage(1)
+				SpecialWeaponBlock:shove()
+				self:createBursts(self.y)
 				self:reset()
 			end
 		end,
@@ -2030,11 +2043,12 @@ SpecialWeaponPicker = {
 	end
 }
 
-SpecialWeaponBlockProjectileConsts = {
+SpecialWeaponBlockConsts = {
 	speed = 0.5,
 	storeX = 340,
 	storeY = 160,
-	clrIndex = 12
+	clrIndex = 2,
+	shoveDistance = 10,
 }
 
 BlockHpColours = {
@@ -2042,13 +2056,14 @@ BlockHpColours = {
 	3,
 	4,
 	5,
-	6
+	6,
+	10
 }
 
 function CreateSpecialWeaponBlockProjectile()
 	return {
-		x = SpecialWeaponBlockProjectileConsts.storeX,
-		y = SpecialWeaponBlockProjectileConsts.storeY,
+		x = SpecialWeaponBlockConsts.storeX,
+		y = SpecialWeaponBlockConsts.storeY,
 		active = false,
 		speed = 0,
 		ani = {
@@ -2061,17 +2076,19 @@ function CreateSpecialWeaponBlockProjectile()
 				self.active = true
 				self.x = Player.x - 4
 				self.y = Player.y
-				self.speed = -SpecialWeaponBlockProjectileConsts.speed
+				self.speed = -SpecialWeaponBlockConsts.speed
 				self.ani.delayCounter = 0
 				self.ani.currentCounter = 1
 				self.ani.currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
+				Player.weaponType = PlayerWeapons.none
+				Player.weaponPower = 0
 			end
 		end,
 		disable = function (self)
 			SpecialWeaponBlock:enable(self.x + 1, self.y)
 			self.active = false
-			self.x = SpecialWeaponBlockProjectileConsts.storeX
-			self.y = SpecialWeaponBlockProjectileConsts.storeY
+			self.x = SpecialWeaponBlockConsts.storeX
+			self.y = SpecialWeaponBlockConsts.storeY
 			self.speed = 0
 		end,
 		draw = function (self)
@@ -2080,7 +2097,7 @@ function CreateSpecialWeaponBlockProjectile()
 					self.ani.currentFrame,
 					self.x,
 					self.y,
-					SpecialWeaponBlockProjectileConsts.clrIndex,
+					SpecialWeaponBlockConsts.clrIndex,
 					1,
 					0,
 					0,
@@ -2100,8 +2117,9 @@ end
 
 function CreateSpecialWeaponBlock()
 	return {
-		x = SpecialWeaponBlockProjectileConsts.storeX,
-		y = SpecialWeaponBlockProjectileConsts.storeY,
+		x = SpecialWeaponBlockConsts.storeX,
+		y = SpecialWeaponBlockConsts.storeY,
+		targetY = SpecialWeaponBlockConsts.storeY,
 		w = 14,
 		h = 8,
 		hp = 0,
@@ -2116,7 +2134,7 @@ function CreateSpecialWeaponBlock()
 					self.ani.currentFrame,
 					self.x - 1,
 					self.y,
-					SpecialWeaponBlockProjectileConsts.clrIndex,
+					SpecialWeaponBlockConsts.clrIndex,
 					1,
 					0,
 					0,
@@ -2127,6 +2145,9 @@ function CreateSpecialWeaponBlock()
 			end
 		end,
 		update = function (self)
+			if self.hp > 0 and self.targetY < self.y then
+				self.y = self.y - SpecialWeaponBlockConsts.speed
+			end
 		end,
 		checkCollision = function (self)
 			if self.hp > 0 then
@@ -2137,7 +2158,6 @@ function CreateSpecialWeaponBlock()
 						ScorePoints(1)
 	
 						self:takeDamage(2)
-						self:disable()
 					end
 				end
 			end
@@ -2145,11 +2165,13 @@ function CreateSpecialWeaponBlock()
 		enable = function (self, x, y)
 			self.x = x
 			self.y = y
-			self.hp = 5
+			self.targetY = y
+			self.hp = 6
 		end,
 		disable = function (self)
-			self.x = SpecialWeaponBlockProjectileConsts.storeX
-			self.y = SpecialWeaponBlockProjectileConsts.storeY
+			self.x = SpecialWeaponBlockConsts.storeX
+			self.y = SpecialWeaponBlockConsts.storeY
+			self.targetY = SpecialWeaponBlockConsts.storeY
 		end,
 		takeDamage = function (self, damage)
 			self.hp = self.hp - damage
@@ -2157,6 +2179,9 @@ function CreateSpecialWeaponBlock()
 			if self.hp <= 0 then
 				self:disable()
 			end
+		end,
+		shove = function (self)
+			self.targetY = self.targetY - SpecialWeaponBlockConsts.shoveDistance
 		end
 	}
 end
@@ -4019,6 +4044,11 @@ Init()
 -- 160:22dddd222dcdddd2ddd88ddd288008dd28c00c8d228cc8222828882222222822
 -- 161:22dddd222dcdddd2ddd88ddddd8008d228c00c82228cc8222288882228222282
 -- 162:22dddd222dcdddd2ddd88dd2dd800822ddc00c82d28cc8822228822822282222
+-- 163:cccccccc5cccccc55ccaacc565a00a566650056676688667c769967ccc7cc7cc
+-- 164:5cccccc55cccccc565caac566650056676600667c768867ccc7997cccccccccc
+-- 165:cc5cc5ccc65cc56c7665566776655667c766667cc768867cccc99ccccccccccc
+-- 166:cccccccccc5cc5ccc65aa56c7665566776655667c766667cc769967ccccccccc
+-- 167:ccccccccc5cccc5cc5caac5cc650056cc665566cc766667ccc7667ccccc77ccc
 -- </SPRITES>
 
 -- <MAP>

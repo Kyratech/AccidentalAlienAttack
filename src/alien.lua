@@ -30,6 +30,9 @@ AlienFactory = {
 	end,
 	function(i, j)
 		return CreateShieldAlien(i, j)
+	end,
+	function(i, j)
+		return CreateDiveAlien(i, j)
 	end
 }
 
@@ -99,7 +102,7 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 
 			Animate(self, animation)
 		end,
-		checkCollision = function (self)
+		checkCollision = function (self, i)
 			if self.y + self.h >= GroundY then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()

@@ -47,6 +47,8 @@ function StartGame()
 		table.insert(AlienShots, alienShot)
 	end
 
+	AliensDiving = {}
+
 	Explosion = CreateExplosion()
 	PlayerExplosionPrimary = CreateExplosion()
 	PlayerExplosionSecondary = CreatePlayerExplosion()
@@ -191,7 +193,7 @@ function UpdateAndDrawAliens()
 
 	for i, alien in pairs(Aliens) do
 		Aliens[i]:update()
-		Aliens[i]:checkCollision()
+		Aliens[i]:checkCollision(i)
 		Aliens[i]:draw()
 	end
 

@@ -37,6 +37,7 @@
 		"playerExplosion.lua",
 		"powerup.lua",
 		"alien.lua",
+		"alienDive.lua",
 		"alienCarrier.lua",
 		"alienFormations.lua",
 		"screenTransition.lua",
