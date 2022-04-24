@@ -33,6 +33,7 @@
 		"playerShield.lua",
 		"specialWeapon.lua",
 		"specialWeaponBlock.lua",
+		"specialWeaponDrill.lua",
 		"explosion.lua",
 		"playerExplosion.lua",
 		"powerup.lua",

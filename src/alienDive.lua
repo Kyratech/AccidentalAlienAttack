@@ -7,7 +7,7 @@ function CreateDiveAlien(i, j)
 		i,
 		j,
 		AlienDiveAni,
-		PlayerWeapons.vertical,
+		PlayerWeapons.drill,
 		function(self, k)
 			Explosion:enable(self.x, self.y)
 			Player:getWeaponPower(self.specialWeapon)

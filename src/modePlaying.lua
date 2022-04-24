@@ -30,6 +30,7 @@ function StartGame()
 
 	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
 	SpecialWeaponBlock = CreateSpecialWeaponBlock()
+	SpecialWeaponDrill = CreateSpecialWeaponDrill()
 
 	AlienCarrier = CreateCarrier()
 
@@ -162,6 +163,8 @@ function Update()
 	SpecialWeaponBlockProjectile:update()
 	SpecialWeaponBlock:update()
 	SpecialWeaponBlock:checkCollision()
+	SpecialWeaponDrill:update()
+	SpecialWeaponDrill:checkCollision()
 
 	PlayerShield:update()
 
@@ -264,6 +267,7 @@ function DrawGameObjects()
 	PlayerMissileBurstRight:draw()
 	SpecialWeaponBlockProjectile:draw()
 	SpecialWeaponBlock:draw()
+	SpecialWeaponDrill:draw()
 	PlayerShield:draw()
 	AlienCarrier:draw()
 	Explosion:draw()

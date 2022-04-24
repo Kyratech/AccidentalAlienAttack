@@ -64,6 +64,12 @@ SpecialWeaponBlockAni = {
 	sprites = { 403 }
 }
 
+SpecialWeaponDrillAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 424, 425, 426, 427 }
+}
+
 AlienRedAni = {
 	frameDelay = 10,
 	length = 4,

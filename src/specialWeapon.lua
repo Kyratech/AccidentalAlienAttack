@@ -3,7 +3,8 @@ PlayerWeapons = {
 	vertical = "vertical",
 	horizontal = "horizontal",
 	diagonal = "diagonal",
-	block = "block"
+	block = "block",
+	drill = "drill"
 }
 
 SpecialWeaponPicker = {
@@ -18,5 +19,8 @@ SpecialWeaponPicker = {
 	end,
 	block = function ()
 		SpecialWeaponBlockProjectile:shoot()
+	end,
+	drill = function ()
+		SpecialWeaponDrill:shoot()
 	end
 }

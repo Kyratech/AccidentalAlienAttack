@@ -348,6 +348,7 @@ function StartGame()
 
 	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
 	SpecialWeaponBlock = CreateSpecialWeaponBlock()
+	SpecialWeaponDrill = CreateSpecialWeaponDrill()
 
 	AlienCarrier = CreateCarrier()
 
@@ -364,6 +365,8 @@ function StartGame()
 		local alienShot = CreateAlienShot(alienShotParticle)
 		table.insert(AlienShots, alienShot)
 	end
+
+	AliensDiving = {}
 
 	Explosion = CreateExplosion()
 	PlayerExplosionPrimary = CreateExplosion()
@@ -478,6 +481,8 @@ function Update()
 	SpecialWeaponBlockProjectile:update()
 	SpecialWeaponBlock:update()
 	SpecialWeaponBlock:checkCollision()
+	SpecialWeaponDrill:update()
+	SpecialWeaponDrill:checkCollision()
 
 	PlayerShield:update()
 
@@ -509,7 +514,7 @@ function UpdateAndDrawAliens()
 
 	for i, alien in pairs(Aliens) do
 		Aliens[i]:update()
-		Aliens[i]:checkCollision()
+		Aliens[i]:checkCollision(i)
 		Aliens[i]:draw()
 	end
 
@@ -580,6 +585,7 @@ function DrawGameObjects()
 	PlayerMissileBurstRight:draw()
 	SpecialWeaponBlockProjectile:draw()
 	SpecialWeaponBlock:draw()
+	SpecialWeaponDrill:draw()
 	PlayerShield:draw()
 	AlienCarrier:draw()
 	Explosion:draw()
@@ -1521,13 +1527,6 @@ PlayerStatuses = {
 	timestop = 3
 }
 
-PlayerWeapons = {
-	none = "none",
-	vertical = "vertical",
-	horizontal = "horizontal",
-	diagonal = "diagonal"
-}
-
 function CreatePlayer()
 	return {
 		x = (240/2)-(PlayerConsts.widthPx*TilePx/2),
@@ -2025,7 +2024,8 @@ PlayerWeapons = {
 	vertical = "vertical",
 	horizontal = "horizontal",
 	diagonal = "diagonal",
-	block = "block"
+	block = "block",
+	drill = "drill"
 }
 
 SpecialWeaponPicker = {
@@ -2040,6 +2040,9 @@ SpecialWeaponPicker = {
 	end,
 	block = function ()
 		SpecialWeaponBlockProjectile:shoot()
+	end,
+	drill = function ()
+		SpecialWeaponDrill:shoot()
 	end
 }
 
@@ -2182,6 +2185,84 @@ function CreateSpecialWeaponBlock()
 		end,
 		shove = function (self)
 			self.targetY = self.targetY - SpecialWeaponBlockConsts.shoveDistance
+		end
+	}
+end
+
+SpecialWeaponDrillConsts = {
+	speed = 1,
+	storeX = 340,
+	storeY = 170,
+	clrIndex = 12
+}
+
+function CreateSpecialWeaponDrill()
+	return {
+		x = SpecialWeaponDrillConsts.storeX,
+		y = SpecialWeaponDrillConsts.storeY,
+		w = 6,
+		h = 8,
+		active = false,
+		speed = 0,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = SpecialWeaponDrillAni.sprites[1]
+		},
+		checkCollision = function (self)
+			if self.active == true then
+				for i, alien in pairs(Aliens) do
+					if Collide(self, Aliens[i]) then
+						KillAlien(i)
+	
+						ScorePoints(1)
+					end
+				end
+			end
+		end,
+		shoot = function (self)
+			if self.active == false then
+				self.active = true
+				self.x = Player.x - 4
+				self.y = Player.y
+				self.speed = -SpecialWeaponDrillConsts.speed
+				self.ani.delayCounter = 0
+				self.ani.currentCounter = 1
+				self.ani.currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
+				Player.weaponType = PlayerWeapons.none
+				Player.weaponPower = 0
+			end
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = SpecialWeaponDrillConsts.storeX
+			self.y = SpecialWeaponDrillConsts.storeY
+			self.speed = 0
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x - 1,
+					self.y,
+					SpecialWeaponDrillConsts.clrIndex,
+					1,
+					0,
+					0,
+					2,
+					1)
+			end
+		end,
+		update = function (self)
+			self.y = self.y + self.speed
+
+			if self.y < 0 then
+				self:disable()
+			end
+
+			if self.active == true then
+				Animate(self, SpecialWeaponDrillAni)
+			end
 		end
 	}
 end
@@ -2443,6 +2524,9 @@ AlienFactory = {
 	end,
 	function(i, j)
 		return CreateShieldAlien(i, j)
+	end,
+	function(i, j)
+		return CreateDiveAlien(i, j)
 	end
 }
 
@@ -2512,7 +2596,7 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 
 			Animate(self, animation)
 		end,
-		checkCollision = function (self)
+		checkCollision = function (self, i)
 			if self.y + self.h >= GroundY then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()
@@ -2671,6 +2755,66 @@ function CalculateAlienSpeed(maxAliens, liveAliens)
 	end
 end
 
+DiveAlienConsts = {
+	diveSpeed = 2
+}
+
+function CreateDiveAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienDiveAni,
+		PlayerWeapons.drill,
+		function(self, k)
+			Explosion:enable(self.x, self.y)
+			Player:getWeaponPower(self.specialWeapon)
+			
+			local divingAlien = CreateDiveAlienDiving(self.x + 1, self.y)
+			Aliens[k] = divingAlien
+		end
+	)
+end
+
+function CreateDiveAlienDiving(x, y)
+	return {
+		x = x,
+		y = y,
+		w = 6,
+		h = 8,
+		draw = function (self)
+			spr(423, self.x - 1, self.y, 12)
+		end,
+		update = function (self)
+			self.y = self.y + DiveAlienConsts.diveSpeed
+		end,
+		checkCollision = function (self, i)
+			-- Check bottom of screen
+			if self.y + self.h > GroundY then
+				KillAlien(i)
+			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				KillAlien(i)
+				SpecialWeaponBlock:takeDamage(1)
+			end
+
+			if Collide(self, Player) then
+				if Player.active == true and Player.status ~= PlayerStatuses.shield then
+					Player:die()
+					AlienGlobalRowsStepped = 0
+				end
+				KillAlien(i)
+			end
+		end,
+		die = function (self, i)
+			Explosion:enable(self.x, self.y)
+		
+			table.remove(Aliens, i)
+			LiveAliens = LiveAliens - 1
+		end
+	}
+end
+
 CarrierConsts = {
 	width = 2,
 	height = 1,
@@ -2752,6 +2896,7 @@ end
 -- 2 - blue alien
 -- 3 - green alien
 -- 4 - shield alien
+-- 5 - dive alien
 
 -- NumberOfStages = 1
 -- NumberOfLevelsPerStage = 10
@@ -2839,10 +2984,10 @@ NumberOfLevelsPerStage = 2
 Formations = {
 	{
 		{
-			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
-			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
-			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
-			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
+			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
+			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
+			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
+			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
 			0, 0, 0, 4, 4, 4, 4, 0, 0, 0
 		},
 		{
@@ -3307,7 +3452,8 @@ WeaponColours = {
 	vertical = 6,
 	horizontal = 2,
 	diagonal = 9,
-	block = 13
+	block = 13,
+	drill = 7
 }
 
 WeaponIconsSpriteIndexes = {
@@ -3578,6 +3724,12 @@ SpecialWeaponBlockAni = {
 	sprites = { 403 }
 }
 
+SpecialWeaponDrillAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 424, 425, 426, 427 }
+}
+
 AlienRedAni = {
 	frameDelay = 10,
 	length = 4,
@@ -3611,6 +3763,13 @@ AlienShieldBrokenAni = {
 	length = 4,
 	sprites = { 416, 417, 418, 417 },
 	clrIndex = 2
+}
+
+AlienDiveAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 419, 420, 421, 422 },
+	clrIndex = 12
 }
 
 AlienShotAni = {
@@ -3852,8 +4011,8 @@ Init()
 -- 121:0000000100000001000011010000001100111111000011110000001100000001
 -- 122:0000000000000000011000001000000011111000111000001000000000000000
 -- 123:1f010f0110001001110f0101101000111f010f0110001001110f010110100011
--- 124:000cc00000cccc000cc00cc00c0cc0c0000cc000000cc00000000000000cc000
--- 125:0000000000c00c000cc00cc0cc0cc0cccc0cc0cc0cc00cc000c00c0000000000
+-- 124:000000000cccccc0000000000cccccc000000000000cc000000cc00000000000
+-- 125:000000000c0000c00c0000c00c0cc0c00c0cc0c00c0000c00c0000c000000000
 -- 128:2ffffdee2fffffdd2fffffdd2ffffffdffffffff222fffff2f2fffff222f2222
 -- 129:deeddff2dddddff2dddd1ff2cccd1ff2ddd111fff11112221111d2f22222f222
 -- 130:601112016011120160111201601aa01161aaaa0061aaaa1161aaa11166666666
@@ -3862,8 +4021,8 @@ Init()
 -- 133:1111000611110006111100061110aa06000aaaa6222aaaa61222aaa666666666
 -- 134:0000011100011100001100000110000101000011110021111002211110022111
 -- 135:1110000000111000111111001111111011111110111111111111111111111111
--- 140:ccc00ccccc0000ccc00cc00c000cc000000cc000000cc00000000000000cc000
--- 141:0ccc0cc0cccc0cccccc00cccccc0ccccccc0ccccccc00ccccccc0ccc0ccc0cc0
+-- 140:000000000cc00cc00c0000c00c0000c00c0000c0000cc000000cc00000000000
+-- 141:000000000ccc0cc00cc00cc00cc0ccc00cc0ccc00cc00cc00ccc0cc000000000
 -- 144:222f22222f2ffffd222fffddfffffddd2ffffdd12ffff11d2ffff0cd2ffff00d
 -- 145:2222f222ddddf2f2ddddd222ddddddffd1ddddf2dd11ddf2d00cddf2d00eddf2
 -- 146:666666666ccc6cc6666666666020111161120111611201106110aaaa611a000a
@@ -3875,6 +4034,7 @@ Init()
 -- 152:1111111111111111111111111111111111111111111111111111111111111111
 -- 153:1111111111111111111111111111111111111111111111111111111111111111
 -- 154:0000000011100000111111001111111111111111111111111111111111111111
+-- 156:00000000000cc000000cc00000cc0c000000cc000cccc0c000000cc000000000
 -- 160:2ffffeed2ffffddd2fffffdd2fffffddfffffffd222fffff2f2fffff222f2222
 -- 161:deeddff2dddddff2cccdfff2ccddfff2ddd11ffff1111222d111d2f22222f222
 -- 162:612a0c99620aa999620aaaaa6120aa8860010000602221116222111166666666
@@ -4049,6 +4209,10 @@ Init()
 -- 165:cc5cc5ccc65cc56c7665566776655667c766667cc768867cccc99ccccccccccc
 -- 166:cccccccccc5cc5ccc65aa56c7665566776655667c766667cc769967ccccccccc
 -- 167:ccccccccc5cccc5cc5caac5cc650056cc665566cc766667ccc7667ccccc77ccc
+-- 168:ccc55ccccc5665ccc56ff65cc66ff66cc67ff76cc6cffc6cc7cccc7ccccccccc
+-- 169:cccc5cccccc575ccccc6f7cccc56f7cccc67f7cccc6ff7cccc6cc7cccc7ccccc
+-- 170:ccc5ccccccc75ccccccf5ccccccf6ccccccf6ccccccf6ccccccc6ccccccc7ccc
+-- 171:ccc5cccccc575ccccc7f6ccccc7f65cccc7f76cccc7ff6cccc7cc6ccccccc7cc
 -- </SPRITES>
 
 -- <MAP>

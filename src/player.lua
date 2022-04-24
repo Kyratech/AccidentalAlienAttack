@@ -18,13 +18,6 @@ PlayerStatuses = {
 	timestop = 3
 }
 
-PlayerWeapons = {
-	none = "none",
-	vertical = "vertical",
-	horizontal = "horizontal",
-	diagonal = "diagonal"
-}
-
 function CreatePlayer()
 	return {
 		x = (240/2)-(PlayerConsts.widthPx*TilePx/2),
