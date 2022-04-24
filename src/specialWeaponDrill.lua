@@ -32,7 +32,7 @@ function CreateSpecialWeaponDrill()
 		shoot = function (self)
 			if self.active == false then
 				self.active = true
-				self.x = Player.x - 4
+				self.x = Player.x + 2
 				self.y = Player.y
 				self.speed = -SpecialWeaponDrillConsts.speed
 				self.ani.delayCounter = 0

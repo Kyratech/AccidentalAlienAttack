@@ -2223,12 +2223,12 @@ function CreateSpecialWeaponDrill()
 		shoot = function (self)
 			if self.active == false then
 				self.active = true
-				self.x = Player.x - 4
+				self.x = Player.x + 1
 				self.y = Player.y
 				self.speed = -SpecialWeaponDrillConsts.speed
 				self.ani.delayCounter = 0
 				self.ani.currentCounter = 1
-				self.ani.currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
+				self.ani.currentFrame = SpecialWeaponDrillAni.sprites[1]
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
 			end
@@ -2245,12 +2245,7 @@ function CreateSpecialWeaponDrill()
 					self.ani.currentFrame,
 					self.x - 1,
 					self.y,
-					SpecialWeaponDrillConsts.clrIndex,
-					1,
-					0,
-					0,
-					2,
-					1)
+					SpecialWeaponDrillConsts.clrIndex)
 			end
 		end,
 		update = function (self)
@@ -3461,7 +3456,8 @@ WeaponIconsSpriteIndexes = {
 	vertical = 124,
 	horizontal = 125,
 	diagonal = 140,
-	block = 141
+	block = 141,
+	drill = 156
 }
 
 ButtonIcons = {
@@ -3725,9 +3721,9 @@ SpecialWeaponBlockAni = {
 }
 
 SpecialWeaponDrillAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 424, 425, 426, 427 }
+	frameDelay = 5,
+	length = 2,
+	sprites = { 424, 425, 426 }
 }
 
 AlienRedAni = {
@@ -4209,10 +4205,10 @@ Init()
 -- 165:cc5cc5ccc65cc56c7665566776655667c766667cc768867cccc99ccccccccccc
 -- 166:cccccccccc5cc5ccc65aa56c7665566776655667c766667cc769967ccccccccc
 -- 167:ccccccccc5cccc5cc5caac5cc650056cc665566cc766667ccc7667ccccc77ccc
--- 168:ccc55ccccc5665ccc56ff65cc66ff66cc67ff76cc6cffc6cc7cccc7ccccccccc
--- 169:cccc5cccccc575ccccc6f7cccc56f7cccc67f7cccc6ff7cccc6cc7cccc7ccccc
--- 170:ccc5ccccccc75ccccccf5ccccccf6ccccccf6ccccccf6ccccccc6ccccccc7ccc
--- 171:ccc5cccccc575ccccc7f6ccccc7f65cccc7f76cccc7ff6cccc7cc6ccccccc7cc
+-- 168:cccaacccccc99ccccca99accc599995cc659956cc669966cc768867ccc7cc7cc
+-- 169:cccaacccccc995ccc5a99accc59999ccc69955ccc68966ccc7c866cccccc77cc
+-- 170:cccaaccccc5995ccc5a99a5cc699996cc695596cc786687cccc66cccccc77ccc
+-- 171:cccaaccccc599ccccca99a5ccc99995ccc55996ccc66986ccc668c7ccc77cccc
 -- </SPRITES>
 
 -- <MAP>
