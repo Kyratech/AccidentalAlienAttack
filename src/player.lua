@@ -100,6 +100,7 @@ function CreatePlayer()
 			self:enable()
 		end,
 		die = function (self)
+			AlienGlobalRowsStepped = 0
 			self.deathTimer = 180
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			PowerupUi:setIcon(PowerupIcons.none)

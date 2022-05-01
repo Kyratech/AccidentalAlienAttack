@@ -77,37 +77,10 @@ end
 function StartLevel(formation)
 	ScreenTransition:reset()
 
-	local alienCountX = 10
-	local alienCountY = 5
+	SetUpAliens(formation)
 
-	-- Aliens
-	Aliens = {}
-	MaxAliens = 0
-	LiveAliens = 0
-
-	AlienIndexesThatCanShootBombs = {}
-	NumberOfAliensThatCanShootBombs = 0
-
+	-- How many times have the aliens dropped a level?
 	AlienGlobalRowsStepped = 0
-	for i = 1, alienCountX, 1 do
-		for j = 1, alienCountY, 1 do
-			local index = i + (j - 1) * alienCountX
-			local alienType = formation[index]
-
-			if alienType ~= 0 then
-				local alien = CreateAlien(i, j, alienType)
-				table.insert(Aliens, alien)
-				MaxAliens = MaxAliens + 1
-				LiveAliens = LiveAliens + 1
-
-				if alienType == 6 then
-					table.insert( AlienIndexesThatCanShootBombs, LiveAliens )
-					NumberOfAliensThatCanShootBombs = NumberOfAliensThatCanShootBombs + 1
-				end
-			end
-		end
-	end
-	
 	-- How fast the aliens should move
 	AlienGlobalSpeed = CalculateAlienSpeed(LiveAliens, LiveAliens)
 	-- The actual translation of the aliens
@@ -209,14 +182,20 @@ function UpdateAndDrawAliens()
 	NewAlienGlobalVelocity = AlienGlobalVelocity
 	NewAlienGlobalRowsStepped = AlienGlobalRowsStepped
 
-	for i, alien in pairs(Aliens) do
-		Aliens[i]:update()
-		Aliens[i]:checkCollision(i)
-		Aliens[i]:draw()
+	for formationPosition, alien in pairs(Aliens) do
+		alien:update()
+		alien:checkCollision(formationPosition)
+		alien:draw()
 	end
 
 	AlienGlobalVelocity = NewAlienGlobalVelocity
 	AlienGlobalRowsStepped = NewAlienGlobalRowsStepped
+
+	for i, specialAlien in pairs(SpecialAliens) do
+		specialAlien:update()
+		specialAlien:checkCollision(i)
+		specialAlien:draw()
+	end
 end
 
 function UpdateAndDrawAlienShots()
@@ -244,47 +223,6 @@ function ScorePoints(x)
 		scoreIncrease = scoreIncrease * 2
 	end
 	Score = Score + scoreIncrease
-end
-
-function KillAlien(i)
-	Aliens[i]:die(i)
-
-	if LiveAliens == 0 then
-		EndLevel()
-	else
-		AlienGlobalSpeed = CalculateAlienSpeed(MaxAliens, LiveAliens)
-		if AlienGlobalVelocity > 0 then
-			AlienGlobalVelocity = AlienGlobalSpeed
-		else
-			AlienGlobalVelocity = -AlienGlobalSpeed
-		end
-	end
-end
-
-function RemoveAlienFromLists(i)
-	table.remove(Aliens, i)
-	LiveAliens = LiveAliens - 1
-
-	if NumberOfAliensThatCanShootBombs > 0 then 
-		for j = NumberOfAliensThatCanShootBombs, 1, -1 do
-			if AlienIndexesThatCanShootBombs[j] == i then
-				table.remove( AlienIndexesThatCanShootBombs, j )
-				NumberOfAliensThatCanShootBombs = NumberOfAliensThatCanShootBombs - 1
-			elseif AlienIndexesThatCanShootBombs[j] > i then
-				AlienIndexesThatCanShootBombs[j] = AlienIndexesThatCanShootBombs[j] - 1
-			end
-		end
-	end
-end
-
-function Collide(a, b)
-	if a.x < b.x + b.w and
-		a.x + a.w > b.x and
-		a.y < b.y + b.h and
-		a.y + a.h > b.y then
-		return true
-	end
-	return false
 end
 
 function Draw()

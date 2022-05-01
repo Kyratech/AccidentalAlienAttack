@@ -8,12 +8,14 @@ function CreateDiveAlien(i, j)
 		j,
 		AlienDiveAni,
 		PlayerWeapons.drill,
-		function(self, k)
+		function(self, formationPosition)
 			Explosion:enable(self.x, self.y)
 			Player:getWeaponPower(self.specialWeapon)
 			
 			local divingAlien = CreateDiveAlienDiving(self.x + 1, self.y)
-			Aliens[k] = divingAlien
+			AddSpecialAlien(divingAlien)
+
+			AlienRemove(formationPosition)
 		end
 	)
 end
@@ -33,26 +35,25 @@ function CreateDiveAlienDiving(x, y)
 		checkCollision = function (self, i)
 			-- Check bottom of screen
 			if self.y + self.h > GroundY then
-				KillAlien(i)
+				self:die(i)
 			end
 
 			if Collide(self, SpecialWeaponBlock) then
-				KillAlien(i)
 				SpecialWeaponBlock:takeDamage(1)
+				self:die(i)
 			end
 
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()
-					AlienGlobalRowsStepped = 0
 				end
-				KillAlien(i)
+				self:die(i)
 			end
 		end,
 		die = function (self, i)
 			Explosion:enable(self.x, self.y)
 		
-			RemoveAlienFromLists(i)
+			SpecialAlienRemove(i)
 		end
 	}
 end

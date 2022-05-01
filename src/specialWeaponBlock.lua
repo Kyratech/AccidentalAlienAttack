@@ -106,15 +106,9 @@ function CreateSpecialWeaponBlock()
 		end,
 		checkCollision = function (self)
 			if self.hp > 0 then
-				for i, alien in pairs(Aliens) do
-					if Collide(self, Aliens[i]) then
-						KillAlien(i)
-	
-						ScorePoints(1)
-	
-						self:takeDamage(2)
-					end
-				end
+				CollideWithAliens(self, function(self, alien)
+					self:takeDamage(2)
+				end)
 			end
 		end,
 		enable = function (self, x, y)

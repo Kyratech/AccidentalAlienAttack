@@ -49,11 +49,11 @@ function CreateAlien(i, j, type)
 	return AlienFactory[type](i, j)
 end
 
-function StandardDieFunction(self, i)
+function StandardDieFunction(self, formationPosition)
 	Explosion:enable(self.x, self.y)
 	Player:getWeaponPower(self.specialWeapon)
 
-	RemoveAlienFromLists(i)
+	AlienRemove(formationPosition)
 end
 
 function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
@@ -97,7 +97,6 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 			if self.y + self.h >= GroundY then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()
-					NewAlienGlobalRowsStepped = 0
 				end
 			elseif self.x + self.w > RightWallX then
 				if self.hitWall == false then
@@ -156,14 +155,15 @@ function CreateAlienShot(shotParticle)
 			end
 		end,
 		shoot = function (self)
-			if (LiveAliens > 0) then
+			if (AlienIndexesThatCanShootCount > 0) then
 				-- Pick an alien
-				local i = math.random(LiveAliens)
+				local i = math.random(AlienIndexesThatCanShootCount)
+				local formationPosition = AlienIndexesThatCanShoot[i]
 				
 				-- Shoot
 				if self.speed == 0 then
-					self.x = Aliens[i].x + 2
-					self.y = Aliens[i].y + 8
+					self.x = Aliens[formationPosition].x + 2
+					self.y = Aliens[formationPosition].y + 8
 					self.speed = AlienShotConsts.speed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value
 				end
 			end
@@ -190,7 +190,6 @@ function CreateAlienShot(shotParticle)
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()
-					AlienGlobalRowsStepped = 0
 				end
 				self:reset()
 			end

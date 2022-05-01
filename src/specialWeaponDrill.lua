@@ -20,13 +20,7 @@ function CreateSpecialWeaponDrill()
 		},
 		checkCollision = function (self)
 			if self.active == true then
-				for i, alien in pairs(Aliens) do
-					if Collide(self, Aliens[i]) then
-						KillAlien(i)
-	
-						ScorePoints(1)
-					end
-				end
+				CollideWithAliens(self, function (self, alien) end)
 			end
 		end,
 		shoot = function (self)

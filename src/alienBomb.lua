@@ -38,14 +38,15 @@ function CreateAlienBomb(alienBombBlasts)
 			end
 		end,
 		shoot = function (self)
-			if (NumberOfAliensThatCanShootBombs > 0) then
+			if (AlienIndexesThatCanShootBombsCount > 0) then
 				-- Pick an alien
-				local i = math.random(NumberOfAliensThatCanShootBombs)
+				local i = math.random(AlienIndexesThatCanShootBombsCount)
+				local formationPosition = AlienIndexesThatCanShootBombs[i]
 				
 				-- Shoot
 				if self.speed == 0 then
-					self.x = Aliens[AlienIndexesThatCanShootBombs[i]].x + 2
-					self.y = Aliens[AlienIndexesThatCanShootBombs[i]].y + 8
+					self.x = Aliens[formationPosition].x + 2
+					self.y = Aliens[formationPosition].y + 8
 					self.speed = AlienShotConsts.speed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value
 				end
 			end
@@ -65,7 +66,8 @@ function CreateAlienBomb(alienBombBlasts)
 			end
 
 			if Collide(self, SpecialWeaponBlock) then
-				self.particle:enable(self.x, self.y)
+				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
+				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
 				self:reset()
 				SpecialWeaponBlock:takeDamage(1)
 			end
@@ -73,7 +75,6 @@ function CreateAlienBomb(alienBombBlasts)
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()
-					AlienGlobalRowsStepped = 0
 				end
 				self:reset()
 			end
@@ -130,7 +131,6 @@ function CreateAlienBombBlast()
 				if Collide(self, Player) then
 					if Player.active == true and Player.status ~= PlayerStatuses.shield then
 						Player:die()
-						AlienGlobalRowsStepped = 0
 					end
 				end
 			end

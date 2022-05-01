@@ -50,20 +50,12 @@ function CreatePlayerMissile()
 			if self.y < 0 then
 				self:reset()
 			end
-
-			-- Check aliens
-			for i, alien in pairs(Aliens) do
-				if Collide(self, Aliens[i]) then
-					local alienY = Aliens[i].y;
-
-					KillAlien(i)
-
-					ScorePoints(1)
-
-					self:createBursts(alienY)
-					self:reset()
-				end
-			end
+			
+			CollideWithAliens(self, function (self, alien)
+				local alienY = alien.y;
+				self:createBursts(alienY)
+				self:reset()
+			end)
 
 			if Collide(self, AlienCarrier) then
 				local alienY = AlienCarrier.y;
@@ -190,17 +182,7 @@ function CreatePlayerMissileBurst()
 		end,
 		checkCollision = function (self)
 			-- Check aliens
-			for i, alien in pairs(Aliens) do
-				if Collide(self, Aliens[i]) then
-					KillAlien(i)
-
-					if Player.status == PlayerStatuses.scoreMultiplier then
-						Score = Score + 2
-					else
-						Score = Score + 1
-					end
-				end
-			end
+			CollideWithAliens(self, function (self, alien) end)
 
 			if Collide(self, AlienCarrier) then
 				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)

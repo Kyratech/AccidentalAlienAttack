@@ -39,16 +39,9 @@ function CreatePlayerShot()
 				PlayerShot:reset()
 			end
 
-			-- Check aliens
-			for i, alien in pairs(Aliens) do
-				if Collide(self, Aliens[i]) then
-					KillAlien(i)
-
-					ScorePoints(1)
-
-					PlayerShot:reset()
-				end
-			end
+			CollideWithAliens(self, function (self, alien)
+				PlayerShot:reset()
+			end)
 
 			if Collide(self, AlienCarrier) then
 				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
