@@ -112,6 +112,27 @@ AlienDiveAni = {
 	clrIndex = 12
 }
 
+AlienBombAni = {
+	frameDelay = 20,
+	length = 2,
+	sprites = { 432, 433 },
+	clrIndex = 12
+}
+
+AlienDodgeAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 448, 449, 450, 449 },
+	clrIndex = 12
+}
+
+AlienSupportAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 464, 465, 466, 467 },
+	clrIndex = 2
+}
+
 AlienShotAni = {
 	frameDelay = 5,
 	length = 6,

@@ -5,6 +5,9 @@
 -- 3 - green alien
 -- 4 - shield alien
 -- 5 - dive alien
+-- 6 - bomb alien
+-- 7 - dodge alien
+-- 8 - support alien
 
 -- NumberOfStages = 1
 -- NumberOfLevelsPerStage = 10
@@ -92,7 +95,7 @@ NumberOfLevelsPerStage = 2
 Formations = {
 	{
 		{
-			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
+			5, 5, 5, 0, 0, 0, 0, 6, 7, 8,
 			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
 			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
 			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,

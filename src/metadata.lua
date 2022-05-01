@@ -2223,7 +2223,7 @@ function CreateSpecialWeaponDrill()
 		shoot = function (self)
 			if self.active == false then
 				self.active = true
-				self.x = Player.x + 1
+				self.x = Player.x + 2
 				self.y = Player.y
 				self.speed = -SpecialWeaponDrillConsts.speed
 				self.ani.delayCounter = 0
@@ -2522,28 +2522,20 @@ AlienFactory = {
 	end,
 	function(i, j)
 		return CreateDiveAlien(i, j)
+	end,
+	function (i, j)
+		return CreateBombAlien(i, j)
+	end,
+	function (i, j)
+		return CreateDodgeAlien(i, j)
+	end,
+	function (i, j)
+		return CreateSupportAlien(i, j)
 	end
 }
 
 function CreateAlien(i, j, type)
 	return AlienFactory[type](i, j)
-end
-
-function CreateShieldAlien(i, j)
-	return CreateAlienBase(
-		i,
-		j,
-		AlienShieldAni,
-		PlayerWeapons.none,
-		function (self, k)
-			Explosion:enable(self.x, self.y)
-
-			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.block, StandardDieFunction)
-			damagedShieldAlien.x = self.x
-			damagedShieldAlien.y = self.y
-			Aliens[k] = damagedShieldAlien
-		end
-	)
 end
 
 function StandardDieFunction(self, i)
@@ -2750,6 +2742,23 @@ function CalculateAlienSpeed(maxAliens, liveAliens)
 	end
 end
 
+function CreateShieldAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienShieldAni,
+		PlayerWeapons.none,
+		function (self, k)
+			Explosion:enable(self.x, self.y)
+
+			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.block, StandardDieFunction)
+			damagedShieldAlien.x = self.x
+			damagedShieldAlien.y = self.y
+			Aliens[k] = damagedShieldAlien
+		end
+	)
+end
+
 DiveAlienConsts = {
 	diveSpeed = 2
 }
@@ -2808,6 +2817,36 @@ function CreateDiveAlienDiving(x, y)
 			LiveAliens = LiveAliens - 1
 		end
 	}
+end
+
+function CreateBombAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienBombAni,
+		PlayerWeapons.vertical,
+		StandardDieFunction
+	)
+end
+
+function CreateDodgeAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienDodgeAni,
+		PlayerWeapons.vertical,
+		StandardDieFunction
+	)
+end
+
+function CreateSupportAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienSupportAni,
+		PlayerWeapons.vertical,
+		StandardDieFunction
+	)
 end
 
 CarrierConsts = {
@@ -2892,6 +2931,9 @@ end
 -- 3 - green alien
 -- 4 - shield alien
 -- 5 - dive alien
+-- 6 - bomb alien
+-- 7 - dodge alien
+-- 8 - support alien
 
 -- NumberOfStages = 1
 -- NumberOfLevelsPerStage = 10
@@ -2979,7 +3021,7 @@ NumberOfLevelsPerStage = 2
 Formations = {
 	{
 		{
-			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
+			5, 5, 5, 0, 0, 0, 0, 6, 7, 8,
 			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
 			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
 			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
@@ -3722,8 +3764,8 @@ SpecialWeaponBlockAni = {
 
 SpecialWeaponDrillAni = {
 	frameDelay = 5,
-	length = 2,
-	sprites = { 424, 425, 426 }
+	length = 4,
+	sprites = { 424, 425, 426, 427 }
 }
 
 AlienRedAni = {
@@ -3766,6 +3808,27 @@ AlienDiveAni = {
 	length = 4,
 	sprites = { 419, 420, 421, 422 },
 	clrIndex = 12
+}
+
+AlienBombAni = {
+	frameDelay = 20,
+	length = 2,
+	sprites = { 432, 433 },
+	clrIndex = 12
+}
+
+AlienDodgeAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 448, 449, 450, 449 },
+	clrIndex = 12
+}
+
+AlienSupportAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 464, 465, 466, 467 },
+	clrIndex = 2
 }
 
 AlienShotAni = {
@@ -4031,6 +4094,7 @@ Init()
 -- 153:1111111111111111111111111111111111111111111111111111111111111111
 -- 154:0000000011100000111111001111111111111111111111111111111111111111
 -- 156:00000000000cc000000cc00000cc0c000000cc000cccc0c000000cc000000000
+-- 157:00000000000cc0000c0cc0c00000000000c00c0000c00c000c0000c000000000
 -- 160:2ffffeed2ffffddd2fffffdd2fffffddfffffffd222fffff2f2fffff222f2222
 -- 161:deeddff2dddddff2cccdfff2ccddfff2ddd11ffff1111222d111d2f22222f222
 -- 162:612a0c99620aa999620aaaaa6120aa8860010000602221116222111166666666
@@ -4042,6 +4106,8 @@ Init()
 -- 168:1111111110000000100000001000000010000000100000001011022010110000
 -- 169:1111111100000000000000000000000000000000000000002202202200000000
 -- 170:1111111111111111000111110000001100000001000000010220220100000001
+-- 172:00000000000cc000000cc000000cc0000c0cc0c00c0cc0c00c0cc0c000000000
+-- 173:00000000000cc00000c00c000c0cc0c00c0cc0c000c00c00000cc00000000000
 -- 176:222f22222f2ffffd222fffddfffff11d2ffffddd2ffff0dd2ffff0cd2ffff00d
 -- 177:2222f222dddff2f21dddd222d111ddffddddddf2dd00ddf2d0c0ddf2d00eddf2
 -- 192:2ffffeed2ffffddd2fffffdd2fffffddfffffffd222fffff2f2fffff222f2222
@@ -4209,6 +4275,15 @@ Init()
 -- 169:cccaacccccc995ccc5a99accc59999ccc69955ccc68966ccc7c866cccccc77cc
 -- 170:cccaaccccc5995ccc5a99a5cc699996cc695596cc786687cccc66cccccc77ccc
 -- 171:cccaaccccc599ccccca99a5ccc99995ccc55996ccc66986ccc668c7ccc77cccc
+-- 176:ccc44ccccc4334cccc3003cc4c3003c431333313313223132c2112c2ccc22ccc
+-- 177:ccc44ccccc4334cccc3003ccc530035cc333333cc332233cc221122cccc22ccc
+-- 192:ccc33ccccc3333cccd3223dccd2dd2dcdee00eedeee00eeecee11eeccccccccc
+-- 193:cc3cc3cccc3cc3cccd2dd2dccd2dd2dccee00eecdee00eede1e11e1ececcccec
+-- 194:c3cccc3cc33cc33cc23dd32ccd2dd2dccee00eeccee00eecc1e11e1cceecceec
+-- 208:222bb222c2bbbb2ccabbbbacc9abba9c299999922a9009a22980089228288282
+-- 209:222bb2c222bbbbc22cbbbba22cabba922c999992a890098a9280082982288228
+-- 210:222bb22222bbbb222abbcba229abca922999c9922a9009a22980089228288282
+-- 211:2c2bb2222cbbbb222abbbbc229abbac2299999c2a890098a9280082982288228
 -- </SPRITES>
 
 -- <MAP>
