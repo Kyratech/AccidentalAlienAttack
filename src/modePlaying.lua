@@ -48,6 +48,12 @@ function StartGame()
 		table.insert(AlienShots, alienShot)
 	end
 
+	AlienBombBlasts = {
+		CreateAlienBombBlast(),
+		CreateAlienBombBlast()
+	}
+	AlienBomb = CreateAlienBomb(AlienBombBlasts)
+
 	AliensDiving = {}
 
 	Explosion = CreateExplosion()
@@ -71,12 +77,16 @@ end
 function StartLevel(formation)
 	ScreenTransition:reset()
 
-	-- Aliens
-	Aliens = {}
 	local alienCountX = 10
 	local alienCountY = 5
+
+	-- Aliens
+	Aliens = {}
 	MaxAliens = 0
 	LiveAliens = 0
+
+	AlienIndexesThatCanShootBombs = {}
+	NumberOfAliensThatCanShootBombs = 0
 
 	AlienGlobalRowsStepped = 0
 	for i = 1, alienCountX, 1 do
@@ -89,6 +99,11 @@ function StartLevel(formation)
 				table.insert(Aliens, alien)
 				MaxAliens = MaxAliens + 1
 				LiveAliens = LiveAliens + 1
+
+				if alienType == 6 then
+					table.insert( AlienIndexesThatCanShootBombs, LiveAliens )
+					NumberOfAliensThatCanShootBombs = NumberOfAliensThatCanShootBombs + 1
+				end
 			end
 		end
 	end
@@ -212,6 +227,15 @@ function UpdateAndDrawAlienShots()
 		AlienShots[i].particle:update()
 		AlienShots[i].particle:draw()
 	end
+
+	AlienBomb:update()
+	AlienBomb:collision()
+	AlienBomb:draw()
+	for i, alienBombBlast in pairs(AlienBombBlasts) do
+		AlienBombBlasts[i]:update()
+		AlienBombBlasts[i]:collision()
+		AlienBombBlasts[i]:draw()
+	end
 end
 
 function ScorePoints(x)
@@ -233,6 +257,22 @@ function KillAlien(i)
 			AlienGlobalVelocity = AlienGlobalSpeed
 		else
 			AlienGlobalVelocity = -AlienGlobalSpeed
+		end
+	end
+end
+
+function RemoveAlienFromLists(i)
+	table.remove(Aliens, i)
+	LiveAliens = LiveAliens - 1
+
+	if NumberOfAliensThatCanShootBombs > 0 then 
+		for j = NumberOfAliensThatCanShootBombs, 1, -1 do
+			if AlienIndexesThatCanShootBombs[j] == i then
+				table.remove( AlienIndexesThatCanShootBombs, j )
+				NumberOfAliensThatCanShootBombs = NumberOfAliensThatCanShootBombs - 1
+			elseif AlienIndexesThatCanShootBombs[j] > i then
+				AlienIndexesThatCanShootBombs[j] = AlienIndexesThatCanShootBombs[j] - 1
+			end
 		end
 	end
 end
@@ -286,7 +326,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	-- DrawDebug("block hp" .. SpecialWeaponBlock.hp)
+	-- DrawDebug("bomb alien: " .. AlienIndexesThatCanShootBombs[1])
 	-- DrawMouseDebug()
 end
 

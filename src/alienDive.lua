@@ -52,8 +52,7 @@ function CreateDiveAlienDiving(x, y)
 		die = function (self, i)
 			Explosion:enable(self.x, self.y)
 		
-			table.remove(Aliens, i)
-			LiveAliens = LiveAliens - 1
+			RemoveAlienFromLists(i)
 		end
 	}
 end

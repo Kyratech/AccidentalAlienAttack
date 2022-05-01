@@ -145,6 +145,20 @@ AlienShotParticleAni = {
 	sprites = { 285, 286, 287 }
 }
 
+AlienBombShotAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 434 },
+	clrIndex = 0
+}
+
+AlienBombBlastAni = {
+	frameDelay = 5,
+	length = 6,
+	sprites = { 435, 436, 437, 438, 439, 440 },
+	clrIndex = 0
+}
+
 CarrierAni = {
 	frameDelay = 10,
 	length = 4,

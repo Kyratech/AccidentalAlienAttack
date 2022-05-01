@@ -53,8 +53,7 @@ function StandardDieFunction(self, i)
 	Explosion:enable(self.x, self.y)
 	Player:getWeaponPower(self.specialWeapon)
 
-	table.remove(Aliens, i)
-	LiveAliens = LiveAliens - 1
+	RemoveAlienFromLists(i)
 end
 
 function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
