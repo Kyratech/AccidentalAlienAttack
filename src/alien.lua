@@ -90,7 +90,7 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 		checkCollision = function (self, i)
 			if self.y + self.h >= GroundY then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die()
+					Player:die(true)
 				end
 			elseif self.x + self.w >= RightWallX and AlienManager.direction == AlienDirection.right then
 				AlienManager:reachRightWall()
@@ -175,7 +175,7 @@ function CreateAlienShot(shotParticle)
 
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die()
+					Player:die(false)
 				end
 				self:reset()
 			end

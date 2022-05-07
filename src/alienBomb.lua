@@ -38,7 +38,7 @@ function CreateAlienBomb(alienBombBlasts)
 			end
 		end,
 		shoot = function (self)
-			if (AlienIndexesThatCanShootBombsCount > 0) then
+			if AlienIndexesThatCanShootBombsCount > 0 then
 				-- Pick an alien
 				local i = math.random(AlienIndexesThatCanShootBombsCount)
 				local formationPosition = AlienIndexesThatCanShootBombs[i]
@@ -74,7 +74,7 @@ function CreateAlienBomb(alienBombBlasts)
 
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die()
+					Player:die(false)
 				end
 				self:reset()
 			end
@@ -130,7 +130,7 @@ function CreateAlienBombBlast()
 			if self.active == true then
 				if Collide(self, Player) then
 					if Player.active == true and Player.status ~= PlayerStatuses.shield then
-						Player:die()
+						Player:die(false)
 					end
 				end
 			end

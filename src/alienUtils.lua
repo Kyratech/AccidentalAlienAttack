@@ -27,6 +27,16 @@ function AlienRemove(formationPosition)
 		end
 	end
 
+	if AlienIndexesThatCanDodgeCount > 0 then
+		for i = 1, AlienIndexesThatCanDodgeCount do
+			if AlienIndexesThatCanDodge[i] == formationPosition then
+				AlienIndexesThatCanDodgeCount = AlienIndexesThatCanDodgeCount - 1
+				table.remove( AlienIndexesThatCanDodge, i )
+				break;
+			end
+		end
+	end
+
 	CheckEndOfLevel()
 end
 

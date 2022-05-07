@@ -48,6 +48,9 @@ function CreateAlienManager()
 			-- These aliens can shoot bombs
 			AlienIndexesThatCanShootBombs = {}
 			AlienIndexesThatCanShootBombsCount = 0
+			-- These aliens can dodge
+			AlienIndexesThatCanDodge = {}
+			AlienIndexesThatCanDodgeCount = 0
 
 			for j = 1, AlienCountY, 1 do
 				for i = 1, AlienCountX, 1 do
@@ -63,6 +66,9 @@ function CreateAlienManager()
 						if alienType == 6 then
 							table.insert( AlienIndexesThatCanShootBombs, formationPosition )
 							AlienIndexesThatCanShootBombsCount = AlienIndexesThatCanShootBombsCount + 1
+						elseif alienType == 7 then
+							table.insert( AlienIndexesThatCanDodge, formationPosition )
+							AlienIndexesThatCanDodgeCount = AlienIndexesThatCanDodgeCount + 1
 						else
 							table.insert( AlienIndexesThatCanShoot, formationPosition )
 							AlienIndexesThatCanShootCount = AlienIndexesThatCanShootCount + 1
@@ -129,10 +135,15 @@ function CreateAlienManager()
 			end
 		end,
 
-		resetToTop = function (self)
+		resetToTop = function (self, diedInAlienLoop)
 			if self.translationY > TopY then
-				self.rowsStepped = 0
-				self.direction = AlienDirection.up
+				if diedInAlienLoop == true then
+					self.newRowsStepped = 0
+					self.newDirection = AlienDirection.up
+				else
+					self.rowsStepped = 0
+					self.direction = AlienDirection.up
+				end
 			end
 		end,
 

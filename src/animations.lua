@@ -126,6 +126,13 @@ AlienDodgeAni = {
 	clrIndex = 12
 }
 
+AlienDodgeReadyAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 457, 458, 459, 458 },
+	clrIndex = 12
+}
+
 AlienSupportAni = {
 	frameDelay = 10,
 	length = 4,

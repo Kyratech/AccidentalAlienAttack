@@ -64,6 +64,8 @@ function CreatePlayerShot()
 				self.x = Player.x + 4
 				self.y = Player.y
 				self.speed = PlayerShotConsts.speed
+
+				AliensDodge()
 			end
 		end,
 		reset = function (self)

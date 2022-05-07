@@ -45,7 +45,7 @@ function CreateDiveAlienDiving(x, y)
 
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die()
+					Player:die(false)
 				end
 				self:die(i)
 			end

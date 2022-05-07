@@ -99,8 +99,8 @@ function CreatePlayer()
 			self:activateStatus(PlayerStatuses.shield, PlayerConsts.respawnShieldLength)
 			self:enable()
 		end,
-		die = function (self)
-			AlienManager:resetToTop()
+		die = function (self, diedInAlienLoop)
+			AlienManager:resetToTop(diedInAlienLoop)
 			self.deathTimer = 180
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			PowerupUi:setIcon(PowerupIcons.none)
