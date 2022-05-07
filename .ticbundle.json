@@ -39,6 +39,7 @@
 		"playerExplosion.lua",
 		"powerup.lua",
 		"alienUtils.lua",
+		"alienManager.lua",
 		"alien.lua",
 		"alienShield.lua",
 		"alienDive.lua",

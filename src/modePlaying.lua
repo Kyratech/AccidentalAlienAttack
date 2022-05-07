@@ -10,7 +10,7 @@ function PlayingLoop()
 		Input()
 		Update()
 		Draw()
-		UpdateAndDrawAliens()
+		AlienManager:updateAndDraw()
 		UpdateAndDrawAlienShots()
 		InputPause()
 	end
@@ -38,6 +38,8 @@ function StartGame()
 	CurrentLevel = 1
 
 	ScreenTransition = CreateScreenTransition()
+
+	AlienManager = CreateAlienManager()
 
 	StartLevel(Formations[CurrentStage][CurrentLevel])
 
@@ -77,14 +79,7 @@ end
 function StartLevel(formation)
 	ScreenTransition:reset()
 
-	SetUpAliens(formation)
-
-	-- How many times have the aliens dropped a level?
-	AlienGlobalRowsStepped = 0
-	-- How fast the aliens should move
-	AlienGlobalSpeed = CalculateAlienSpeed(LiveAliens, LiveAliens)
-	-- The actual translation of the aliens
-	AlienGlobalVelocity = AlienGlobalSpeed
+	AlienManager:startLevel(formation)
 
 	AlienCarrier:prepare()
 end
@@ -177,27 +172,6 @@ function Update()
 	ScreenTransition:update()
 end
 
--- Combine alien handling so we only have to loop through once
-function UpdateAndDrawAliens()
-	NewAlienGlobalVelocity = AlienGlobalVelocity
-	NewAlienGlobalRowsStepped = AlienGlobalRowsStepped
-
-	for formationPosition, alien in pairs(Aliens) do
-		alien:update()
-		alien:checkCollision(formationPosition)
-		alien:draw()
-	end
-
-	AlienGlobalVelocity = NewAlienGlobalVelocity
-	AlienGlobalRowsStepped = NewAlienGlobalRowsStepped
-
-	for i, specialAlien in pairs(SpecialAliens) do
-		specialAlien:update()
-		specialAlien:checkCollision(i)
-		specialAlien:draw()
-	end
-end
-
 function UpdateAndDrawAlienShots()
 	for i, alienShot in pairs(AlienShots) do
 		AlienShots[i]:update()
@@ -264,7 +238,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	-- DrawDebug("bomb alien: " .. AlienIndexesThatCanShootBombs[1])
+	-- DrawDebug("displacement: " .. AlienGlobalDisplacementX)
 	-- DrawMouseDebug()
 end
 

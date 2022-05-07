@@ -11,7 +11,11 @@ HalfScreenHeight = ScreenHeight / 2
 
 LeftWallX = 22
 RightWallX = 218
+TopY = 20
 GroundY = 125
+
+AlienCountX = 10
+AlienCountY = 5
 
 -- Button aliases
 BtnUp = 0

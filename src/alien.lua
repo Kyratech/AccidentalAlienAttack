@@ -64,7 +64,6 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 		h = AlienConsts.height * TilePx,
 		column = i,
 		row = j,
-		targetY = 20 + (j - 1) * 10,
 		hitWall = false,
 		specialWeapon = specialWeapon,
 		ani = {
@@ -80,16 +79,11 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 				animation.clrIndex)
 		end,
 		update = function (self)
-			self.targetY = 20 + AlienGlobalRowsStepped * 10 * AlienDescentRateOptions[GameSettings.alienDescentRate].value + (self.row - 1) * 10
+			local formationOffsetX = (self.column - 1) * 16
+			local formationOffsetY = (self.row - 1) * 10
 
-			if self.y > self.targetY then
-				self.y = self.y - 1
-			elseif self.y < self.targetY then
-				self.y = self.y + 1
-			elseif Player.status ~= PlayerStatuses.timestop then
-				self.x = self.x + AlienGlobalVelocity
-				self.hitWall = false
-			end
+			self.x = formationOffsetX + AlienManager.translationX
+			self.y = formationOffsetY + AlienManager.translationY
 
 			Animate(self, animation)
 		end,
@@ -98,18 +92,10 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
 					Player:die()
 				end
-			elseif self.x + self.w > RightWallX then
-				if self.hitWall == false then
-					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
-					self.hitWall = true
-				end
-				NewAlienGlobalVelocity = -AlienGlobalSpeed
-			elseif self.x < LeftWallX then
-				if self.hitWall == false then
-					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
-					self.hitWall = true
-				end
-				NewAlienGlobalVelocity = AlienGlobalSpeed
+			elseif self.x + self.w >= RightWallX and AlienManager.direction == AlienDirection.right then
+				AlienManager:reachRightWall()
+			elseif self.x <= LeftWallX and AlienManager.direction == AlienDirection.left then
+				AlienManager:reachLeftWall()
 			end
 		end,
 		die = dieFunction
