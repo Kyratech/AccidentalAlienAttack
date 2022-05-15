@@ -66,6 +66,7 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 		row = j,
 		hitWall = false,
 		specialWeapon = specialWeapon,
+		shielded = false,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -77,6 +78,20 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 				self.x,
 				self.y,
 				animation.clrIndex)
+
+			if self.shielded == true then
+				spr(
+					468,
+					self.x - 2,
+					self.y - 2,
+					0,
+					1,
+					0,
+					0,
+					2,
+					2
+				)
+			end
 		end,
 		update = function (self)
 			local formationOffsetX = (self.column - 1) * 16
@@ -98,7 +113,13 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 				AlienManager:reachLeftWall()
 			end
 		end,
-		die = dieFunction
+		die = function(self, formationPosition)
+			if self.shielded == true then
+				self.shielded = false
+			else
+				dieFunction(self, formationPosition)
+			end
+		end
 	}
 end
 

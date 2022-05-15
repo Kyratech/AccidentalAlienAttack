@@ -16,7 +16,11 @@ HalfScreenHeight = ScreenHeight / 2
 
 LeftWallX = 22
 RightWallX = 218
+TopY = 20
 GroundY = 125
+
+AlienCountX = 10
+AlienCountY = 5
 
 -- Button aliases
 BtnUp = 0
@@ -328,7 +332,7 @@ function PlayingLoop()
 		Input()
 		Update()
 		Draw()
-		UpdateAndDrawAliens()
+		AlienManager:updateAndDraw()
 		UpdateAndDrawAlienShots()
 		InputPause()
 	end
@@ -356,6 +360,8 @@ function StartGame()
 	CurrentLevel = 1
 
 	ScreenTransition = CreateScreenTransition()
+
+	AlienManager = CreateAlienManager()
 
 	StartLevel(Formations[CurrentStage][CurrentLevel])
 
@@ -395,14 +401,7 @@ end
 function StartLevel(formation)
 	ScreenTransition:reset()
 
-	SetUpAliens(formation)
-
-	-- How many times have the aliens dropped a level?
-	AlienGlobalRowsStepped = 0
-	-- How fast the aliens should move
-	AlienGlobalSpeed = CalculateAlienSpeed(LiveAliens, LiveAliens)
-	-- The actual translation of the aliens
-	AlienGlobalVelocity = AlienGlobalSpeed
+	AlienManager:startLevel(formation)
 
 	AlienCarrier:prepare()
 end
@@ -495,27 +494,6 @@ function Update()
 	ScreenTransition:update()
 end
 
--- Combine alien handling so we only have to loop through once
-function UpdateAndDrawAliens()
-	NewAlienGlobalVelocity = AlienGlobalVelocity
-	NewAlienGlobalRowsStepped = AlienGlobalRowsStepped
-
-	for formationPosition, alien in pairs(Aliens) do
-		alien:update()
-		alien:checkCollision(formationPosition)
-		alien:draw()
-	end
-
-	AlienGlobalVelocity = NewAlienGlobalVelocity
-	AlienGlobalRowsStepped = NewAlienGlobalRowsStepped
-
-	for i, specialAlien in pairs(SpecialAliens) do
-		specialAlien:update()
-		specialAlien:checkCollision(i)
-		specialAlien:draw()
-	end
-end
-
 function UpdateAndDrawAlienShots()
 	for i, alienShot in pairs(AlienShots) do
 		AlienShots[i]:update()
@@ -541,16 +519,6 @@ function ScorePoints(x)
 		scoreIncrease = scoreIncrease * 2
 	end
 	Score = Score + scoreIncrease
-end
-
-function Collide(a, b)
-	if a.x < b.x + b.w and
-		a.x + a.w > b.x and
-		a.y < b.y + b.h and
-		a.y + a.h > b.y then
-		return true
-	end
-	return false
 end
 
 function Draw()
@@ -592,7 +560,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	-- DrawDebug("bomb alien: " .. AlienIndexesThatCanShootBombs[1])
+	DrawDebug("displacement Y: " .. AlienManager.translationY)
 	-- DrawMouseDebug()
 end
 
@@ -1495,6 +1463,16 @@ SerialiseHighScore = function(rank, highScore)
 	return rank .. " " .. highScore.name .. spaces .. highScore.score
 end
 
+function Collide(a, b)
+	if a.x < b.x + b.w and
+		a.x + a.w > b.x and
+		a.y < b.y + b.h and
+		a.y + a.h > b.y then
+		return true
+	end
+	return false
+end
+
 function CollideWithAliens(self, onCollision)
 	for formationPosition, alien in pairs(Aliens) do
 		if Collide(self, alien) then
@@ -1618,8 +1596,8 @@ function CreatePlayer()
 			self:activateStatus(PlayerStatuses.shield, PlayerConsts.respawnShieldLength)
 			self:enable()
 		end,
-		die = function (self)
-			AlienGlobalRowsStepped = 0
+		die = function (self, diedInAlienLoop)
+			AlienManager:resetToTop(diedInAlienLoop)
 			self.deathTimer = 180
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			PowerupUi:setIcon(PowerupIcons.none)
@@ -1738,6 +1716,8 @@ function CreatePlayerShot()
 				self.x = Player.x + 4
 				self.y = Player.y
 				self.speed = PlayerShotConsts.speed
+
+				AliensDodge()
 			end
 		end,
 		reset = function (self)
@@ -2461,49 +2441,6 @@ CreatePowerup = function (spriteIndex, collectionFunction)
 	}
 end
 
-function SetUpAliens(formation)
-	local alienCountX = 10
-	local alienCountY = 5
-
-	MaxAliens = 0
-
-	-- Aliens count towards level completion, move normally, and can shoot
-	Aliens = {}
-	LiveAliens = 0
-	-- Special aliens only count towards level completion (e.g. diving aliens)
-	SpecialAliens = {}
-	LiveSpecialAliens = 0
-
-	-- These aliens can shoot normal shots
-	AlienIndexesThatCanShoot = {}
-	AlienIndexesThatCanShootCount = 0
-	-- These aliens can shoot bombs
-	AlienIndexesThatCanShootBombs = {}
-	AlienIndexesThatCanShootBombsCount = 0
-
-	for j = 1, alienCountY, 1 do
-		for i = 1, alienCountX, 1 do
-			local formationPosition = i + (j - 1) * alienCountX
-			local alienType = formation[formationPosition]
-
-			if alienType ~= 0 then
-				local alien = CreateAlien(i, j, alienType)
-				Aliens[formationPosition] = alien
-				MaxAliens = MaxAliens + 1
-				LiveAliens = LiveAliens + 1
-
-				if alienType == 6 then
-					table.insert( AlienIndexesThatCanShootBombs, formationPosition )
-					AlienIndexesThatCanShootBombsCount = AlienIndexesThatCanShootBombsCount + 1
-				else
-					table.insert( AlienIndexesThatCanShoot, formationPosition )
-					AlienIndexesThatCanShootCount = AlienIndexesThatCanShootCount + 1
-				end
-			end
-		end
-	end
-end
-
 function AddSpecialAlien(specialAlien)
 	table.insert( SpecialAliens, specialAlien )
 	LiveSpecialAliens = LiveSpecialAliens + 1
@@ -2533,6 +2470,16 @@ function AlienRemove(formationPosition)
 		end
 	end
 
+	if AlienIndexesThatCanDodgeCount > 0 then
+		for i = 1, AlienIndexesThatCanDodgeCount do
+			if AlienIndexesThatCanDodge[i] == formationPosition then
+				AlienIndexesThatCanDodgeCount = AlienIndexesThatCanDodgeCount - 1
+				table.remove( AlienIndexesThatCanDodge, i )
+				break;
+			end
+		end
+	end
+
 	CheckEndOfLevel()
 end
 
@@ -2548,13 +2495,174 @@ function CheckEndOfLevel()
 	if LiveAliens + LiveSpecialAliens == 0 then
 		EndLevel()
 	else
-		AlienGlobalSpeed = CalculateAlienSpeed(MaxAliens, LiveAliens)
-		if AlienGlobalVelocity > 0 then
-			AlienGlobalVelocity = AlienGlobalSpeed
-		else
-			AlienGlobalVelocity = -AlienGlobalSpeed
-		end
+		AlienManager.speed = CalculateAlienSpeed(MaxAliens, LiveAliens)
 	end
+end
+
+function GetFormationPosition(column, row)
+	return column + (row - 1) * AlienCountX
+end
+
+AlienDirection = {
+	left = { x = -1, y = 0 },
+	right = { x = 1, y = 0 },
+	up = { x = 0, y = -1 },
+	down = { x = 0, y = 1 }
+}
+
+function CreateAlienManager()
+	return {
+		speed = 0,
+		translationX = LeftWallX,
+		translationY = -50,
+
+		-- Settings that apply to the current alien loop
+		rowsStepped = 0,
+		direction = AlienDirection.right,
+		
+		-- Settings to apply after for the next alien loop
+		newRowsStepped = 0,
+		newDirection = AlienDirection.right,
+		
+		nextDirectionH = AlienDirection.left,
+		hasChangedDirectionThisStep = false,
+		
+		startLevel = function(self, formation)
+			self.translationX = LeftWallX
+			self.translationY = -50
+
+			self.rowsStepped = 0
+			self.direction = AlienDirection.down
+			self.newRowsStepped = 0
+			self.newDirection = AlienDirection.down
+			
+			self.nextDirectionH = AlienDirection.right
+
+			MaxAliens = 0
+
+			-- Aliens count towards level completion, move normally, and can shoot
+			Aliens = {}
+			LiveAliens = 0
+			-- Special aliens only count towards level completion (e.g. diving aliens)
+			SpecialAliens = {}
+			LiveSpecialAliens = 0
+
+			-- These aliens can shoot normal shots
+			AlienIndexesThatCanShoot = {}
+			AlienIndexesThatCanShootCount = 0
+			-- These aliens can shoot bombs
+			AlienIndexesThatCanShootBombs = {}
+			AlienIndexesThatCanShootBombsCount = 0
+			-- These aliens can dodge
+			AlienIndexesThatCanDodge = {}
+			AlienIndexesThatCanDodgeCount = 0
+
+			for j = 1, AlienCountY, 1 do
+				for i = 1, AlienCountX, 1 do
+					local formationPosition = GetFormationPosition(i, j)
+					local alienType = formation[formationPosition]
+
+					if alienType ~= 0 then
+						local alien = CreateAlien(i, j, alienType)
+						Aliens[formationPosition] = alien
+						MaxAliens = MaxAliens + 1
+						LiveAliens = LiveAliens + 1
+
+						if alienType == 6 then
+							table.insert( AlienIndexesThatCanShootBombs, formationPosition )
+							AlienIndexesThatCanShootBombsCount = AlienIndexesThatCanShootBombsCount + 1
+						elseif alienType == 7 then
+							table.insert( AlienIndexesThatCanDodge, formationPosition )
+							AlienIndexesThatCanDodgeCount = AlienIndexesThatCanDodgeCount + 1
+						else
+							table.insert( AlienIndexesThatCanShoot, formationPosition )
+							AlienIndexesThatCanShootCount = AlienIndexesThatCanShootCount + 1
+						end
+					end
+				end
+			end
+
+			self.speed = CalculateAlienSpeed(LiveAliens, LiveAliens)
+		end,
+
+		updateAndDraw = function(self)
+			self:calculateTranslation()
+
+			self.hasChangedDirectionThisStep = false
+
+			self:initNewSettings()
+
+			for formationPosition, alien in pairs(Aliens) do
+				alien:update()
+				alien:checkCollision(formationPosition)
+				alien:draw()
+			end
+
+			self:applyNewSettings()
+
+			self:checkReachedTargetY()
+
+			for i, specialAlien in pairs(SpecialAliens) do
+				specialAlien:update()
+				specialAlien:checkCollision(i)
+				specialAlien:draw()
+			end
+		end,
+
+		initNewSettings = function (self)
+			self.newDirection = self.direction
+			self.newRowsStepped = self.rowsStepped
+		end,
+		applyNewSettings = function (self)
+			self.direction = self.newDirection
+			self.rowsStepped = self.newRowsStepped
+		end,
+		calculateTranslation = function (self)
+			local speedX = self.direction.x * self.speed
+			local speedY = self.direction.y
+
+			self.translationX = self.translationX + speedX
+			self.translationY = self.translationY + speedY
+		end,
+
+		reachRightWall = function (self)
+			self:reachWall(AlienDirection.left)
+		end,
+		reachLeftWall = function (self)
+			self:reachWall(AlienDirection.right)
+		end,
+		reachWall = function (self, nextDirection)
+			if self.hasChangedDirectionThisStep ~= true then
+				self.hasChangedDirectionThisStep = true
+				self.newRowsStepped = self.rowsStepped + 1
+				self.newDirection = AlienDirection.down
+				self.nextDirectionH = nextDirection
+			end
+		end,
+
+		resetToTop = function (self, diedInAlienLoop)
+			if self.translationY > TopY then
+				if diedInAlienLoop == true then
+					self.newRowsStepped = 0
+					self.newDirection = AlienDirection.up
+				else
+					self.rowsStepped = 0
+					self.direction = AlienDirection.up
+				end
+			end
+		end,
+
+		-- Only works if vertical speed is 1
+		checkReachedTargetY = function (self)
+			if self.direction == AlienDirection.up or self.direction == AlienDirection.down then
+				local targetY = TopY + (self.rowsStepped * 10 * AlienDescentRateOptions[GameSettings.alienDescentRate].value)
+			
+				if self.translationY == targetY then
+					self.direction = self.nextDirectionH
+				end
+			end
+		end
+	}
 end
 
 AlienConsts = {
@@ -2623,9 +2731,9 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 		h = AlienConsts.height * TilePx,
 		column = i,
 		row = j,
-		targetY = 20 + (j - 1) * 10,
 		hitWall = false,
 		specialWeapon = specialWeapon,
+		shielded = true,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -2637,41 +2745,48 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 				self.x,
 				self.y,
 				animation.clrIndex)
+
+			if self.shielded == true then
+				spr(
+					468,
+					self.x - 2,
+					self.y - 2,
+					0,
+					1,
+					0,
+					0,
+					2,
+					2
+				)
+			end
 		end,
 		update = function (self)
-			self.targetY = 20 + AlienGlobalRowsStepped * 10 * AlienDescentRateOptions[GameSettings.alienDescentRate].value + (self.row - 1) * 10
+			local formationOffsetX = (self.column - 1) * 16
+			local formationOffsetY = (self.row - 1) * 10
 
-			if self.y > self.targetY then
-				self.y = self.y - 1
-			elseif self.y < self.targetY then
-				self.y = self.y + 1
-			elseif Player.status ~= PlayerStatuses.timestop then
-				self.x = self.x + AlienGlobalVelocity
-				self.hitWall = false
-			end
+			self.x = formationOffsetX + AlienManager.translationX
+			self.y = formationOffsetY + AlienManager.translationY
 
 			Animate(self, animation)
 		end,
 		checkCollision = function (self, i)
 			if self.y + self.h >= GroundY then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die()
+					Player:die(true)
 				end
-			elseif self.x + self.w > RightWallX then
-				if self.hitWall == false then
-					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
-					self.hitWall = true
-				end
-				NewAlienGlobalVelocity = -AlienGlobalSpeed
-			elseif self.x < LeftWallX then
-				if self.hitWall == false then
-					NewAlienGlobalRowsStepped = AlienGlobalRowsStepped + 1
-					self.hitWall = true
-				end
-				NewAlienGlobalVelocity = AlienGlobalSpeed
+			elseif self.x + self.w >= RightWallX and AlienManager.direction == AlienDirection.right then
+				AlienManager:reachRightWall()
+			elseif self.x <= LeftWallX and AlienManager.direction == AlienDirection.left then
+				AlienManager:reachLeftWall()
 			end
 		end,
-		die = dieFunction
+		die = function(self, formationPosition)
+			if self.shielded == true then
+				self.shielded = false
+			else
+				dieFunction(self, formationPosition)
+			end
+		end
 	}
 end
 
@@ -2748,7 +2863,7 @@ function CreateAlienShot(shotParticle)
 
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die()
+					Player:die(false)
 				end
 				self:reset()
 			end
@@ -2874,7 +2989,7 @@ function CreateDiveAlienDiving(x, y)
 
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die()
+					Player:die(false)
 				end
 				self:die(i)
 			end
@@ -2927,7 +3042,7 @@ function CreateAlienBomb(alienBombBlasts)
 			end
 		end,
 		shoot = function (self)
-			if (AlienIndexesThatCanShootBombsCount > 0) then
+			if AlienIndexesThatCanShootBombsCount > 0 then
 				-- Pick an alien
 				local i = math.random(AlienIndexesThatCanShootBombsCount)
 				local formationPosition = AlienIndexesThatCanShootBombs[i]
@@ -2963,7 +3078,7 @@ function CreateAlienBomb(alienBombBlasts)
 
 			if Collide(self, Player) then
 				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die()
+					Player:die(false)
 				end
 				self:reset()
 			end
@@ -3019,7 +3134,7 @@ function CreateAlienBombBlast()
 			if self.active == true then
 				if Collide(self, Player) then
 					if Player.active == true and Player.status ~= PlayerStatuses.shield then
-						Player:die()
+						Player:die(false)
 					end
 				end
 			end
@@ -3027,14 +3142,103 @@ function CreateAlienBombBlast()
 	}
 end
 
+AlienDodgeDirection = {
+	left = -1,
+	right = 1,
+	none = 0
+}
+
 function CreateDodgeAlien(i, j)
-	return CreateAlienBase(
+	local dodgeAlien = CreateAlienBase(
 		i,
 		j,
 		AlienDodgeAni,
 		PlayerWeapons.vertical,
 		StandardDieFunction
 	)
+
+	dodgeAlien.dodgeDirection = AlienDodgeDirection.none
+	dodgeAlien.calculateNextDodge = function (self)
+		local canDodgeLeft = false
+		local canDodgeRight = false
+
+		if self.column > 1 then
+			local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)
+			if Aliens[alienIndexToTheLeft] == nil then
+				canDodgeLeft = true
+			end
+		end
+
+		if self.column < AlienCountX then
+			local alienIndexToTheRight = GetFormationPosition(self.column + 1, self.row)
+			if Aliens[alienIndexToTheRight] == nil then
+				canDodgeRight = true
+			end
+		end
+
+		if canDodgeLeft and canDodgeRight then
+			local rng = math.random(2)
+			self.dodgeDirection = AlienDodgeDirection.left
+			if rng == 2 then
+				self.dodgeDirection = AlienDodgeDirection.right
+			end
+			return
+		end
+
+		if canDodgeLeft then
+			self.dodgeDirection = AlienDodgeDirection.left
+			return
+		end
+
+		if canDodgeRight then
+			self.dodgeDirection = AlienDodgeDirection.right
+			return
+		end
+
+		self.dodgeDirection = AlienDodgeDirection.none
+	end
+
+	dodgeAlien.dodge = function (self)
+		self.column = self.column + self.dodgeDirection
+		self:calculateNextDodge()
+	end
+
+	dodgeAlien.update = function (self)
+		local formationOffsetX = (self.column - 1) * 16
+		local formationOffsetY = (self.row - 1) * 10
+
+		self.x = formationOffsetX + AlienManager.translationX
+		self.y = formationOffsetY + AlienManager.translationY
+
+		local animation = AlienDodgeAni
+		if self.dodgeDirection ~= AlienDodgeDirection.none then
+			animation = AlienDodgeReadyAni
+		end
+		Animate(self, animation)
+	end
+
+	dodgeAlien.draw = function (self)
+		local spriteFlip = 0
+		if self.dodgeDirection == AlienDodgeDirection.left then
+			spriteFlip = 1
+		end
+
+		spr(
+			self.ani.currentFrame,
+			self.x,
+			self.y,
+			AlienDodgeAni.clrIndex,
+			1,
+			spriteFlip)
+	end
+
+	return dodgeAlien;
+end
+
+function AliensDodge()
+	for i = 1, AlienIndexesThatCanDodgeCount, 1 do
+		Aliens[AlienIndexesThatCanDodge[i]]:dodge()
+	end
 end
 
 function CreateSupportAlien(i, j)
@@ -3219,11 +3423,11 @@ NumberOfLevelsPerStage = 2
 Formations = {
 	{
 		{
-			5, 5, 5, 0, 0, 0, 0, 6, 7, 8,
-			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
-			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
-			5, 5, 5, 0, 0, 0, 0, 3, 3, 3,
-			0, 0, 0, 4, 4, 4, 4, 0, 0, 0
+			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
+			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
+			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
+			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
+			0, 0, 0, 7, 0, 0, 7, 0, 0, 0
 		},
 		{
 			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
@@ -4022,6 +4226,13 @@ AlienDodgeAni = {
 	clrIndex = 12
 }
 
+AlienDodgeReadyAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 457, 458, 459, 458 },
+	clrIndex = 12
+}
+
 AlienSupportAni = {
 	frameDelay = 10,
 	length = 4,
@@ -4509,6 +4720,15 @@ Init()
 -- 209:222bb2c222bbbbc22cbbbba22cabba922c999992a890098a9280082982288228
 -- 210:222bb22222bbbb222abbcba229abca922999c9922a9009a22980089228288282
 -- 211:2c2bb2222cbbbb222abbbbc229abbac2299999c2a890098a9280082982288228
+-- 212:00aaaaaa0a000000a0000000a0000000b0000000b0000000b0000000b0000000
+-- 213:aa00000000a00000000a0000000a0000000b0000000b0000000b0000000b0000
+-- 214:00000000000000000b000000b0b00000b0b000000b0000000000000000000000
+-- 215:000000000aa00000a00a0000a00a0000a00a0000a00a00000aa0000000000000
+-- 216:09900000900900000aa00000aaaaaa00aaaaa0000a0000009009000009900000
+-- 217:0000000000000000000000009999999099000000000000000000000000000000
+-- 218:0000000000000000000000000000880800000000000000000000000000000000
+-- 228:b0000000b00000000b00000000bccccc00000000000000000000000000000000
+-- 229:000b0000000b000000b00000cb00000000000000000000000000000000000000
 -- </SPRITES>
 
 -- <MAP>

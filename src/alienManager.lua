@@ -42,6 +42,12 @@ function CreateAlienManager()
 			SpecialAliens = {}
 			LiveSpecialAliens = 0
 
+			-- Particles for support aliens
+			-- The support alien creator will handle populating this
+			-- Yes its inconsistent, I just want to finish this darn game
+			SupportAlienSkills = {}
+			SupportAlienSkillsCount = 0
+
 			-- These aliens can shoot normal shots
 			AlienIndexesThatCanShoot = {}
 			AlienIndexesThatCanShootCount = 0
@@ -101,6 +107,11 @@ function CreateAlienManager()
 				specialAlien:update()
 				specialAlien:checkCollision(i)
 				specialAlien:draw()
+			end
+
+			for i, supportAlienSkill in pairs(SupportAlienSkills) do
+				supportAlienSkill:update()
+				supportAlienSkill:draw()
 			end
 		end,
 

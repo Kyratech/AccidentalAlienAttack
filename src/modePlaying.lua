@@ -238,7 +238,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	DrawDebug("displacement Y: " .. AlienManager.translationY)
+	-- DrawDebug("displacement Y: " .. AlienManager.translationY)
 	-- DrawMouseDebug()
 end
 

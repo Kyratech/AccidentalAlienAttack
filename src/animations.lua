@@ -166,6 +166,12 @@ AlienBombBlastAni = {
 	clrIndex = 0
 }
 
+AlienSupportSkillAni = {
+	frameDelay = 5,
+	length = 5,
+	sprites = { 470, 471, 472, 473, 474 }
+}
+
 CarrierAni = {
 	frameDelay = 10,
 	length = 4,
