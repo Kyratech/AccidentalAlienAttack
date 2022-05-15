@@ -356,6 +356,7 @@ function StartGame()
 		CreatePlayerMortarFragment(PlayerMortarDirections.sse),
 		CreatePlayerMortarFragment(PlayerMortarDirections.se)
 	}
+	PlayerBubble = CreateSpecialWeaponBubble()
 
 	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
 	SpecialWeaponBlock = CreateSpecialWeaponBlock()
@@ -475,6 +476,8 @@ function Update()
 		mortarFragment:update()
 		mortarFragment:checkCollision()
 	end
+	PlayerBubble:update()
+	PlayerBubble:checkCollision()
 
 	SpecialWeaponBlockProjectile:update()
 	SpecialWeaponBlock:update()
@@ -554,6 +557,8 @@ function DrawGameObjects()
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:draw()
 	end
+	PlayerBubble:draw()
+
 	SpecialWeaponBlockProjectile:draw()
 	SpecialWeaponBlock:draw()
 	SpecialWeaponDrill:draw()
@@ -1777,6 +1782,9 @@ PlayerMissileLaunchPayload = {
 		for i, mortarFragment in pairs(PlayerMortarFragments) do
 			mortarFragment:enable(self.x -1, self.y + 2)
 		end
+	end,
+	bubble = function (self, alienY)
+		PlayerBubble:enable(self.x - 3, alienY)
 	end
 }
 
@@ -2111,6 +2119,9 @@ SpecialWeaponPicker = {
 	end,
 	mortar = function ()
 		PlayerMissile:shoot(PlayerMortarAni.sprites[1])
+	end,
+	bubble = function ()
+		PlayerMissile:shoot(PlayerBubbleMissileAni.sprites[1])
 	end
 }
 
@@ -2313,6 +2324,81 @@ function CreateSpecialWeaponDrill()
 
 			if self.active == true then
 				Animate(self, SpecialWeaponDrillAni)
+			end
+		end
+	}
+end
+
+function CreateSpecialWeaponBubble()
+	return {
+		x = PlayerMissileBurstConsts.storeX,
+		y = PlayerMissileBurstConsts.storeY,
+		w = 8,
+		h = 8,
+		speedX = 0,
+		speedY = 0,
+		counter = 0,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = SpecialWeaponBubbleAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.speedX = 0
+			self.speedY = -0.05
+			self.counter = 120
+
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = SpecialWeaponBubbleAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+			self.speedX = 0
+			self.speedY = 0
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					ExplosionConsts.clrIndex)
+			end
+		end,
+		update = function (self)
+			self.x = self.x + self.speedX
+			self.y = self.y + self.speedY
+
+			if self.active == true then
+				self.counter = self.counter - 1
+
+				if self.counter == 3 then
+					self.ani.delayCounter = 0
+					self.ani.currentCounter = 1
+					self.ani.currentFrame = SpecialWeaponBubblePopAni.sprites[1]
+				elseif self.counter < 3 then
+					AnimateOneshot(self, SpecialWeaponBubblePopAni)
+				else
+					Animate(self, SpecialWeaponBubbleAni)
+				end
+			end
+		end,
+		checkCollision = function (self)
+			-- Check aliens
+			CollideWithAliens(self, function (self, alien) end)
+
+			if Collide(self, AlienCarrier) then
+				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+				AlienCarrier:disable()
+
+				ScorePoints(5)
 			end
 		end
 	}
@@ -3359,7 +3445,7 @@ function CreateSupportAlien(i, j)
 		i,
 		j,
 		AlienSupportAni,
-		PlayerWeapons.vertical,
+		PlayerWeapons.bubble,
 		function (self, k)
 			if self.column > 1 then
 				local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)
@@ -3609,11 +3695,11 @@ NumberOfLevelsPerStage = 2
 Formations = {
 	{
 		{
-			3, 6, 3, 3, 3, 3, 3, 3, 6, 3,
-			3, 6, 3, 0, 0, 0, 0, 3, 6, 3,
-			3, 6, 3, 0, 0, 0, 0, 3, 6, 3,
-			3, 6, 3, 0, 0, 0, 0, 3, 6, 3,
-			0, 0, 0, 6, 0, 0, 6, 0, 0, 0
+			3, 8, 3, 3, 3, 3, 3, 3, 8, 3,
+			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
+			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
+			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
+			0, 0, 0, 8, 0, 0, 8, 0, 0, 0
 		},
 		{
 			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
@@ -4356,6 +4442,12 @@ PlayerMortarFragmentAni = {
 	sprites = { 442 }
 }
 
+PlayerBubbleMissileAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 475 }
+}
+
 SpecialWeaponBlockProjectileAni = {
 	frameDelay = 10,
 	length = 4,
@@ -4372,6 +4464,18 @@ SpecialWeaponDrillAni = {
 	frameDelay = 5,
 	length = 4,
 	sprites = { 424, 425, 426, 427 }
+}
+
+SpecialWeaponBubbleAni = {
+	frameDelay = 5,
+	length = 2,
+	sprites = { 476, 477 }
+}
+
+SpecialWeaponBubblePopAni = {
+	frameDelay = 5,
+	length = 3,
+	sprites = { 492, 493, 494 }
 }
 
 AlienRedAni = {
@@ -4925,9 +5029,11 @@ Init()
 -- 197:0034430000344400034444000344443003444430034443300344433000343300
 -- 198:0033430003433330033033300330033003000330030000300000000000000000
 -- 199:0200002002000020020000000000000000000000000000000000000000000000
--- 201:ccccccccc33c33ccc33d33dcc22d22dcdeee00edeeee00eeceee11eccccccccc
--- 202:c3cc3cccc33c33ccc23d23dccd2dd2dcceee00ecdeee00ede1ee111ececcccec
--- 203:cc3cc3cccc3cc3cccd2dd2dccd2dd2dcceee00ecceee00ecc1ee111cceecceec
+-- 201:ccccccccc33c33ccc33d33dcc22d22dcdeeee00deeeee00eceeee11ccccccccc
+-- 202:c3cc3cccc33c33ccc23d23dccd2dd2dcceeee00cdeeee00de1eee11ececcccec
+-- 203:cc3cc3cccc3cc3cccd2dd2dccd2dd2dcceeee00cceeee00cc1eee11cceecceec
+-- 204:000000000000000000032000000cc00000cccc00000dd0000000000000000000
+-- 205:00000000000000000000320000ccc20000dcc000000dc0000000000000000000
 -- 208:222bb222c2bbbb2ccabbbbacc9abba9c299999922a9009a22980089228288282
 -- 209:222bb2c222bbbbc22cbbbba22cabba922c999992a890098a9280082982288228
 -- 210:222bb22222bbbb222abbcba229abca922999c9922a9009a22980089228288282
