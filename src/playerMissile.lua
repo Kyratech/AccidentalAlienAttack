@@ -12,6 +12,25 @@ PlayerMissileBurstConsts = {
 	clrIndex = 0
 }
 
+PlayerMissileLaunchPayload = {
+	vertical = function (self, alienY)
+		PlayerMissileBurstLeft:enable(self.x - 3, alienY, 0, -2)
+	end,
+	horizontal = function (self, alienY)
+		PlayerMissileBurstLeft:enable(self.x - 3, alienY, -2, 0)
+		PlayerMissileBurstRight:enable(self.x - 3, alienY, 2, 0)
+	end,
+	diagonal = function (self, alienY)
+		PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
+		PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
+	end,
+	mortar = function (self, alienY)
+		for i, mortarFragment in pairs(PlayerMortarFragments) do
+			mortarFragment:enable(self.x -1, self.y + 2)
+		end
+	end
+}
+
 function CreatePlayerMissile()
 	return {
 		x = PlayerMissileConsts.storeX,
@@ -20,15 +39,11 @@ function CreatePlayerMissile()
 		h = 8,
 		speed = 0,
 		type = PlayerWeapons.none,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = PlayerMissileAni.sprites[1]
-		},
+		sprite = PlayerMissileAni.sprites[1],
 		draw = function (self)
 			if self.speed > 0 then
 				spr(
-					self.ani.currentFrame,
+					self.sprite,
 					self.x - 3,
 					self.y,
 					PlayerMissileConsts.clrIndex)
@@ -40,8 +55,6 @@ function CreatePlayerMissile()
 			self.y = self.y - self.speed
 
 			if self.speed > 0 then
-				Animate(self, PlayerMissileAni)
-
 				PlayerMissileExhaust:update(self.x, self.y + 8)
 			end
 		end,
@@ -77,12 +90,16 @@ function CreatePlayerMissile()
 				self:reset()
 			end
 		end,
-		shoot = function (self)
+		shoot = function (self, sprite)
+			self.sprite = sprite
+
 			if self.speed == 0 then
 				self.x = Player.x + 4
 				self.y = Player.y
+
 				self.speed = PlayerMissileConsts.speed
 				self.type = Player.weaponType
+				
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
 			end
@@ -95,15 +112,7 @@ function CreatePlayerMissile()
 			PlayerMissileExhaust:update(self.x, self.y + 8)
 		end,
 		createBursts = function (self, alienY)
-			if self.type == PlayerWeapons.vertical then
-				PlayerMissileBurstLeft:enable(self.x - 3, alienY, 0, -2)
-			elseif self.type == PlayerWeapons.horizontal then
-				PlayerMissileBurstLeft:enable(self.x - 3, alienY, -2, 0)
-				PlayerMissileBurstRight:enable(self.x - 3, alienY, 2, 0)
-			elseif self.type == PlayerWeapons.diagonal then
-				PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
-				PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
-			end
+			PlayerMissileLaunchPayload[self.type](self, alienY)
 		end
 	}
 end
@@ -190,6 +199,74 @@ function CreatePlayerMissileBurst()
 				AlienCarrier:disable()
 
 				Score = Score + 5
+			end
+		end
+	}
+end
+
+-- I'm using compass directions as a shorthand even though north isnt actually up
+PlayerMortarDirections = {
+	sw = { x = -0.71, y = 0.71 },
+	ssw = { x = -0.38, y = 0.92 },
+	s = { x = 0, y = 1 },
+	sse = { x = 0.38, y = 0.92 },
+	se = { x = 0.71, y = 0.71 },
+}
+
+function CreatePlayerMortarFragment(mortarDirection)
+	return {
+		x = PlayerMissileBurstConsts.storeX,
+		y = PlayerMissileBurstConsts.storeY,
+		w = 4,
+		h = 4,
+		direction = mortarDirection,
+		speedX = 0,
+		speedY = 0,
+		sprite = PlayerMortarFragmentAni.sprites[1],
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.speedX = self.direction.x
+			self.speedY = self.direction.y
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+			self.speedX = 0
+			self.speedY = 0
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.sprite,
+					self.x - 2,
+					self.y - 2,
+					ExplosionConsts.clrIndex)
+			end
+		end,
+		update = function (self)
+			self.x = self.x + self.speedX
+			self.y = self.y + self.speedY
+		end,
+		checkCollision = function (self)
+			-- Check aliens
+			CollideWithAliens(self, function (self, alien)
+				self:disable()
+			end)
+
+			if Collide(self, AlienCarrier) then
+				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+				AlienCarrier:disable()
+				self:disable()
+
+				Score = Score + 5
+			end
+
+			if self.y > GroundY then
+				self:disable()
 			end
 		end
 	}

@@ -11,7 +11,10 @@ WeaponColours = {
 	horizontal = 2,
 	diagonal = 9,
 	block = 13,
-	drill = 7
+	drill = 7,
+	mortar = 3,
+	swarm = 14,
+	bubble = 11
 }
 
 WeaponIconsSpriteIndexes = {
@@ -20,7 +23,10 @@ WeaponIconsSpriteIndexes = {
 	horizontal = 125,
 	diagonal = 140,
 	block = 141,
-	drill = 156
+	drill = 156,
+	mortar = 157,
+	swarm = 172,
+	bubble = 173
 }
 
 ButtonIcons = {

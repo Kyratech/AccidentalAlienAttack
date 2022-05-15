@@ -2547,6 +2547,12 @@ function CreateAlienManager()
 			SpecialAliens = {}
 			LiveSpecialAliens = 0
 
+			-- Particles for support aliens
+			-- The support alien creator will handle populating this
+			-- Yes its inconsistent, I just want to finish this darn game
+			SupportAlienSkills = {}
+			SupportAlienSkillsCount = 0
+
 			-- These aliens can shoot normal shots
 			AlienIndexesThatCanShoot = {}
 			AlienIndexesThatCanShootCount = 0
@@ -2606,6 +2612,11 @@ function CreateAlienManager()
 				specialAlien:update()
 				specialAlien:checkCollision(i)
 				specialAlien:draw()
+			end
+
+			for i, supportAlienSkill in pairs(SupportAlienSkills) do
+				supportAlienSkill:update()
+				supportAlienSkill:draw()
 			end
 		end,
 
@@ -2733,7 +2744,7 @@ function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
 		row = j,
 		hitWall = false,
 		specialWeapon = specialWeapon,
-		shielded = true,
+		shielded = false,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -3242,13 +3253,86 @@ function AliensDodge()
 end
 
 function CreateSupportAlien(i, j)
-	return CreateAlienBase(
+	local supportAlien = CreateAlienBase(
 		i,
 		j,
 		AlienSupportAni,
 		PlayerWeapons.vertical,
-		StandardDieFunction
+		function (self, k)
+			if self.column > 1 then
+				local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)
+				if Aliens[alienIndexToTheLeft] ~= nil then
+					Aliens[alienIndexToTheLeft].shielded = true
+				end
+			end
+
+			if self.column < AlienCountX then
+				local alienIndexToTheRight = GetFormationPosition(self.column + 1, self.row)
+				if Aliens[alienIndexToTheRight] ~= nil then
+					Aliens[alienIndexToTheRight].shielded = true
+				end
+			end
+
+			self.leftSkill:enable(self.x - 8, self.y)
+			self.rightSkill:enable(self.x + 8, self.y)
+
+			StandardDieFunction(self, k)
+		end
 	)
+
+	local leftSkill = CreateAlienSupportParticle(1)
+	local rightSkill = CreateAlienSupportParticle(0)
+
+	table.insert(SupportAlienSkills, leftSkill)
+	table.insert(SupportAlienSkills, rightSkill)
+	SupportAlienSkillsCount = SupportAlienSkillsCount + 2
+
+	supportAlien.leftSkill = leftSkill
+	supportAlien.rightSkill = rightSkill
+
+	return supportAlien
+end
+
+function CreateAlienSupportParticle(direction)
+	return {
+		active = false,
+		x = ExplosionConsts.storeX,
+		y = ExplosionConsts.storeY,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = AlienSupportSkillAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = AlienSupportSkillAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					ExplosionConsts.clrIndex,
+					1,
+					direction)
+			end
+		end,
+		update = function (self)
+			if self.active == true then
+				AnimateOneshot(self, AlienSupportSkillAni)
+			end
+		end
+	}
 end
 
 CarrierConsts = {
@@ -3423,11 +3507,11 @@ NumberOfLevelsPerStage = 2
 Formations = {
 	{
 		{
-			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
-			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
-			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
-			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
-			0, 0, 0, 7, 0, 0, 7, 0, 0, 0
+			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
+			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
+			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
+			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
+			0, 0, 0, 8, 0, 0, 8, 0, 0, 0
 		},
 		{
 			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
@@ -4266,6 +4350,12 @@ AlienBombBlastAni = {
 	clrIndex = 0
 }
 
+AlienSupportSkillAni = {
+	frameDelay = 5,
+	length = 5,
+	sprites = { 470, 471, 472, 473, 474 }
+}
+
 CarrierAni = {
 	frameDelay = 10,
 	length = 4,
@@ -4705,6 +4795,8 @@ Init()
 -- 182:0003300000043000000440000004430000344300003443000034430000334300
 -- 183:0002200000023000002332000023320000233200002232000020220000200220
 -- 184:0002200000222000002022000020020000200200002000000000000000000000
+-- 185:000220000023220000232200002222000001100000cddc0000cddc0000c00c00
+-- 186:000000000000000000011000001c310000132100000110000000000000000000
 -- 192:ccc33ccccc3333cccd3223dccd2dd2dcdee00eedeee00eeecee11eeccccccccc
 -- 193:cc3cc3cccc3cc3cccd2dd2dccd2dd2dccee00eecdee00eede1e11e1ececcccec
 -- 194:c3cccc3cc33cc33cc23dd32ccd2dd2dccee00eeccee00eecc1e11e1cceecceec

@@ -27,6 +27,13 @@ function StartGame()
 	PlayerMissileExhaust = CreatePlayerMissileExhaust()
 	PlayerMissileBurstLeft = CreatePlayerMissileBurst()
 	PlayerMissileBurstRight = CreatePlayerMissileBurst()
+	PlayerMortarFragments = {
+		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
+		CreatePlayerMortarFragment(PlayerMortarDirections.ssw),
+		CreatePlayerMortarFragment(PlayerMortarDirections.s),
+		CreatePlayerMortarFragment(PlayerMortarDirections.sse),
+		CreatePlayerMortarFragment(PlayerMortarDirections.se)
+	}
 
 	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
 	SpecialWeaponBlock = CreateSpecialWeaponBlock()
@@ -142,6 +149,10 @@ function Update()
 	PlayerMissileBurstRight:update()
 	PlayerMissileBurstLeft:checkCollision()
 	PlayerMissileBurstRight:checkCollision()
+	for i, mortarFragment in pairs(PlayerMortarFragments) do
+		mortarFragment:update()
+		mortarFragment:checkCollision()
+	end
 
 	SpecialWeaponBlockProjectile:update()
 	SpecialWeaponBlock:update()
@@ -213,22 +224,30 @@ end
 
 function DrawGameObjects()
 	Player:draw()
+
 	PlayerShot:draw()
 	PlayerMissile:draw()
 	PlayerMissileBurstLeft:draw()
 	PlayerMissileBurstRight:draw()
+	for i, mortarFragment in pairs(PlayerMortarFragments) do
+		mortarFragment:draw()
+	end
 	SpecialWeaponBlockProjectile:draw()
 	SpecialWeaponBlock:draw()
 	SpecialWeaponDrill:draw()
 	PlayerShield:draw()
+
 	AlienCarrier:draw()
+
 	Explosion:draw()
 	PlayerExplosionSecondary:draw()
 	PlayerExplosionPrimary:draw()
+
 	ShieldPowerup:draw()
 	ScoreMultiplierPowerup:draw()
 	ExtraLifePowerup:draw()
 	TimestopPowerup:draw()
+
 	ScreenTransition:draw()
 end
 

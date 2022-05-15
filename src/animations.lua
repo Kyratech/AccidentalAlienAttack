@@ -40,6 +40,12 @@ PlayerMissileAni = {
 	sprites = { 344 }
 }
 
+PlayerMortarAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 441 }
+}
+
 PlayerMissileExhaustAni = {
 	frameDelay = 5,
 	length = 2,
@@ -50,6 +56,12 @@ PlayerMissileBurstAni = {
 	frameDelay = 2,
 	length = 5,
 	sprites = { 345, 346, 347, 348, 349 }
+}
+
+PlayerMortarFragmentAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 442 }
 }
 
 SpecialWeaponBlockProjectileAni = {

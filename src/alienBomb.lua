@@ -3,7 +3,7 @@ function CreateBombAlien(i, j)
 		i,
 		j,
 		AlienBombAni,
-		PlayerWeapons.vertical,
+		PlayerWeapons.mortar,
 		StandardDieFunction
 	)
 end
