@@ -356,6 +356,7 @@ function StartGame()
 		CreatePlayerMortarFragment(PlayerMortarDirections.sse),
 		CreatePlayerMortarFragment(PlayerMortarDirections.se)
 	}
+	PlayerSwarmGroup = CreateSpecialWeaponSwarmGroup()
 	PlayerBubble = CreateSpecialWeaponBubble()
 
 	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
@@ -476,6 +477,8 @@ function Update()
 		mortarFragment:update()
 		mortarFragment:checkCollision()
 	end
+	PlayerSwarmGroup:update()
+	PlayerSwarmGroup:checkCollision()
 	PlayerBubble:update()
 	PlayerBubble:checkCollision()
 
@@ -557,6 +560,7 @@ function DrawGameObjects()
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:draw()
 	end
+	PlayerSwarmGroup:draw()
 	PlayerBubble:draw()
 
 	SpecialWeaponBlockProjectile:draw()
@@ -1894,6 +1898,9 @@ SpecialWeaponPicker = {
 	mortar = function ()
 		PlayerMissile:shoot(PlayerMortarAni.sprites[1])
 	end,
+	swarm = function ()
+		PlayerSwarmGroup:shoot()
+	end,
 	bubble = function ()
 		PlayerMissile:shoot(PlayerBubbleMissileAni.sprites[1])
 	end
@@ -2455,6 +2462,137 @@ function CreateSpecialWeaponBubble()
 	}
 end
 
+SpecialWeaponSwarmConsts = {
+	acceleration = 0.1,
+	speed = 3,
+	storeX = 300,
+	storeY = 150,
+	clrIndex = 0,
+	missilesInSwarm = 5
+}
+
+function CreateSpecialWeaponSwarmGroup()
+	return {
+		counter = 0,
+		missilesFired = 0,
+		active = false,
+		swarmMissiles = {
+			CreateSpecialWeaponSwarmMissile(),
+			CreateSpecialWeaponSwarmMissile(),
+			CreateSpecialWeaponSwarmMissile(),
+			CreateSpecialWeaponSwarmMissile(),
+			CreateSpecialWeaponSwarmMissile()
+		},
+		shoot = function (self)
+			self.active = true
+
+			self.swarmMissiles[1]:shoot()
+
+			self.counter = 0
+			self.missilesFired = 1
+
+			Player.weaponType = PlayerWeapons.none
+			Player.weaponPower = 0
+		end,
+		disable = function (self)
+			self.active = false
+		end,
+		update = function (self)
+			if self.active == true then
+				self.counter = self.counter + 1
+
+				if self.counter >= 20 then
+					self.counter = 0
+					self.missilesFired = self.missilesFired + 1
+					self.swarmMissiles[self.missilesFired]:shoot()
+					
+					if self.missilesFired == SpecialWeaponSwarmConsts.missilesInSwarm then
+						self:disable()
+					end
+				end
+			end
+
+			for i, swarmMissile in pairs(self.swarmMissiles) do
+				swarmMissile:update()
+			end
+		end,
+		draw = function (self)
+			for i, swarmMissile in pairs(self.swarmMissiles) do
+				swarmMissile:draw()
+			end
+		end,
+		checkCollision = function (self)
+			for i, swarmMissile in pairs(self.swarmMissiles) do
+				swarmMissile:checkCollision()
+			end
+		end
+	}
+end
+
+function CreateSpecialWeaponSwarmMissile()
+	return {
+		x = SpecialWeaponSwarmConsts.storeX,
+		y = SpecialWeaponSwarmConsts.storeY,
+		w = 4,
+		h = 5,
+		speed = 0,
+		sprite = SpecialWeaponSwarmAni.sprites[1],
+		draw = function (self)
+			if self.speed ~= 0 then
+				spr(
+					self.sprite,
+					self.x,
+					self.y,
+					SpecialWeaponSwarmConsts.clrIndex)
+			end
+		end,
+		update = function (self)
+			if self.speed < SpecialWeaponSwarmConsts.speed then
+				self.speed = self.speed + SpecialWeaponSwarmConsts.acceleration
+			end
+
+			self.y = self.y - self.speed
+		end,
+		checkCollision = function (self)
+			-- Check off top of screen
+			if self.y < 0 then
+				self:reset()
+			end
+
+			CollideWithAliens(self, function (self, alien)
+				self:reset()
+			end)
+
+			if Collide(self, AlienCarrier) then
+				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+				AlienCarrier:disable()
+
+				ScorePoints(5)
+
+				self:reset()
+			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				SpecialWeaponBlock:takeDamage(1)
+				SpecialWeaponBlock:shove()
+				self:reset()
+			end
+		end,
+		shoot = function (self)
+			self.x = Player.x + 3
+			self.y = Player.y
+
+			self.speed = SpecialWeaponSwarmConsts.acceleration
+		end,
+		reset = function (self)
+			self.x = SpecialWeaponSwarmConsts.storeX
+			self.y = SpecialWeaponSwarmConsts.storeY
+			self.speed = 0
+		end
+	}
+end
+
 ExplosionConsts = {
 	storeX = 316,
 	storeY = 150,
@@ -2629,6 +2767,484 @@ CreatePowerup = function (spriteIndex, collectionFunction)
 	}
 end
 
+function CreateBombAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienBombAni,
+		PlayerWeapons.mortar,
+		StandardDieFunction
+	)
+end
+
+function CreateAlienBomb(alienBombBlasts)
+	return {
+		x = AlienShotConsts.storeX,
+		y = AlienShotConsts.storeY,
+		w = 4,
+		h = 4,
+		speed = 0,
+		countdown = 60,
+		alienBombBlasts = alienBombBlasts,
+		draw = function (self)
+			if self.speed > 0 then
+				spr(
+					AlienBombShotAni.sprites[1],
+					self.x - 2,
+					self.y - 2,
+					AlienBombShotAni.clrIndex)
+			end
+		end,
+		update = function (self)
+			if Player.status ~= PlayerStatuses.timestop then
+				self.y = self.y + self.speed
+			end
+
+			if self.countdown > 0 then
+				self.countdown = self.countdown - 1
+			else
+				self:shoot()
+			end
+		end,
+		shoot = function (self)
+			if AlienIndexesThatCanShootBombsCount > 0 then
+				-- Pick an alien
+				local i = math.random(AlienIndexesThatCanShootBombsCount)
+				local formationPosition = AlienIndexesThatCanShootBombs[i]
+				
+				-- Shoot
+				if self.speed == 0 then
+					self.x = Aliens[formationPosition].x + 2
+					self.y = Aliens[formationPosition].y + 8
+					self.speed = AlienShotConsts.speed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value
+				end
+			end
+		end,
+		reset = function (self)
+			self.x = AlienShotConsts.storeX
+			self.y = AlienShotConsts.storeY
+			self.speed = 0
+			self.countdown = math.random(180, 600)
+		end,
+		collision = function (self)
+			-- Check bottom of screen
+			if self.y + self.h > GroundY then
+				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
+				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
+				self:reset()
+			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
+				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
+				self:reset()
+				SpecialWeaponBlock:takeDamage(1)
+			end
+
+			if Collide(self, Player) then
+				if Player.active == true and Player.status ~= PlayerStatuses.shield then
+					Player:die(false)
+				end
+				self:reset()
+			end
+		end
+	}
+end
+
+function CreateAlienBombBlast()
+	return {
+		x = AlienShotConsts.storeX,
+		y = AlienShotConsts.storeY,
+		w = 4,
+		h = 16,
+		active = false,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = AlienBombBlastAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = AlienBombBlastAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = AlienShotConsts.storeX
+			self.y = AlienShotConsts.storeY
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x - 2,
+					self.y,
+					AlienBombBlastAni.clrIndex,
+					1,
+					0,
+					0,
+					1,
+					2)
+			end
+		end,
+		update = function (self)
+			if self.active == true then
+				AnimateOneshot(self, AlienBombBlastAni)
+			end
+		end,
+		collision = function (self)
+			if self.active == true then
+				if Collide(self, Player) then
+					if Player.active == true and Player.status ~= PlayerStatuses.shield then
+						Player:die(false)
+					end
+				end
+			end
+		end
+	}
+end
+
+DiveAlienConsts = {
+	diveSpeed = 2
+}
+
+function CreateDiveAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienDiveAni,
+		PlayerWeapons.drill,
+		function(self, formationPosition)
+			Explosion:enable(self.x, self.y)
+			Player:getWeaponPower(self.specialWeapon)
+			
+			local divingAlien = CreateDiveAlienDiving(self.x + 1, self.y)
+			AddSpecialAlien(divingAlien)
+
+			AlienRemove(formationPosition)
+		end
+	)
+end
+
+function CreateDiveAlienDiving(x, y)
+	return {
+		x = x,
+		y = y,
+		w = 6,
+		h = 8,
+		draw = function (self)
+			spr(423, self.x - 1, self.y, 12)
+		end,
+		update = function (self)
+			self.y = self.y + DiveAlienConsts.diveSpeed
+		end,
+		checkCollision = function (self, i)
+			-- Check bottom of screen
+			if self.y + self.h > GroundY then
+				self:die(i)
+			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				SpecialWeaponBlock:takeDamage(1)
+				self:die(i)
+			end
+
+			if Collide(self, Player) then
+				if Player.active == true and Player.status ~= PlayerStatuses.shield then
+					Player:die(false)
+				end
+				self:die(i)
+			end
+		end,
+		die = function (self, i)
+			Explosion:enable(self.x, self.y)
+		
+			SpecialAlienRemove(i)
+		end
+	}
+end
+
+AlienDodgeDirection = {
+	left = -1,
+	right = 1,
+	none = 0
+}
+
+function CreateDodgeAlien(i, j)
+	local dodgeAlien = CreateAlienBase(
+		i,
+		j,
+		AlienDodgeAni,
+		PlayerWeapons.swarm,
+		StandardDieFunction
+	)
+
+	dodgeAlien.dodgeDirection = AlienDodgeDirection.none
+	dodgeAlien.calculateNextDodge = function (self)
+		local canDodgeLeft = false
+		local canDodgeRight = false
+
+		if self.column > 1 then
+			local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)
+			if Aliens[alienIndexToTheLeft] == nil then
+				canDodgeLeft = true
+			end
+		end
+
+		if self.column < AlienCountX then
+			local alienIndexToTheRight = GetFormationPosition(self.column + 1, self.row)
+			if Aliens[alienIndexToTheRight] == nil then
+				canDodgeRight = true
+			end
+		end
+
+		if canDodgeLeft and canDodgeRight then
+			local rng = math.random(2)
+			self.dodgeDirection = AlienDodgeDirection.left
+			if rng == 2 then
+				self.dodgeDirection = AlienDodgeDirection.right
+			end
+			return
+		end
+
+		if canDodgeLeft then
+			self.dodgeDirection = AlienDodgeDirection.left
+			return
+		end
+
+		if canDodgeRight then
+			self.dodgeDirection = AlienDodgeDirection.right
+			return
+		end
+
+		self.dodgeDirection = AlienDodgeDirection.none
+	end
+
+	dodgeAlien.dodge = function (self)
+		self.column = self.column + self.dodgeDirection
+		self:calculateNextDodge()
+	end
+
+	dodgeAlien.update = function (self)
+		local formationOffsetX = (self.column - 1) * 16
+		local formationOffsetY = (self.row - 1) * 10
+
+		self.x = formationOffsetX + AlienManager.translationX
+		self.y = formationOffsetY + AlienManager.translationY
+
+		local animation = AlienDodgeAni
+		if self.dodgeDirection ~= AlienDodgeDirection.none then
+			animation = AlienDodgeReadyAni
+		end
+		Animate(self, animation)
+	end
+
+	dodgeAlien.draw = function (self)
+		local spriteFlip = 0
+		if self.dodgeDirection == AlienDodgeDirection.left then
+			spriteFlip = 1
+		end
+
+		spr(
+			self.ani.currentFrame,
+			self.x,
+			self.y,
+			AlienDodgeAni.clrIndex,
+			1,
+			spriteFlip)
+	end
+
+	return dodgeAlien;
+end
+
+function AliensDodge()
+	for i = 1, AlienIndexesThatCanDodgeCount, 1 do
+		Aliens[AlienIndexesThatCanDodge[i]]:dodge()
+	end
+end
+
+AlienConsts = {
+	width = 1,
+	height = 1
+}
+
+function StandardDieFunction(self, formationPosition)
+	Explosion:enable(self.x, self.y)
+	Player:getWeaponPower(self.specialWeapon)
+
+	AlienRemove(formationPosition)
+end
+
+function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
+	return {
+		x = LeftWallX + 10 + (i - 1) * 16,
+		y = -50 + (j - 1) * 10,
+		w = AlienConsts.width * TilePx,
+		h = AlienConsts.height * TilePx,
+		column = i,
+		row = j,
+		hitWall = false,
+		specialWeapon = specialWeapon,
+		shielded = false,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = animation.sprites[1]
+		},
+		draw = function (self)
+			spr(
+				self.ani.currentFrame,
+				self.x,
+				self.y,
+				animation.clrIndex)
+
+			if self.shielded == true then
+				spr(
+					468,
+					self.x - 2,
+					self.y - 2,
+					0,
+					1,
+					0,
+					0,
+					2,
+					2
+				)
+			end
+		end,
+		update = function (self)
+			local formationOffsetX = (self.column - 1) * 16
+			local formationOffsetY = (self.row - 1) * 10
+
+			self.x = formationOffsetX + AlienManager.translationX
+			self.y = formationOffsetY + AlienManager.translationY
+
+			Animate(self, animation)
+		end,
+		checkCollision = function (self, i)
+			if self.y + self.h >= GroundY then
+				if Player.active == true and Player.status ~= PlayerStatuses.shield then
+					Player:die(true)
+				end
+			elseif self.x + self.w >= RightWallX and AlienManager.direction == AlienDirection.right then
+				AlienManager:reachRightWall()
+			elseif self.x <= LeftWallX and AlienManager.direction == AlienDirection.left then
+				AlienManager:reachLeftWall()
+			end
+		end,
+		die = function(self, formationPosition)
+			if self.shielded == true then
+				self.shielded = false
+			else
+				dieFunction(self, formationPosition)
+			end
+		end
+	}
+end
+
+function CreateShieldAlien(i, j)
+	return CreateAlienBase(
+		i,
+		j,
+		AlienShieldAni,
+		PlayerWeapons.none,
+		function (self, k)
+			Explosion:enable(self.x, self.y)
+
+			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.block, StandardDieFunction)
+			damagedShieldAlien.x = self.x
+			damagedShieldAlien.y = self.y
+			Aliens[k] = damagedShieldAlien
+		end
+	)
+end
+
+function CreateSupportAlien(i, j)
+	local supportAlien = CreateAlienBase(
+		i,
+		j,
+		AlienSupportAni,
+		PlayerWeapons.bubble,
+		function (self, k)
+			if self.column > 1 then
+				local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)
+				if Aliens[alienIndexToTheLeft] ~= nil then
+					Aliens[alienIndexToTheLeft].shielded = true
+				end
+			end
+
+			if self.column < AlienCountX then
+				local alienIndexToTheRight = GetFormationPosition(self.column + 1, self.row)
+				if Aliens[alienIndexToTheRight] ~= nil then
+					Aliens[alienIndexToTheRight].shielded = true
+				end
+			end
+
+			self.leftSkill:enable(self.x - 8, self.y)
+			self.rightSkill:enable(self.x + 8, self.y)
+
+			StandardDieFunction(self, k)
+		end
+	)
+
+	local leftSkill = CreateAlienSupportParticle(1)
+	local rightSkill = CreateAlienSupportParticle(0)
+
+	table.insert(SupportAlienSkills, leftSkill)
+	table.insert(SupportAlienSkills, rightSkill)
+	SupportAlienSkillsCount = SupportAlienSkillsCount + 2
+
+	supportAlien.leftSkill = leftSkill
+	supportAlien.rightSkill = rightSkill
+
+	return supportAlien
+end
+
+function CreateAlienSupportParticle(direction)
+	return {
+		active = false,
+		x = ExplosionConsts.storeX,
+		y = ExplosionConsts.storeY,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = AlienSupportSkillAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = AlienSupportSkillAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					ExplosionConsts.clrIndex,
+					1,
+					direction)
+			end
+		end,
+		update = function (self)
+			if self.active == true then
+				AnimateOneshot(self, AlienSupportSkillAni)
+			end
+		end
+	}
+end
+
 function AddSpecialAlien(specialAlien)
 	table.insert( SpecialAliens, specialAlien )
 	LiveSpecialAliens = LiveSpecialAliens + 1
@@ -2689,6 +3305,28 @@ end
 
 function GetFormationPosition(column, row)
 	return column + (row - 1) * AlienCountX
+end
+
+AlienSpeeds = {
+	speedFull = 0.125,
+	speedHalf = 0.25,
+	speedQuarter = 0.5,
+	speedFour = 1,
+	speedOne = 2
+}
+
+function CalculateAlienSpeed(maxAliens, liveAliens)
+	if liveAliens == 1 then
+		return AlienSpeeds.speedOne * AlienSpeedOptions[GameSettings.alienSpeed].value
+	elseif liveAliens <= 4 then
+		return AlienSpeeds.speedFour * AlienSpeedOptions[GameSettings.alienSpeed].value
+	elseif maxAliens // liveAliens == 1 then
+		return AlienSpeeds.speedFull * AlienSpeedOptions[GameSettings.alienSpeed].value
+	elseif maxAliens // liveAliens == 2 then
+		return AlienSpeeds.speedHalf * AlienSpeedOptions[GameSettings.alienSpeed].value
+	else
+		return AlienSpeeds.speedQuarter * AlienSpeedOptions[GameSettings.alienSpeed].value
+	end
 end
 
 AlienDirection = {
@@ -2859,665 +3497,6 @@ function CreateAlienManager()
 				if self.translationY == targetY then
 					self.direction = self.nextDirectionH
 				end
-			end
-		end
-	}
-end
-
-AlienConsts = {
-	width = 1,
-	height = 1
-}
-
-AlienSpeeds = {
-	speedFull = 0.125,
-	speedHalf = 0.25,
-	speedQuarter = 0.5,
-	speedFour = 1,
-	speedOne = 2
-}
-
-AlienShotConsts = {
-	speed = 0.5,
-	storeX = 300,
-	storeY = 0,
-	clrIndex = 0
-}
-
-AlienFactory = {
-	function(i, j)
-		return CreateAlienBase(i, j, AlienRedAni, PlayerWeapons.horizontal, StandardDieFunction)
-	end,
-	function(i, j)
-		return CreateAlienBase(i, j, AlienBlueAni, PlayerWeapons.diagonal, StandardDieFunction)
-	end,
-	function(i, j)
-		return CreateAlienBase(i, j, AlienGreenAni, PlayerWeapons.vertical, StandardDieFunction)
-	end,
-	function(i, j)
-		return CreateShieldAlien(i, j)
-	end,
-	function(i, j)
-		return CreateDiveAlien(i, j)
-	end,
-	function (i, j)
-		return CreateBombAlien(i, j)
-	end,
-	function (i, j)
-		return CreateDodgeAlien(i, j)
-	end,
-	function (i, j)
-		return CreateSupportAlien(i, j)
-	end
-}
-
-function CreateAlien(i, j, type)
-	return AlienFactory[type](i, j)
-end
-
-function StandardDieFunction(self, formationPosition)
-	Explosion:enable(self.x, self.y)
-	Player:getWeaponPower(self.specialWeapon)
-
-	AlienRemove(formationPosition)
-end
-
-function CreateAlienBase(i, j, animation, specialWeapon, dieFunction)
-	return {
-		x = LeftWallX + 10 + (i - 1) * 16,
-		y = -50 + (j - 1) * 10,
-		w = AlienConsts.width * TilePx,
-		h = AlienConsts.height * TilePx,
-		column = i,
-		row = j,
-		hitWall = false,
-		specialWeapon = specialWeapon,
-		shielded = false,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = animation.sprites[1]
-		},
-		draw = function (self)
-			spr(
-				self.ani.currentFrame,
-				self.x,
-				self.y,
-				animation.clrIndex)
-
-			if self.shielded == true then
-				spr(
-					468,
-					self.x - 2,
-					self.y - 2,
-					0,
-					1,
-					0,
-					0,
-					2,
-					2
-				)
-			end
-		end,
-		update = function (self)
-			local formationOffsetX = (self.column - 1) * 16
-			local formationOffsetY = (self.row - 1) * 10
-
-			self.x = formationOffsetX + AlienManager.translationX
-			self.y = formationOffsetY + AlienManager.translationY
-
-			Animate(self, animation)
-		end,
-		checkCollision = function (self, i)
-			if self.y + self.h >= GroundY then
-				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die(true)
-				end
-			elseif self.x + self.w >= RightWallX and AlienManager.direction == AlienDirection.right then
-				AlienManager:reachRightWall()
-			elseif self.x <= LeftWallX and AlienManager.direction == AlienDirection.left then
-				AlienManager:reachLeftWall()
-			end
-		end,
-		die = function(self, formationPosition)
-			if self.shielded == true then
-				self.shielded = false
-			else
-				dieFunction(self, formationPosition)
-			end
-		end
-	}
-end
-
-function CreateAlienShot(shotParticle)
-	return {
-		x = AlienShotConsts.storeX,
-		y = AlienShotConsts.storeY,
-		w = 4,
-		h = 4,
-		speed = 0,
-		countdown = 60,
-		particle = shotParticle,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = AlienShotAni.sprites[1]
-		},
-		draw = function (self)
-			if self.speed > 0 then
-				spr(
-					self.ani.currentFrame,
-					self.x - 2,
-					self.y - 2,
-					AlienShotConsts.clrIndex)
-			end
-		end,
-		update = function (self)
-			if Player.status ~= PlayerStatuses.timestop then
-				self.y = self.y + self.speed
-			end
-
-			if self.countdown > 0 then
-				self.countdown = self.countdown - 1
-			else
-				self:shoot()
-			end
-
-			if self.speed > 0 then
-				Animate(self, AlienShotAni)
-			end
-		end,
-		shoot = function (self)
-			if (AlienIndexesThatCanShootCount > 0) then
-				-- Pick an alien
-				local i = math.random(AlienIndexesThatCanShootCount)
-				local formationPosition = AlienIndexesThatCanShoot[i]
-				
-				-- Shoot
-				if self.speed == 0 then
-					self.x = Aliens[formationPosition].x + 2
-					self.y = Aliens[formationPosition].y + 8
-					self.speed = AlienShotConsts.speed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value
-				end
-			end
-		end,
-		reset = function (self)
-			self.x = AlienShotConsts.storeX
-			self.y = AlienShotConsts.storeY
-			self.speed = 0
-			self.countdown = math.random(0, 180)
-		end,
-		collision = function (self)
-			-- Check bottom of screen
-			if self.y + self.h > GroundY then
-				self.particle:enable(self.x, self.y)
-				self:reset()
-			end
-
-			if Collide(self, SpecialWeaponBlock) then
-				self.particle:enable(self.x, self.y)
-				self:reset()
-				SpecialWeaponBlock:takeDamage(1)
-			end
-
-			if Collide(self, Player) then
-				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die(false)
-				end
-				self:reset()
-			end
-		end
-	}
-end
-
-function CreateAlienShotParticles()
-	return {
-		x = AlienShotConsts.storeX,
-		y = AlienShotConsts.storeY,
-		active = false,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = AlienShotParticleAni.sprites[1]
-		},
-		enable = function (self, x, y)
-			self.active = true
-			self.x = x
-			self.y = y
-			self.ani.delayCounter = 0
-			self.ani.currentCounter = 1
-			self.ani.currentFrame = AlienShotParticleAni.sprites[1]
-		end,
-		disable = function (self)
-			self.active = false
-			self.x = AlienShotConsts.storeX
-			self.y = AlienShotConsts.storeY
-		end,
-		draw = function (self)
-			if self.active == true then
-				spr(
-					self.ani.currentFrame,
-					self.x - 2,
-					self.y - 2,
-					AlienShotConsts.clrIndex)
-			end
-		end,
-		update = function (self)
-			if self.active == true then
-				AnimateOneshot(self, AlienShotParticleAni)
-			end
-		end
-	}
-end
-
-function CalculateAlienSpeed(maxAliens, liveAliens)
-	if liveAliens == 1 then
-		return AlienSpeeds.speedOne * AlienSpeedOptions[GameSettings.alienSpeed].value
-	elseif liveAliens <= 4 then
-		return AlienSpeeds.speedFour * AlienSpeedOptions[GameSettings.alienSpeed].value
-	elseif maxAliens // liveAliens == 1 then
-		return AlienSpeeds.speedFull * AlienSpeedOptions[GameSettings.alienSpeed].value
-	elseif maxAliens // liveAliens == 2 then
-		return AlienSpeeds.speedHalf * AlienSpeedOptions[GameSettings.alienSpeed].value
-	else
-		return AlienSpeeds.speedQuarter * AlienSpeedOptions[GameSettings.alienSpeed].value
-	end
-end
-
-function CreateShieldAlien(i, j)
-	return CreateAlienBase(
-		i,
-		j,
-		AlienShieldAni,
-		PlayerWeapons.none,
-		function (self, k)
-			Explosion:enable(self.x, self.y)
-
-			local damagedShieldAlien = CreateAlienBase(i, j, AlienShieldBrokenAni, PlayerWeapons.block, StandardDieFunction)
-			damagedShieldAlien.x = self.x
-			damagedShieldAlien.y = self.y
-			Aliens[k] = damagedShieldAlien
-		end
-	)
-end
-
-DiveAlienConsts = {
-	diveSpeed = 2
-}
-
-function CreateDiveAlien(i, j)
-	return CreateAlienBase(
-		i,
-		j,
-		AlienDiveAni,
-		PlayerWeapons.drill,
-		function(self, formationPosition)
-			Explosion:enable(self.x, self.y)
-			Player:getWeaponPower(self.specialWeapon)
-			
-			local divingAlien = CreateDiveAlienDiving(self.x + 1, self.y)
-			AddSpecialAlien(divingAlien)
-
-			AlienRemove(formationPosition)
-		end
-	)
-end
-
-function CreateDiveAlienDiving(x, y)
-	return {
-		x = x,
-		y = y,
-		w = 6,
-		h = 8,
-		draw = function (self)
-			spr(423, self.x - 1, self.y, 12)
-		end,
-		update = function (self)
-			self.y = self.y + DiveAlienConsts.diveSpeed
-		end,
-		checkCollision = function (self, i)
-			-- Check bottom of screen
-			if self.y + self.h > GroundY then
-				self:die(i)
-			end
-
-			if Collide(self, SpecialWeaponBlock) then
-				SpecialWeaponBlock:takeDamage(1)
-				self:die(i)
-			end
-
-			if Collide(self, Player) then
-				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die(false)
-				end
-				self:die(i)
-			end
-		end,
-		die = function (self, i)
-			Explosion:enable(self.x, self.y)
-		
-			SpecialAlienRemove(i)
-		end
-	}
-end
-
-function CreateBombAlien(i, j)
-	return CreateAlienBase(
-		i,
-		j,
-		AlienBombAni,
-		PlayerWeapons.mortar,
-		StandardDieFunction
-	)
-end
-
-function CreateAlienBomb(alienBombBlasts)
-	return {
-		x = AlienShotConsts.storeX,
-		y = AlienShotConsts.storeY,
-		w = 4,
-		h = 4,
-		speed = 0,
-		countdown = 60,
-		alienBombBlasts = alienBombBlasts,
-		draw = function (self)
-			if self.speed > 0 then
-				spr(
-					AlienBombShotAni.sprites[1],
-					self.x - 2,
-					self.y - 2,
-					AlienBombShotAni.clrIndex)
-			end
-		end,
-		update = function (self)
-			if Player.status ~= PlayerStatuses.timestop then
-				self.y = self.y + self.speed
-			end
-
-			if self.countdown > 0 then
-				self.countdown = self.countdown - 1
-			else
-				self:shoot()
-			end
-		end,
-		shoot = function (self)
-			if AlienIndexesThatCanShootBombsCount > 0 then
-				-- Pick an alien
-				local i = math.random(AlienIndexesThatCanShootBombsCount)
-				local formationPosition = AlienIndexesThatCanShootBombs[i]
-				
-				-- Shoot
-				if self.speed == 0 then
-					self.x = Aliens[formationPosition].x + 2
-					self.y = Aliens[formationPosition].y + 8
-					self.speed = AlienShotConsts.speed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value
-				end
-			end
-		end,
-		reset = function (self)
-			self.x = AlienShotConsts.storeX
-			self.y = AlienShotConsts.storeY
-			self.speed = 0
-			self.countdown = math.random(180, 600)
-		end,
-		collision = function (self)
-			-- Check bottom of screen
-			if self.y + self.h > GroundY then
-				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
-				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
-				self:reset()
-			end
-
-			if Collide(self, SpecialWeaponBlock) then
-				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
-				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
-				self:reset()
-				SpecialWeaponBlock:takeDamage(1)
-			end
-
-			if Collide(self, Player) then
-				if Player.active == true and Player.status ~= PlayerStatuses.shield then
-					Player:die(false)
-				end
-				self:reset()
-			end
-		end
-	}
-end
-
-function CreateAlienBombBlast()
-	return {
-		x = AlienShotConsts.storeX,
-		y = AlienShotConsts.storeY,
-		w = 4,
-		h = 16,
-		active = false,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = AlienBombBlastAni.sprites[1]
-		},
-		enable = function (self, x, y)
-			self.active = true
-			self.x = x
-			self.y = y
-			self.ani.delayCounter = 0
-			self.ani.currentCounter = 1
-			self.ani.currentFrame = AlienBombBlastAni.sprites[1]
-		end,
-		disable = function (self)
-			self.active = false
-			self.x = AlienShotConsts.storeX
-			self.y = AlienShotConsts.storeY
-		end,
-		draw = function (self)
-			if self.active == true then
-				spr(
-					self.ani.currentFrame,
-					self.x - 2,
-					self.y,
-					AlienBombBlastAni.clrIndex,
-					1,
-					0,
-					0,
-					1,
-					2)
-			end
-		end,
-		update = function (self)
-			if self.active == true then
-				AnimateOneshot(self, AlienBombBlastAni)
-			end
-		end,
-		collision = function (self)
-			if self.active == true then
-				if Collide(self, Player) then
-					if Player.active == true and Player.status ~= PlayerStatuses.shield then
-						Player:die(false)
-					end
-				end
-			end
-		end
-	}
-end
-
-AlienDodgeDirection = {
-	left = -1,
-	right = 1,
-	none = 0
-}
-
-function CreateDodgeAlien(i, j)
-	local dodgeAlien = CreateAlienBase(
-		i,
-		j,
-		AlienDodgeAni,
-		PlayerWeapons.vertical,
-		StandardDieFunction
-	)
-
-	dodgeAlien.dodgeDirection = AlienDodgeDirection.none
-	dodgeAlien.calculateNextDodge = function (self)
-		local canDodgeLeft = false
-		local canDodgeRight = false
-
-		if self.column > 1 then
-			local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)
-			if Aliens[alienIndexToTheLeft] == nil then
-				canDodgeLeft = true
-			end
-		end
-
-		if self.column < AlienCountX then
-			local alienIndexToTheRight = GetFormationPosition(self.column + 1, self.row)
-			if Aliens[alienIndexToTheRight] == nil then
-				canDodgeRight = true
-			end
-		end
-
-		if canDodgeLeft and canDodgeRight then
-			local rng = math.random(2)
-			self.dodgeDirection = AlienDodgeDirection.left
-			if rng == 2 then
-				self.dodgeDirection = AlienDodgeDirection.right
-			end
-			return
-		end
-
-		if canDodgeLeft then
-			self.dodgeDirection = AlienDodgeDirection.left
-			return
-		end
-
-		if canDodgeRight then
-			self.dodgeDirection = AlienDodgeDirection.right
-			return
-		end
-
-		self.dodgeDirection = AlienDodgeDirection.none
-	end
-
-	dodgeAlien.dodge = function (self)
-		self.column = self.column + self.dodgeDirection
-		self:calculateNextDodge()
-	end
-
-	dodgeAlien.update = function (self)
-		local formationOffsetX = (self.column - 1) * 16
-		local formationOffsetY = (self.row - 1) * 10
-
-		self.x = formationOffsetX + AlienManager.translationX
-		self.y = formationOffsetY + AlienManager.translationY
-
-		local animation = AlienDodgeAni
-		if self.dodgeDirection ~= AlienDodgeDirection.none then
-			animation = AlienDodgeReadyAni
-		end
-		Animate(self, animation)
-	end
-
-	dodgeAlien.draw = function (self)
-		local spriteFlip = 0
-		if self.dodgeDirection == AlienDodgeDirection.left then
-			spriteFlip = 1
-		end
-
-		spr(
-			self.ani.currentFrame,
-			self.x,
-			self.y,
-			AlienDodgeAni.clrIndex,
-			1,
-			spriteFlip)
-	end
-
-	return dodgeAlien;
-end
-
-function AliensDodge()
-	for i = 1, AlienIndexesThatCanDodgeCount, 1 do
-		Aliens[AlienIndexesThatCanDodge[i]]:dodge()
-	end
-end
-
-function CreateSupportAlien(i, j)
-	local supportAlien = CreateAlienBase(
-		i,
-		j,
-		AlienSupportAni,
-		PlayerWeapons.bubble,
-		function (self, k)
-			if self.column > 1 then
-				local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)
-				if Aliens[alienIndexToTheLeft] ~= nil then
-					Aliens[alienIndexToTheLeft].shielded = true
-				end
-			end
-
-			if self.column < AlienCountX then
-				local alienIndexToTheRight = GetFormationPosition(self.column + 1, self.row)
-				if Aliens[alienIndexToTheRight] ~= nil then
-					Aliens[alienIndexToTheRight].shielded = true
-				end
-			end
-
-			self.leftSkill:enable(self.x - 8, self.y)
-			self.rightSkill:enable(self.x + 8, self.y)
-
-			StandardDieFunction(self, k)
-		end
-	)
-
-	local leftSkill = CreateAlienSupportParticle(1)
-	local rightSkill = CreateAlienSupportParticle(0)
-
-	table.insert(SupportAlienSkills, leftSkill)
-	table.insert(SupportAlienSkills, rightSkill)
-	SupportAlienSkillsCount = SupportAlienSkillsCount + 2
-
-	supportAlien.leftSkill = leftSkill
-	supportAlien.rightSkill = rightSkill
-
-	return supportAlien
-end
-
-function CreateAlienSupportParticle(direction)
-	return {
-		active = false,
-		x = ExplosionConsts.storeX,
-		y = ExplosionConsts.storeY,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = AlienSupportSkillAni.sprites[1]
-		},
-		enable = function (self, x, y)
-			self.active = true
-			self.x = x
-			self.y = y
-			self.ani.delayCounter = 0
-			self.ani.currentCounter = 1
-			self.ani.currentFrame = AlienSupportSkillAni.sprites[1]
-		end,
-		disable = function (self)
-			self.active = false
-			self.x = ExplosionConsts.storeX
-			self.y = ExplosionConsts.storeY
-		end,
-		draw = function (self)
-			if self.active == true then
-				spr(
-					self.ani.currentFrame,
-					self.x,
-					self.y,
-					ExplosionConsts.clrIndex,
-					1,
-					direction)
-			end
-		end,
-		update = function (self)
-			if self.active == true then
-				AnimateOneshot(self, AlienSupportSkillAni)
 			end
 		end
 	}
@@ -3695,11 +3674,11 @@ NumberOfLevelsPerStage = 2
 Formations = {
 	{
 		{
-			3, 8, 3, 3, 3, 3, 3, 3, 8, 3,
-			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
-			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
-			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
-			0, 0, 0, 8, 0, 0, 8, 0, 0, 0
+			3, 7, 3, 3, 3, 3, 3, 3, 7, 3,
+			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
+			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
+			3, 7, 3, 0, 0, 0, 0, 3, 7, 3,
+			0, 0, 0, 7, 0, 0, 7, 0, 0, 0
 		},
 		{
 			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
@@ -3783,6 +3762,165 @@ Formation_Empty = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 }
+
+AlienShotConsts = {
+	speed = 0.5,
+	storeX = 300,
+	storeY = 0,
+	clrIndex = 0
+}
+
+function CreateAlienShot(shotParticle)
+	return {
+		x = AlienShotConsts.storeX,
+		y = AlienShotConsts.storeY,
+		w = 4,
+		h = 4,
+		speed = 0,
+		countdown = 60,
+		particle = shotParticle,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = AlienShotAni.sprites[1]
+		},
+		draw = function (self)
+			if self.speed > 0 then
+				spr(
+					self.ani.currentFrame,
+					self.x - 2,
+					self.y - 2,
+					AlienShotConsts.clrIndex)
+			end
+		end,
+		update = function (self)
+			if Player.status ~= PlayerStatuses.timestop then
+				self.y = self.y + self.speed
+			end
+
+			if self.countdown > 0 then
+				self.countdown = self.countdown - 1
+			else
+				self:shoot()
+			end
+
+			if self.speed > 0 then
+				Animate(self, AlienShotAni)
+			end
+		end,
+		shoot = function (self)
+			if (AlienIndexesThatCanShootCount > 0) then
+				-- Pick an alien
+				local i = math.random(AlienIndexesThatCanShootCount)
+				local formationPosition = AlienIndexesThatCanShoot[i]
+				
+				-- Shoot
+				if self.speed == 0 then
+					self.x = Aliens[formationPosition].x + 2
+					self.y = Aliens[formationPosition].y + 8
+					self.speed = AlienShotConsts.speed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value
+				end
+			end
+		end,
+		reset = function (self)
+			self.x = AlienShotConsts.storeX
+			self.y = AlienShotConsts.storeY
+			self.speed = 0
+			self.countdown = math.random(0, 180)
+		end,
+		collision = function (self)
+			-- Check bottom of screen
+			if self.y + self.h > GroundY then
+				self.particle:enable(self.x, self.y)
+				self:reset()
+			end
+
+			if Collide(self, SpecialWeaponBlock) then
+				self.particle:enable(self.x, self.y)
+				self:reset()
+				SpecialWeaponBlock:takeDamage(1)
+			end
+
+			if Collide(self, Player) then
+				if Player.active == true and Player.status ~= PlayerStatuses.shield then
+					Player:die(false)
+				end
+				self:reset()
+			end
+		end
+	}
+end
+
+function CreateAlienShotParticles()
+	return {
+		x = AlienShotConsts.storeX,
+		y = AlienShotConsts.storeY,
+		active = false,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = AlienShotParticleAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = AlienShotParticleAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = AlienShotConsts.storeX
+			self.y = AlienShotConsts.storeY
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x - 2,
+					self.y - 2,
+					AlienShotConsts.clrIndex)
+			end
+		end,
+		update = function (self)
+			if self.active == true then
+				AnimateOneshot(self, AlienShotParticleAni)
+			end
+		end
+	}
+end
+
+AlienFactory = {
+	function(i, j)
+		return CreateAlienBase(i, j, AlienRedAni, PlayerWeapons.horizontal, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateAlienBase(i, j, AlienBlueAni, PlayerWeapons.diagonal, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateAlienBase(i, j, AlienGreenAni, PlayerWeapons.vertical, StandardDieFunction)
+	end,
+	function(i, j)
+		return CreateShieldAlien(i, j)
+	end,
+	function(i, j)
+		return CreateDiveAlien(i, j)
+	end,
+	function (i, j)
+		return CreateBombAlien(i, j)
+	end,
+	function (i, j)
+		return CreateDodgeAlien(i, j)
+	end,
+	function (i, j)
+		return CreateSupportAlien(i, j)
+	end
+}
+
+function CreateAlien(i, j, type)
+	return AlienFactory[type](i, j)
+end
 
 ScreenTransitionConsts = {
 	speed = 3
@@ -4376,6 +4514,198 @@ CreateLevelUi = function()
 	}
 end
 
+AlienRedAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 288, 289, 290, 291 },
+	clrIndex = 12
+}
+
+AlienBlueAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 322, 323, 324, 325 },
+	clrIndex = 12
+}
+
+AlienGreenAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 326, 327, 328, 329 },
+	clrIndex = 12
+}
+
+AlienBombAni = {
+	frameDelay = 20,
+	length = 2,
+	sprites = { 432, 433 },
+	clrIndex = 12
+}
+
+AlienDiveAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 419, 420, 421, 422 },
+	clrIndex = 12
+}
+
+AlienDodgeAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 448, 449, 450, 449 },
+	clrIndex = 12
+}
+
+AlienDodgeReadyAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 457, 458, 459, 458 },
+	clrIndex = 12
+}
+
+AlienShieldAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 400, 401, 402, 401 },
+	clrIndex = 2
+}
+
+AlienShieldBrokenAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 416, 417, 418, 417 },
+	clrIndex = 2
+}
+
+AlienSupportAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 464, 465, 466, 467 },
+	clrIndex = 2
+}
+
+AlienSupportSkillAni = {
+	frameDelay = 5,
+	length = 5,
+	sprites = { 470, 471, 472, 473, 474 }
+}
+
+AlienShotAni = {
+	frameDelay = 5,
+	length = 6,
+	sprites = { 279, 280, 281, 282, 283, 284 }
+}
+
+AlienShotParticleAni = {
+	frameDelay = 5,
+	length = 3,
+	sprites = { 285, 286, 287 }
+}
+
+AlienBombShotAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 434 },
+	clrIndex = 0
+}
+
+AlienBombBlastAni = {
+	frameDelay = 5,
+	length = 6,
+	sprites = { 435, 436, 437, 438, 439, 440 },
+	clrIndex = 0
+}
+
+CarrierAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 304, 306, 320, 306 }
+}
+
+SpecialWeaponBlockProjectileAni = {
+	frameDelay = 10,
+	length = 4,
+	sprites = { 411, 409, 407, 405}
+}
+
+SpecialWeaponBlockAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 403 }
+}
+
+PlayerBubbleMissileAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 475 }
+}
+
+SpecialWeaponBubbleAni = {
+	frameDelay = 5,
+	length = 2,
+	sprites = { 476, 477 }
+}
+
+SpecialWeaponBubblePopAni = {
+	frameDelay = 5,
+	length = 3,
+	sprites = { 492, 493, 494 }
+}
+
+SpecialWeaponDrillAni = {
+	frameDelay = 5,
+	length = 4,
+	sprites = { 424, 425, 426, 427 }
+}
+
+PlayerMissileAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 344 }
+}
+
+PlayerMissileExhaustAni = {
+	frameDelay = 5,
+	length = 2,
+	sprites = { 360, 361 }
+}
+
+PlayerMissileBurstAni = {
+	frameDelay = 2,
+	length = 5,
+	sprites = { 345, 346, 347, 348, 349 }
+}
+
+PlayerMortarAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 441 }
+}
+
+PlayerMortarFragmentAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 442 }
+}
+
+SpecialWeaponSwarmAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 460 }
+}
+
+ExplosionAni = {
+	frameDelay = 5,
+	length = 5,
+	sprites = { 274, 275, 276, 277, 278 }
+}
+
+PlayerExplosionAni = {
+	frameDelay = 5,
+	length = 5,
+	sprites = { 292, 294, 296, 298, 300 }
+}
+
 PlayerRightAni = {
 	frameDelay = 5,
 	length = 3,
@@ -4410,192 +4740,6 @@ PlayerShotAni = {
 	frameDelay = 5,
 	length = 2,
 	sprites = { 272, 273 }
-}
-
-PlayerMissileAni = {
-	frameDelay = 1,
-	length = 1,
-	sprites = { 344 }
-}
-
-PlayerMortarAni = {
-	frameDelay = 1,
-	length = 1,
-	sprites = { 441 }
-}
-
-PlayerMissileExhaustAni = {
-	frameDelay = 5,
-	length = 2,
-	sprites = { 360, 361 }
-}
-
-PlayerMissileBurstAni = {
-	frameDelay = 2,
-	length = 5,
-	sprites = { 345, 346, 347, 348, 349 }
-}
-
-PlayerMortarFragmentAni = {
-	frameDelay = 1,
-	length = 1,
-	sprites = { 442 }
-}
-
-PlayerBubbleMissileAni = {
-	frameDelay = 1,
-	length = 1,
-	sprites = { 475 }
-}
-
-SpecialWeaponBlockProjectileAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 411, 409, 407, 405}
-}
-
-SpecialWeaponBlockAni = {
-	frameDelay = 1,
-	length = 1,
-	sprites = { 403 }
-}
-
-SpecialWeaponDrillAni = {
-	frameDelay = 5,
-	length = 4,
-	sprites = { 424, 425, 426, 427 }
-}
-
-SpecialWeaponBubbleAni = {
-	frameDelay = 5,
-	length = 2,
-	sprites = { 476, 477 }
-}
-
-SpecialWeaponBubblePopAni = {
-	frameDelay = 5,
-	length = 3,
-	sprites = { 492, 493, 494 }
-}
-
-AlienRedAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 288, 289, 290, 291 },
-	clrIndex = 12
-}
-
-AlienBlueAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 322, 323, 324, 325 },
-	clrIndex = 12
-}
-
-AlienGreenAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 326, 327, 328, 329 },
-	clrIndex = 12
-}
-
-AlienShieldAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 400, 401, 402, 401 },
-	clrIndex = 2
-}
-
-AlienShieldBrokenAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 416, 417, 418, 417 },
-	clrIndex = 2
-}
-
-AlienDiveAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 419, 420, 421, 422 },
-	clrIndex = 12
-}
-
-AlienBombAni = {
-	frameDelay = 20,
-	length = 2,
-	sprites = { 432, 433 },
-	clrIndex = 12
-}
-
-AlienDodgeAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 448, 449, 450, 449 },
-	clrIndex = 12
-}
-
-AlienDodgeReadyAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 457, 458, 459, 458 },
-	clrIndex = 12
-}
-
-AlienSupportAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 464, 465, 466, 467 },
-	clrIndex = 2
-}
-
-AlienShotAni = {
-	frameDelay = 5,
-	length = 6,
-	sprites = { 279, 280, 281, 282, 283, 284 }
-}
-
-AlienShotParticleAni = {
-	frameDelay = 5,
-	length = 3,
-	sprites = { 285, 286, 287 }
-}
-
-AlienBombShotAni = {
-	frameDelay = 1,
-	length = 1,
-	sprites = { 434 },
-	clrIndex = 0
-}
-
-AlienBombBlastAni = {
-	frameDelay = 5,
-	length = 6,
-	sprites = { 435, 436, 437, 438, 439, 440 },
-	clrIndex = 0
-}
-
-AlienSupportSkillAni = {
-	frameDelay = 5,
-	length = 5,
-	sprites = { 470, 471, 472, 473, 474 }
-}
-
-CarrierAni = {
-	frameDelay = 10,
-	length = 4,
-	sprites = { 304, 306, 320, 306 }
-}
-
-ExplosionAni = {
-	frameDelay = 5,
-	length = 5,
-	sprites = { 274, 275, 276, 277, 278 }
-}
-
-PlayerExplosionAni = {
-	frameDelay = 5,
-	length = 5,
-	sprites = { 292, 294, 296, 298, 300 }
 }
 
 function PrintCentred(str, x, y, colour)
@@ -5032,7 +5176,7 @@ Init()
 -- 201:ccccccccc33c33ccc33d33dcc22d22dcdeeee00deeeee00eceeee11ccccccccc
 -- 202:c3cc3cccc33c33ccc23d23dccd2dd2dcceeee00cdeeee00de1eee11ececcccec
 -- 203:cc3cc3cccc3cc3cccd2dd2dccd2dd2dcceeee00cceeee00cc1eee11cceecceec
--- 204:020000000c000000ccc000000d00000000000000000000000000000000000000
+-- 204:030000000c000000ccc000000d00000000000000000000000000000000000000
 -- 208:222bb222c2bbbb2ccabbbbacc9abba9c299999922a9009a22980089228288282
 -- 209:222bb2c222bbbbc22cbbbba22cabba922c999992a890098a9280082982288228
 -- 210:222bb22222bbbb222abbcba229abca922999c9922a9009a22980089228288282

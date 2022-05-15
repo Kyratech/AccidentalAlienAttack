@@ -9,7 +9,7 @@ function CreateDodgeAlien(i, j)
 		i,
 		j,
 		AlienDodgeAni,
-		PlayerWeapons.vertical,
+		PlayerWeapons.swarm,
 		StandardDieFunction
 	)
 

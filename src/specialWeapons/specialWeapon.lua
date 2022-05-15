@@ -29,6 +29,9 @@ SpecialWeaponPicker = {
 	mortar = function ()
 		PlayerMissile:shoot(PlayerMortarAni.sprites[1])
 	end,
+	swarm = function ()
+		PlayerSwarmGroup:shoot()
+	end,
 	bubble = function ()
 		PlayerMissile:shoot(PlayerBubbleMissileAni.sprites[1])
 	end

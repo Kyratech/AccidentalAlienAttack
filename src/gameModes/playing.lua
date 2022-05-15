@@ -34,6 +34,7 @@ function StartGame()
 		CreatePlayerMortarFragment(PlayerMortarDirections.sse),
 		CreatePlayerMortarFragment(PlayerMortarDirections.se)
 	}
+	PlayerSwarmGroup = CreateSpecialWeaponSwarmGroup()
 	PlayerBubble = CreateSpecialWeaponBubble()
 
 	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
@@ -154,6 +155,8 @@ function Update()
 		mortarFragment:update()
 		mortarFragment:checkCollision()
 	end
+	PlayerSwarmGroup:update()
+	PlayerSwarmGroup:checkCollision()
 	PlayerBubble:update()
 	PlayerBubble:checkCollision()
 
@@ -235,6 +238,7 @@ function DrawGameObjects()
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:draw()
 	end
+	PlayerSwarmGroup:draw()
 	PlayerBubble:draw()
 
 	SpecialWeaponBlockProjectile:draw()
