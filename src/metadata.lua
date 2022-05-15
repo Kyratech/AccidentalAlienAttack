@@ -349,6 +349,13 @@ function StartGame()
 	PlayerMissileExhaust = CreatePlayerMissileExhaust()
 	PlayerMissileBurstLeft = CreatePlayerMissileBurst()
 	PlayerMissileBurstRight = CreatePlayerMissileBurst()
+	PlayerMortarFragments = {
+		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
+		CreatePlayerMortarFragment(PlayerMortarDirections.ssw),
+		CreatePlayerMortarFragment(PlayerMortarDirections.s),
+		CreatePlayerMortarFragment(PlayerMortarDirections.sse),
+		CreatePlayerMortarFragment(PlayerMortarDirections.se)
+	}
 
 	SpecialWeaponBlockProjectile = CreateSpecialWeaponBlockProjectile()
 	SpecialWeaponBlock = CreateSpecialWeaponBlock()
@@ -464,6 +471,10 @@ function Update()
 	PlayerMissileBurstRight:update()
 	PlayerMissileBurstLeft:checkCollision()
 	PlayerMissileBurstRight:checkCollision()
+	for i, mortarFragment in pairs(PlayerMortarFragments) do
+		mortarFragment:update()
+		mortarFragment:checkCollision()
+	end
 
 	SpecialWeaponBlockProjectile:update()
 	SpecialWeaponBlock:update()
@@ -535,22 +546,30 @@ end
 
 function DrawGameObjects()
 	Player:draw()
+
 	PlayerShot:draw()
 	PlayerMissile:draw()
 	PlayerMissileBurstLeft:draw()
 	PlayerMissileBurstRight:draw()
+	for i, mortarFragment in pairs(PlayerMortarFragments) do
+		mortarFragment:draw()
+	end
 	SpecialWeaponBlockProjectile:draw()
 	SpecialWeaponBlock:draw()
 	SpecialWeaponDrill:draw()
 	PlayerShield:draw()
+
 	AlienCarrier:draw()
+
 	Explosion:draw()
 	PlayerExplosionSecondary:draw()
 	PlayerExplosionPrimary:draw()
+
 	ShieldPowerup:draw()
 	ScoreMultiplierPowerup:draw()
 	ExtraLifePowerup:draw()
 	TimestopPowerup:draw()
+
 	ScreenTransition:draw()
 end
 
@@ -560,7 +579,7 @@ function DrawUi()
 	SpecialWeaponUi:draw()
 	LevelUi:draw()
 
-	DrawDebug("displacement Y: " .. AlienManager.translationY)
+	-- DrawDebug("displacement Y: " .. AlienManager.translationY)
 	-- DrawMouseDebug()
 end
 
@@ -1742,6 +1761,25 @@ PlayerMissileBurstConsts = {
 	clrIndex = 0
 }
 
+PlayerMissileLaunchPayload = {
+	vertical = function (self, alienY)
+		PlayerMissileBurstLeft:enable(self.x - 3, alienY, 0, -2)
+	end,
+	horizontal = function (self, alienY)
+		PlayerMissileBurstLeft:enable(self.x - 3, alienY, -2, 0)
+		PlayerMissileBurstRight:enable(self.x - 3, alienY, 2, 0)
+	end,
+	diagonal = function (self, alienY)
+		PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
+		PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
+	end,
+	mortar = function (self, alienY)
+		for i, mortarFragment in pairs(PlayerMortarFragments) do
+			mortarFragment:enable(self.x -1, self.y + 2)
+		end
+	end
+}
+
 function CreatePlayerMissile()
 	return {
 		x = PlayerMissileConsts.storeX,
@@ -1750,15 +1788,11 @@ function CreatePlayerMissile()
 		h = 8,
 		speed = 0,
 		type = PlayerWeapons.none,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = PlayerMissileAni.sprites[1]
-		},
+		sprite = PlayerMissileAni.sprites[1],
 		draw = function (self)
 			if self.speed > 0 then
 				spr(
-					self.ani.currentFrame,
+					self.sprite,
 					self.x - 3,
 					self.y,
 					PlayerMissileConsts.clrIndex)
@@ -1770,8 +1804,6 @@ function CreatePlayerMissile()
 			self.y = self.y - self.speed
 
 			if self.speed > 0 then
-				Animate(self, PlayerMissileAni)
-
 				PlayerMissileExhaust:update(self.x, self.y + 8)
 			end
 		end,
@@ -1807,12 +1839,16 @@ function CreatePlayerMissile()
 				self:reset()
 			end
 		end,
-		shoot = function (self)
+		shoot = function (self, sprite)
+			self.sprite = sprite
+
 			if self.speed == 0 then
 				self.x = Player.x + 4
 				self.y = Player.y
+
 				self.speed = PlayerMissileConsts.speed
 				self.type = Player.weaponType
+				
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
 			end
@@ -1825,15 +1861,7 @@ function CreatePlayerMissile()
 			PlayerMissileExhaust:update(self.x, self.y + 8)
 		end,
 		createBursts = function (self, alienY)
-			if self.type == PlayerWeapons.vertical then
-				PlayerMissileBurstLeft:enable(self.x - 3, alienY, 0, -2)
-			elseif self.type == PlayerWeapons.horizontal then
-				PlayerMissileBurstLeft:enable(self.x - 3, alienY, -2, 0)
-				PlayerMissileBurstRight:enable(self.x - 3, alienY, 2, 0)
-			elseif self.type == PlayerWeapons.diagonal then
-				PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
-				PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
-			end
+			PlayerMissileLaunchPayload[self.type](self, alienY)
 		end
 	}
 end
@@ -1925,6 +1953,74 @@ function CreatePlayerMissileBurst()
 	}
 end
 
+-- I'm using compass directions as a shorthand even though north isnt actually up
+PlayerMortarDirections = {
+	sw = { x = -0.71, y = 0.71 },
+	ssw = { x = -0.38, y = 0.92 },
+	s = { x = 0, y = 1 },
+	sse = { x = 0.38, y = 0.92 },
+	se = { x = 0.71, y = 0.71 },
+}
+
+function CreatePlayerMortarFragment(mortarDirection)
+	return {
+		x = PlayerMissileBurstConsts.storeX,
+		y = PlayerMissileBurstConsts.storeY,
+		w = 4,
+		h = 4,
+		direction = mortarDirection,
+		speedX = 0,
+		speedY = 0,
+		sprite = PlayerMortarFragmentAni.sprites[1],
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.speedX = self.direction.x
+			self.speedY = self.direction.y
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+			self.speedX = 0
+			self.speedY = 0
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.sprite,
+					self.x - 2,
+					self.y - 2,
+					ExplosionConsts.clrIndex)
+			end
+		end,
+		update = function (self)
+			self.x = self.x + self.speedX
+			self.y = self.y + self.speedY
+		end,
+		checkCollision = function (self)
+			-- Check aliens
+			CollideWithAliens(self, function (self, alien)
+				self:disable()
+			end)
+
+			if Collide(self, AlienCarrier) then
+				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+				AlienCarrier:disable()
+				self:disable()
+
+				Score = Score + 5
+			end
+
+			if self.y > GroundY then
+				self:disable()
+			end
+		end
+	}
+end
+
 PlayerShieldConsts = {
 	clrIndex = 0
 }
@@ -1991,24 +2087,30 @@ PlayerWeapons = {
 	horizontal = "horizontal",
 	diagonal = "diagonal",
 	block = "block",
-	drill = "drill"
+	drill = "drill",
+	mortar = "mortar",
+	swarm = "swarm",
+	bubble = "bubble"
 }
 
 SpecialWeaponPicker = {
 	vertical = function ()
-		PlayerMissile:shoot()
+		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
 	end,
 	horizontal = function ()
-		PlayerMissile:shoot()
+		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
 	end,
 	diagonal = function ()
-		PlayerMissile:shoot()
+		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
 	end,
 	block = function ()
 		SpecialWeaponBlockProjectile:shoot()
 	end,
 	drill = function ()
 		SpecialWeaponDrill:shoot()
+	end,
+	mortar = function ()
+		PlayerMissile:shoot(PlayerMortarAni.sprites[1])
 	end
 }
 
@@ -3018,7 +3120,7 @@ function CreateBombAlien(i, j)
 		i,
 		j,
 		AlienBombAni,
-		PlayerWeapons.vertical,
+		PlayerWeapons.mortar,
 		StandardDieFunction
 	)
 end
@@ -3507,11 +3609,11 @@ NumberOfLevelsPerStage = 2
 Formations = {
 	{
 		{
-			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
-			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
-			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
-			3, 8, 3, 0, 0, 0, 0, 3, 8, 3,
-			0, 0, 0, 8, 0, 0, 8, 0, 0, 0
+			3, 6, 3, 3, 3, 3, 3, 3, 6, 3,
+			3, 6, 3, 0, 0, 0, 0, 3, 6, 3,
+			3, 6, 3, 0, 0, 0, 0, 3, 6, 3,
+			3, 6, 3, 0, 0, 0, 0, 3, 6, 3,
+			0, 0, 0, 6, 0, 0, 6, 0, 0, 0
 		},
 		{
 			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
@@ -3976,7 +4078,10 @@ WeaponColours = {
 	horizontal = 2,
 	diagonal = 9,
 	block = 13,
-	drill = 7
+	drill = 7,
+	mortar = 3,
+	swarm = 14,
+	bubble = 11
 }
 
 WeaponIconsSpriteIndexes = {
@@ -3985,7 +4090,10 @@ WeaponIconsSpriteIndexes = {
 	horizontal = 125,
 	diagonal = 140,
 	block = 141,
-	drill = 156
+	drill = 156,
+	mortar = 157,
+	swarm = 172,
+	bubble = 173
 }
 
 ButtonIcons = {
@@ -4224,6 +4332,12 @@ PlayerMissileAni = {
 	sprites = { 344 }
 }
 
+PlayerMortarAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 441 }
+}
+
 PlayerMissileExhaustAni = {
 	frameDelay = 5,
 	length = 2,
@@ -4234,6 +4348,12 @@ PlayerMissileBurstAni = {
 	frameDelay = 2,
 	length = 5,
 	sprites = { 345, 346, 347, 348, 349 }
+}
+
+PlayerMortarFragmentAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 442 }
 }
 
 SpecialWeaponBlockProjectileAni = {
@@ -4819,8 +4939,14 @@ Init()
 -- 216:09900000900900000aa00000aaaaaa00aaaaa0000a0000009009000009900000
 -- 217:0000000000000000000000009999999099000000000000000000000000000000
 -- 218:0000000000000000000000000000880800000000000000000000000000000000
+-- 219:000aa00000acba0000acba0000abba00000aa000000cc00000dccd00000cc000
+-- 220:00cccb000cbbaba0cbccbabacbccba9acabbaa9abbaaa9ac0ab99ac000aaac00
+-- 221:00ccba000cbbaba0cbccba9acbccaa9acbccaa9ccbaaa9ac0bb99ac000aaaa00
 -- 228:b0000000b00000000b00000000bccccc00000000000000000000000000000000
 -- 229:000b0000000b000000b00000cb00000000000000000000000000000000000000
+-- 236:00ccca000ca000a0ca00000accb0000accca00caabcbac9b0abbb9b000aaab00
+-- 237:0000cc000c0000b0c000000ac0000000bb000000ab00000c0abc00b000aaa000
+-- 238:00000c00000000b00000000000000000c0000000b00000000b00000000aa0000
 -- </SPRITES>
 
 -- <MAP>

@@ -3,7 +3,7 @@ function CreateSupportAlien(i, j)
 		i,
 		j,
 		AlienSupportAni,
-		PlayerWeapons.vertical,
+		PlayerWeapons.bubble,
 		function (self, k)
 			if self.column > 1 then
 				local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)

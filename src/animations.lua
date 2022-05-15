@@ -64,6 +64,12 @@ PlayerMortarFragmentAni = {
 	sprites = { 442 }
 }
 
+PlayerBubbleMissileAni = {
+	frameDelay = 1,
+	length = 1,
+	sprites = { 475 }
+}
+
 SpecialWeaponBlockProjectileAni = {
 	frameDelay = 10,
 	length = 4,
@@ -80,6 +86,18 @@ SpecialWeaponDrillAni = {
 	frameDelay = 5,
 	length = 4,
 	sprites = { 424, 425, 426, 427 }
+}
+
+SpecialWeaponBubbleAni = {
+	frameDelay = 5,
+	length = 2,
+	sprites = { 476, 477 }
+}
+
+SpecialWeaponBubblePopAni = {
+	frameDelay = 5,
+	length = 3,
+	sprites = { 492, 493, 494 }
 }
 
 AlienRedAni = {

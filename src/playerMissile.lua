@@ -28,6 +28,9 @@ PlayerMissileLaunchPayload = {
 		for i, mortarFragment in pairs(PlayerMortarFragments) do
 			mortarFragment:enable(self.x -1, self.y + 2)
 		end
+	end,
+	bubble = function (self, alienY)
+		PlayerBubble:enable(self.x - 3, alienY)
 	end
 }
 

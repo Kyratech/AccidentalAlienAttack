@@ -28,5 +28,8 @@ SpecialWeaponPicker = {
 	end,
 	mortar = function ()
 		PlayerMissile:shoot(PlayerMortarAni.sprites[1])
+	end,
+	bubble = function ()
+		PlayerMissile:shoot(PlayerBubbleMissileAni.sprites[1])
 	end
 }
