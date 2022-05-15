@@ -59,3 +59,25 @@ end
 function GetFormationPosition(column, row)
 	return column + (row - 1) * AlienCountX
 end
+
+AlienSpeeds = {
+	speedFull = 0.125,
+	speedHalf = 0.25,
+	speedQuarter = 0.5,
+	speedFour = 1,
+	speedOne = 2
+}
+
+function CalculateAlienSpeed(maxAliens, liveAliens)
+	if liveAliens == 1 then
+		return AlienSpeeds.speedOne * AlienSpeedOptions[GameSettings.alienSpeed].value
+	elseif liveAliens <= 4 then
+		return AlienSpeeds.speedFour * AlienSpeedOptions[GameSettings.alienSpeed].value
+	elseif maxAliens // liveAliens == 1 then
+		return AlienSpeeds.speedFull * AlienSpeedOptions[GameSettings.alienSpeed].value
+	elseif maxAliens // liveAliens == 2 then
+		return AlienSpeeds.speedHalf * AlienSpeedOptions[GameSettings.alienSpeed].value
+	else
+		return AlienSpeeds.speedQuarter * AlienSpeedOptions[GameSettings.alienSpeed].value
+	end
+end

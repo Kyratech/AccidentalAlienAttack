@@ -1752,6 +1752,290 @@ function CreatePlayerShot()
 	}
 end
 
+PlayerExplosionConsts = {
+	storeX = 316,
+	storeY = 150,
+	clrIndex = 0
+}
+
+function CreatePlayerExplosion()
+	return {
+		active = false,
+		x = PlayerExplosionConsts.storeX,
+		y = PlayerExplosionConsts.storeY,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = PlayerExplosionAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x - 3
+			self.y = y - 7
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerExplosionAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = PlayerExplosionConsts.storeX
+			self.y = PlayerExplosionConsts.storeY
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					PlayerExplosionConsts.clrIndex,
+					1,
+					0,
+					0,
+					2,
+					2)
+			end
+		end,
+		update = function (self)
+			if self.active == true then
+				AnimateOneshot(self, PlayerExplosionAni)
+			end
+		end
+	}
+end
+
+PlayerShieldConsts = {
+	clrIndex = 0
+}
+
+function CreatePlayerShield()
+	return {
+		x = 0,
+		y = Player.y - 7,
+		active = false,
+		deactivating = false,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = PlayerShieldAni.sprites[1]
+		},
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					PlayerShieldConsts.clrIndex,
+					1,
+					0,
+					0,
+					2,
+					2
+				)
+			end
+		end,
+		update = function (self)
+			self.x = Player.x - 3
+
+			if self.active == true then
+				if self.deactivating == true then
+					AnimateOneshot(self, PlayerShieldEndAni)
+				else
+					Animate(self, PlayerShieldAni)
+				end
+			end
+		end,
+		enable = function (self)
+			self.active = true
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerShieldAni.sprites[1]
+		end,
+		startDeactivation = function (self)
+			self.deactivating = true
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerShieldEndAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.deactivating = false
+		end
+	}
+end
+
+PlayerWeapons = {
+	none = "none",
+	vertical = "vertical",
+	horizontal = "horizontal",
+	diagonal = "diagonal",
+	block = "block",
+	drill = "drill",
+	mortar = "mortar",
+	swarm = "swarm",
+	bubble = "bubble"
+}
+
+SpecialWeaponPicker = {
+	vertical = function ()
+		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
+	end,
+	horizontal = function ()
+		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
+	end,
+	diagonal = function ()
+		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
+	end,
+	block = function ()
+		SpecialWeaponBlockProjectile:shoot()
+	end,
+	drill = function ()
+		SpecialWeaponDrill:shoot()
+	end,
+	mortar = function ()
+		PlayerMissile:shoot(PlayerMortarAni.sprites[1])
+	end,
+	bubble = function ()
+		PlayerMissile:shoot(PlayerBubbleMissileAni.sprites[1])
+	end
+}
+
+SpecialWeaponBlockConsts = {
+	speed = 0.5,
+	storeX = 340,
+	storeY = 160,
+	clrIndex = 2,
+	shoveDistance = 10,
+}
+
+BlockHpColours = {
+	2,
+	3,
+	4,
+	5,
+	6,
+	10
+}
+
+function CreateSpecialWeaponBlockProjectile()
+	return {
+		x = SpecialWeaponBlockConsts.storeX,
+		y = SpecialWeaponBlockConsts.storeY,
+		active = false,
+		speed = 0,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
+		},
+		shoot = function (self)
+			if self.active == false then
+				self.active = true
+				self.x = Player.x - 4
+				self.y = Player.y
+				self.speed = -SpecialWeaponBlockConsts.speed
+				self.ani.delayCounter = 0
+				self.ani.currentCounter = 1
+				self.ani.currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
+				Player.weaponType = PlayerWeapons.none
+				Player.weaponPower = 0
+			end
+		end,
+		disable = function (self)
+			SpecialWeaponBlock:enable(self.x + 1, self.y)
+			self.active = false
+			self.x = SpecialWeaponBlockConsts.storeX
+			self.y = SpecialWeaponBlockConsts.storeY
+			self.speed = 0
+		end,
+		draw = function (self)
+			if self.active == true then
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					SpecialWeaponBlockConsts.clrIndex,
+					1,
+					0,
+					0,
+					2,
+					1)
+			end
+		end,
+		update = function (self)
+			self.y = self.y + self.speed
+
+			if self.active == true then
+				AnimateOneshot(self, SpecialWeaponBlockProjectileAni)
+			end
+		end
+	}
+end
+
+function CreateSpecialWeaponBlock()
+	return {
+		x = SpecialWeaponBlockConsts.storeX,
+		y = SpecialWeaponBlockConsts.storeY,
+		targetY = SpecialWeaponBlockConsts.storeY,
+		w = 14,
+		h = 8,
+		hp = 0,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = SpecialWeaponBlockAni.sprites[1]
+		},
+		draw = function (self)
+			if self.hp > 0 then
+				spr(
+					self.ani.currentFrame,
+					self.x - 1,
+					self.y,
+					SpecialWeaponBlockConsts.clrIndex,
+					1,
+					0,
+					0,
+					2,
+					1)
+
+				rect(self.x + 6, self.y + 3, 2, 2, BlockHpColours[self.hp])
+			end
+		end,
+		update = function (self)
+			if self.hp > 0 and self.targetY < self.y then
+				self.y = self.y - SpecialWeaponBlockConsts.speed
+			end
+		end,
+		checkCollision = function (self)
+			if self.hp > 0 then
+				CollideWithAliens(self, function(self, alien)
+					self:takeDamage(2)
+				end)
+			end
+		end,
+		enable = function (self, x, y)
+			self.x = x
+			self.y = y
+			self.targetY = y
+			self.hp = 6
+		end,
+		disable = function (self)
+			self.x = SpecialWeaponBlockConsts.storeX
+			self.y = SpecialWeaponBlockConsts.storeY
+			self.targetY = SpecialWeaponBlockConsts.storeY
+		end,
+		takeDamage = function (self, damage)
+			self.hp = self.hp - damage
+
+			if self.hp <= 0 then
+				self:disable()
+			end
+		end,
+		shove = function (self)
+			self.targetY = self.targetY - SpecialWeaponBlockConsts.shoveDistance
+		end
+	}
+end
+
 PlayerMissileConsts = {
 	speed = 2,
 	storeX = 320,
@@ -2029,239 +2313,6 @@ function CreatePlayerMortarFragment(mortarDirection)
 	}
 end
 
-PlayerShieldConsts = {
-	clrIndex = 0
-}
-
-function CreatePlayerShield()
-	return {
-		x = 0,
-		y = Player.y - 7,
-		active = false,
-		deactivating = false,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = PlayerShieldAni.sprites[1]
-		},
-		draw = function (self)
-			if self.active == true then
-				spr(
-					self.ani.currentFrame,
-					self.x,
-					self.y,
-					PlayerShieldConsts.clrIndex,
-					1,
-					0,
-					0,
-					2,
-					2
-				)
-			end
-		end,
-		update = function (self)
-			self.x = Player.x - 3
-
-			if self.active == true then
-				if self.deactivating == true then
-					AnimateOneshot(self, PlayerShieldEndAni)
-				else
-					Animate(self, PlayerShieldAni)
-				end
-			end
-		end,
-		enable = function (self)
-			self.active = true
-			self.ani.delayCounter = 0
-			self.ani.currentCounter = 1
-			self.ani.currentFrame = PlayerShieldAni.sprites[1]
-		end,
-		startDeactivation = function (self)
-			self.deactivating = true
-			self.ani.delayCounter = 0
-			self.ani.currentCounter = 1
-			self.ani.currentFrame = PlayerShieldEndAni.sprites[1]
-		end,
-		disable = function (self)
-			self.active = false
-			self.deactivating = false
-		end
-	}
-end
-
-PlayerWeapons = {
-	none = "none",
-	vertical = "vertical",
-	horizontal = "horizontal",
-	diagonal = "diagonal",
-	block = "block",
-	drill = "drill",
-	mortar = "mortar",
-	swarm = "swarm",
-	bubble = "bubble"
-}
-
-SpecialWeaponPicker = {
-	vertical = function ()
-		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
-	end,
-	horizontal = function ()
-		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
-	end,
-	diagonal = function ()
-		PlayerMissile:shoot(PlayerMissileAni.sprites[1])
-	end,
-	block = function ()
-		SpecialWeaponBlockProjectile:shoot()
-	end,
-	drill = function ()
-		SpecialWeaponDrill:shoot()
-	end,
-	mortar = function ()
-		PlayerMissile:shoot(PlayerMortarAni.sprites[1])
-	end,
-	bubble = function ()
-		PlayerMissile:shoot(PlayerBubbleMissileAni.sprites[1])
-	end
-}
-
-SpecialWeaponBlockConsts = {
-	speed = 0.5,
-	storeX = 340,
-	storeY = 160,
-	clrIndex = 2,
-	shoveDistance = 10,
-}
-
-BlockHpColours = {
-	2,
-	3,
-	4,
-	5,
-	6,
-	10
-}
-
-function CreateSpecialWeaponBlockProjectile()
-	return {
-		x = SpecialWeaponBlockConsts.storeX,
-		y = SpecialWeaponBlockConsts.storeY,
-		active = false,
-		speed = 0,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
-		},
-		shoot = function (self)
-			if self.active == false then
-				self.active = true
-				self.x = Player.x - 4
-				self.y = Player.y
-				self.speed = -SpecialWeaponBlockConsts.speed
-				self.ani.delayCounter = 0
-				self.ani.currentCounter = 1
-				self.ani.currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
-				Player.weaponType = PlayerWeapons.none
-				Player.weaponPower = 0
-			end
-		end,
-		disable = function (self)
-			SpecialWeaponBlock:enable(self.x + 1, self.y)
-			self.active = false
-			self.x = SpecialWeaponBlockConsts.storeX
-			self.y = SpecialWeaponBlockConsts.storeY
-			self.speed = 0
-		end,
-		draw = function (self)
-			if self.active == true then
-				spr(
-					self.ani.currentFrame,
-					self.x,
-					self.y,
-					SpecialWeaponBlockConsts.clrIndex,
-					1,
-					0,
-					0,
-					2,
-					1)
-			end
-		end,
-		update = function (self)
-			self.y = self.y + self.speed
-
-			if self.active == true then
-				AnimateOneshot(self, SpecialWeaponBlockProjectileAni)
-			end
-		end
-	}
-end
-
-function CreateSpecialWeaponBlock()
-	return {
-		x = SpecialWeaponBlockConsts.storeX,
-		y = SpecialWeaponBlockConsts.storeY,
-		targetY = SpecialWeaponBlockConsts.storeY,
-		w = 14,
-		h = 8,
-		hp = 0,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = SpecialWeaponBlockAni.sprites[1]
-		},
-		draw = function (self)
-			if self.hp > 0 then
-				spr(
-					self.ani.currentFrame,
-					self.x - 1,
-					self.y,
-					SpecialWeaponBlockConsts.clrIndex,
-					1,
-					0,
-					0,
-					2,
-					1)
-
-				rect(self.x + 6, self.y + 3, 2, 2, BlockHpColours[self.hp])
-			end
-		end,
-		update = function (self)
-			if self.hp > 0 and self.targetY < self.y then
-				self.y = self.y - SpecialWeaponBlockConsts.speed
-			end
-		end,
-		checkCollision = function (self)
-			if self.hp > 0 then
-				CollideWithAliens(self, function(self, alien)
-					self:takeDamage(2)
-				end)
-			end
-		end,
-		enable = function (self, x, y)
-			self.x = x
-			self.y = y
-			self.targetY = y
-			self.hp = 6
-		end,
-		disable = function (self)
-			self.x = SpecialWeaponBlockConsts.storeX
-			self.y = SpecialWeaponBlockConsts.storeY
-			self.targetY = SpecialWeaponBlockConsts.storeY
-		end,
-		takeDamage = function (self, damage)
-			self.hp = self.hp - damage
-
-			if self.hp <= 0 then
-				self:disable()
-			end
-		end,
-		shove = function (self)
-			self.targetY = self.targetY - SpecialWeaponBlockConsts.shoveDistance
-		end
-	}
-end
-
 SpecialWeaponDrillConsts = {
 	speed = 1,
 	storeX = 340,
@@ -2445,57 +2496,6 @@ function CreateExplosion()
 		update = function (self)
 			if self.active == true then
 				AnimateOneshot(self, ExplosionAni)
-			end
-		end
-	}
-end
-
-PlayerExplosionConsts = {
-	storeX = 316,
-	storeY = 150,
-	clrIndex = 0
-}
-
-function CreatePlayerExplosion()
-	return {
-		active = false,
-		x = PlayerExplosionConsts.storeX,
-		y = PlayerExplosionConsts.storeY,
-		ani = {
-			delayCounter = 0,
-			currentCounter = 1,
-			currentFrame = PlayerExplosionAni.sprites[1]
-		},
-		enable = function (self, x, y)
-			self.active = true
-			self.x = x - 3
-			self.y = y - 7
-			self.ani.delayCounter = 0
-			self.ani.currentCounter = 1
-			self.ani.currentFrame = PlayerExplosionAni.sprites[1]
-		end,
-		disable = function (self)
-			self.active = false
-			self.x = PlayerExplosionConsts.storeX
-			self.y = PlayerExplosionConsts.storeY
-		end,
-		draw = function (self)
-			if self.active == true then
-				spr(
-					self.ani.currentFrame,
-					self.x,
-					self.y,
-					PlayerExplosionConsts.clrIndex,
-					1,
-					0,
-					0,
-					2,
-					2)
-			end
-		end,
-		update = function (self)
-			if self.active == true then
-				AnimateOneshot(self, PlayerExplosionAni)
 			end
 		end
 	}
@@ -5032,8 +5032,7 @@ Init()
 -- 201:ccccccccc33c33ccc33d33dcc22d22dcdeeee00deeeee00eceeee11ccccccccc
 -- 202:c3cc3cccc33c33ccc23d23dccd2dd2dcceeee00cdeeee00de1eee11ececcccec
 -- 203:cc3cc3cccc3cc3cccd2dd2dccd2dd2dcceeee00cceeee00cc1eee11cceecceec
--- 204:000000000000000000032000000cc00000cccc00000dd0000000000000000000
--- 205:00000000000000000000320000ccc20000dcc000000dc0000000000000000000
+-- 204:020000000c000000ccc000000d00000000000000000000000000000000000000
 -- 208:222bb222c2bbbb2ccabbbbacc9abba9c299999922a9009a22980089228288282
 -- 209:222bb2c222bbbbc22cbbbba22cabba922c999992a890098a9280082982288228
 -- 210:222bb22222bbbb222abbcba229abca922999c9922a9009a22980089228288282
