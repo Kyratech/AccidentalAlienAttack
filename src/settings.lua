@@ -1,5 +1,6 @@
 GameSettings = {
 	buttonPrompts = 1,
+	showBackgrounds = 1,
 	alienSpeed = 4,
 	alienShotSpeed = 3,
 	alienDescentRate = 3,
@@ -9,22 +10,27 @@ GameSettings = {
 
 function SaveGameSettings()
 	local encodedInputSettings = EncodeInputSettings(GameSettings)
+	local encodedVideoSettings = EncodeVideoSettings(GameSettings)
 	local encodedGameplaySettings = EncodeGameplaySettings(GameSettings)
 
 	pmem(GameSettingsMemoryIndexes.input, encodedInputSettings)
+	pmem(GameSettingsMemoryIndexes.video, encodedVideoSettings)
 	pmem(GameSettingsMemoryIndexes.gameplay, encodedGameplaySettings)
 end
 
 function LoadGameSettings()
 	local encodedInputSettings = pmem(GameSettingsMemoryIndexes.input)
+	local encodedVideoSettings = pmem(GameSettingsMemoryIndexes.video)
 	local encodedGameplaySettings = pmem(GameSettingsMemoryIndexes.gameplay)
 
-	if encodedInputSettings ~= 0 and encodedGameplaySettings ~= 0 then
+	if encodedInputSettings ~= 0 and encodedVideoSettings ~= 0 and encodedGameplaySettings ~= 0 then
 		local inputSettings = DecodeInputSettings(encodedInputSettings)
+		local videoSettings = DecodeVideoSettings(encodedVideoSettings)
 		local gameplaySettings = DecodeGameplaySettings(encodedGameplaySettings)
 
 		GameSettings = {
 			buttonPrompts = inputSettings.buttonPrompts,
+			showBackgrounds = videoSettings.showBackgrounds,
 			alienSpeed = gameplaySettings.alienSpeed,
 			alienShotSpeed = gameplaySettings.alienShotSpeed,
 			alienDescentRate = gameplaySettings.alienDescentRate,
@@ -41,6 +47,16 @@ end
 function DecodeInputSettings(encodedInputSettings)
 	return {
 		buttonPrompts = IsolateBinaryPart(encodedInputSettings, 0, 4)
+	}
+end
+
+function EncodeVideoSettings(gameSettings)
+	return gameSettings.showBackgrounds
+end
+
+function DecodeVideoSettings(encodedVideoSettings)
+	return {
+		showBackgrounds = IsolateBinaryPart(encodedVideoSettings, 0, 4)
 	}
 end
 
@@ -71,6 +87,17 @@ ButtonPromptsOptions = {
 	{
 		label = "QWERTY",
 		value = "pc"
+	}
+}
+
+ShowBackgroundsOptions = {
+	{
+		label = "Yes",
+		value = 0
+	},
+	{
+		label = "No",
+		value = 1
 	}
 }
 

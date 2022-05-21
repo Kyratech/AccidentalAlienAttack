@@ -85,7 +85,7 @@ function StartGame()
 	PauseMenu = CreateMenu(PauseMenuOptions, PauseMenuOptionsCount, PauseMenuConsts, ScreenWidth / 2 - 44, 60)
 
 	MapX = MapCols * CurrentStage
-	MapY = 0
+	MapY = MapRows * ShowBackgroundsOptions[GameSettings.showBackgrounds].value
 end
 
 function StartLevel(formation)
@@ -96,7 +96,7 @@ function StartLevel(formation)
 	AlienCarrier:prepare()
 
 	MapX = MapCols * CurrentStage
-	MapY = 0
+	MapY = MapRows * ShowBackgroundsOptions[GameSettings.showBackgrounds].value
 end
 
 function EndLevel()

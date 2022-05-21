@@ -14,6 +14,9 @@ HalfScreenWidth = ScreenWidth / 2
 ScreenHeight = 136
 HalfScreenHeight = ScreenHeight / 2
 
+MapCols=30
+MapRows=17
+
 LeftWallX = 22
 RightWallX = 218
 TopY = 20
@@ -64,7 +67,8 @@ HighScoreMemoryIndexes = {
 
 GameSettingsMemoryIndexes = {
 	input = 10,
-	gameplay = 11
+	gameplay = 11,
+	video = 12
 }
 
 -- Extract part of the binary representation of a number.
@@ -92,6 +96,7 @@ end
 
 GameSettings = {
 	buttonPrompts = 1,
+	showBackgrounds = 1,
 	alienSpeed = 4,
 	alienShotSpeed = 3,
 	alienDescentRate = 3,
@@ -101,22 +106,27 @@ GameSettings = {
 
 function SaveGameSettings()
 	local encodedInputSettings = EncodeInputSettings(GameSettings)
+	local encodedVideoSettings = EncodeVideoSettings(GameSettings)
 	local encodedGameplaySettings = EncodeGameplaySettings(GameSettings)
 
 	pmem(GameSettingsMemoryIndexes.input, encodedInputSettings)
+	pmem(GameSettingsMemoryIndexes.video, encodedVideoSettings)
 	pmem(GameSettingsMemoryIndexes.gameplay, encodedGameplaySettings)
 end
 
 function LoadGameSettings()
 	local encodedInputSettings = pmem(GameSettingsMemoryIndexes.input)
+	local encodedVideoSettings = pmem(GameSettingsMemoryIndexes.video)
 	local encodedGameplaySettings = pmem(GameSettingsMemoryIndexes.gameplay)
 
-	if encodedInputSettings ~= 0 and encodedGameplaySettings ~= 0 then
+	if encodedInputSettings ~= 0 and encodedVideoSettings ~= 0 and encodedGameplaySettings ~= 0 then
 		local inputSettings = DecodeInputSettings(encodedInputSettings)
+		local videoSettings = DecodeVideoSettings(encodedVideoSettings)
 		local gameplaySettings = DecodeGameplaySettings(encodedGameplaySettings)
 
 		GameSettings = {
 			buttonPrompts = inputSettings.buttonPrompts,
+			showBackgrounds = videoSettings.showBackgrounds,
 			alienSpeed = gameplaySettings.alienSpeed,
 			alienShotSpeed = gameplaySettings.alienShotSpeed,
 			alienDescentRate = gameplaySettings.alienDescentRate,
@@ -133,6 +143,16 @@ end
 function DecodeInputSettings(encodedInputSettings)
 	return {
 		buttonPrompts = IsolateBinaryPart(encodedInputSettings, 0, 4)
+	}
+end
+
+function EncodeVideoSettings(gameSettings)
+	return gameSettings.showBackgrounds
+end
+
+function DecodeVideoSettings(encodedVideoSettings)
+	return {
+		showBackgrounds = IsolateBinaryPart(encodedVideoSettings, 0, 4)
 	}
 end
 
@@ -163,6 +183,17 @@ ButtonPromptsOptions = {
 	{
 		label = "QWERTY",
 		value = "pc"
+	}
+}
+
+ShowBackgroundsOptions = {
+	{
+		label = "Yes",
+		value = 0
+	},
+	{
+		label = "No",
+		value = 1
 	}
 }
 
@@ -405,6 +436,9 @@ function StartGame()
 	SpecialWeaponUi = CreateSpecialWeaponUi()
 	LevelUi = CreateLevelUi()
 	PauseMenu = CreateMenu(PauseMenuOptions, PauseMenuOptionsCount, PauseMenuConsts, ScreenWidth / 2 - 44, 60)
+
+	MapX = MapCols * CurrentStage
+	MapY = MapRows * ShowBackgroundsOptions[GameSettings.showBackgrounds].value
 end
 
 function StartLevel(formation)
@@ -413,6 +447,9 @@ function StartLevel(formation)
 	AlienManager:startLevel(formation)
 
 	AlienCarrier:prepare()
+
+	MapX = MapCols * CurrentStage
+	MapY = MapRows * ShowBackgroundsOptions[GameSettings.showBackgrounds].value
 end
 
 function EndLevel()
@@ -545,9 +582,7 @@ function Draw()
 end
 
 function DrawBg()
-	local cols=30
-	local rows=17
-	map(30,0,cols,rows)
+	map(MapX, MapY, MapCols, MapRows)
 end
 
 function DrawGameObjects()
@@ -1006,7 +1041,7 @@ MainMenuConsts = {
 	lineHeight = 12
 }
 
-OptionsMenuOptionsCount = 6
+OptionsMenuOptionsCount = 7
 OptionsMenuOptions = {
 	{
 		options = ButtonPromptsOptions,
@@ -1031,6 +1066,31 @@ OptionsMenuOptions = {
 		end,
 		save = function (self)
 			GameSettings.buttonPrompts = self.selectedOption
+		end
+	},
+	{
+		options = ShowBackgroundsOptions,
+		optionsCount = 2,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Show backgrounds", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 40 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			self.selectedOption = GameSettings.showBackgrounds
+		end,
+		save = function (self)
+			GameSettings.showBackgrounds = self.selectedOption
 		end
 	},
 	{
@@ -5027,7 +5087,6 @@ Init()
 -- 188:ddd22222ddd22222888222228992222299922222999222229981111188811111
 -- 189:22222ddd22222dee22222eee22222eee22222eee222221ee11111d1e11111e1e
 -- 190:ddddddddee1deeeeeedeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee1
--- 191:ddd22222d1e22222ed122222eed22222eee22222eee22222ee11111111d11111
 -- 192:2ffffeed2ffffddd2fffffdd2fffffddfffffffd222fffff2f2fffff222f2222
 -- 193:deeddff2dddddff2ddcd1ff2ccd11ff2dd111ffff11112221111d2f22222f222
 -- 195:1000000010000000100000001100000011000000110000001110000011100000
@@ -5051,6 +5110,7 @@ Init()
 -- 213:0000000000000000100000001000000011000000110000001110000011100000
 -- 214:0000000000000000000000010000000100000011000000110000011100000111
 -- 215:111111111001100110011001111111111ee11111100110011001100110011111
+-- 223:ddd22222d1e22222ed122222eed22222eee22222eee22222ee11111111d11111
 -- 224:0666000066660000667600006666000066760000660600007707000000000000
 -- 225:6660000066660000667600006666000066760000666600007777000000000000
 -- 226:0666000066660000667700006600000066000000666600007777000000000000
@@ -5269,10 +5329,10 @@ Init()
 -- 012:0000000000000000000000000000000000000000000000000000000000000000000066768600667686000000000000000097a797a797a7000000000000000000007b000000000000000000000000000000000000000000000000000089998999a90000495900004959000049590000898999999999a900006c5c6c5b5b005b5b008a9aaa0000000000000000b700000000000000000000005b005b5b0000000000000000004d898989895d00000000005b6b5b007c7c0000007c7c7c00000000000000005b5b7c7c7c007c7c7c7c7c007c7c000000000000000000000000000000000000000000000000000000000000
 -- 013:00000000000000000000000000000000000000000000000000000000000000000000677787006777870096a60000000097a797a797a797a70000000000000000000000000000000000000000000000000000000000000000000000008a9a9a9aaa00004a5a00004a5a00004a5a00008a9a9a9a9a9aaa000000000000000000000000000000000000000000000000000000000000000000005b005b5b00000000000000000000000000000000000000005b7b5b007d7d0000007d7d7d000000000096a6005b5b7b7b7b007d7d7d7d7d007d7d000000000000000000000000000000000000000000000000000000000000
 -- 014:000000000000000000000000000000000000000000000000000000000000838393a300000000000000000000000000000000000000000000637383838393a30000000000000000000000000000000000000000000000006373838393a30000000000000000000000000000000000000000000000006373838393000000000000000000000000000000000000000000000000000073838393000000000000000000000000000000000000000000000000000073838393007c7c7c000000000000000000000000000000000000000000007383000000000000000000000000000000000000000000000000000000000000
--- 015:000000000000000000000000000000000000000000000000000000000000848494a403134353233343534353434353435343233353430313647484848494a403134353435343532333435343532333435343534353031364748484dbe9f9e9e9e9e9e7f7e9e9ebe9e9e9e9f9e9e9ebe9e9e9e9e9f9ebfb8484dbebe7f7e9e9f9e7f7e9e9e9e9e9e9ebe9e7f7f9e9e9e9e9e9e9ebfb8484bbababababababababababababababababababababababababababcb8484bbababababababababababababababababababababababababababcb84000000000000000000000000000000000000000000000000000000000000
+-- 015:000000000000000000000000000000000000000000000000000000000000848494a403134353233343534353434353435343233353430313647484848494a403134353435343532333435343532333435343534353031364748484dbe9f9e9e9e9e9e7f7e9e9ebe9e9e9e9f9e9e9ebe9e9e9e9e9f9ebfd8484dbebe7f7e9e9f9e7f7e9e9e9e9e9e9ebe9e7f7f9e9e9e9e9e9e9ebfd8484bbababababababababababababababababababababababababababcb8484bbababababababababababababababababababababababababababcb84000000000000000000000000000000000000000000000000000000000000
 -- 016:000000000000000000000000000000000000000000000000000000000000858595a504144454243444544454444454445444243454440414657585858595a504144454445444542434445444542434445444544454041465758585dceafaeaeaeaeae8f8eaeaeceaeaeaeafaeaeaeceaeaeaeaeafaecfc8585dcece8f8eaeafae8f8eaeaeaeaeaeaeceae8f8faeaeaeaeaeaeaecfc8585bcacacacacacacacacacacacacacacacacacacacacacacacacacaccc8585bcacacacacacacacacacacacacacacacacacacacacacacacacacaccc85000000000000000000000000000000000000000000000000000000000000
 -- 031:000000000000000000000000000000000000000000000000000000000000838393a300000000000000000000000000000000000000000000637383838393a30000000000000000000000000000000000000000000000006373838393a3000000000000000000000000000000000000000000000000637383839300000000000000000000000000000000000000000000000000007383839300000000000000000000000000000000000000000000000000007383839300000000000000000000000000000000000000000000000000007383000000000000000000000000000000000000000000000000000000000000
--- 032:000000000000000000000000000000000000000000000000000000000000848494a403134353233343534353434353435343233353430313647484848494a403134353435343532333435343532333435343534353031364748484dbe9f9e9e9e9e9e7f7e9e9ebe9e9e9e9f9e9e9ebe9e9e9e9e9f9ebfb8484dbebe7f7e9e9f9e7f7e9e9e9e9e9e9ebe9e7f7f9e9e9e9e9e9e9ebfb8484bbababababababababababababababababababababababababababcb8484bbababababababababababababababababababababababababababcb84000000000000000000000000000000000000000000000000000000000000
+-- 032:000000000000000000000000000000000000000000000000000000000000848494a403134353233343534353434353435343233353430313647484848494a403134353435343532333435343532333435343534353031364748484dbe9f9e9e9e9e9e7f7e9e9ebe9e9e9e9f9e9e9ebe9e9e9e9e9f9ebfd8484dbebe7f7e9e9f9e7f7e9e9e9e9e9e9ebe9e7f7f9e9e9e9e9e9e9ebfd8484bbababababababababababababababababababababababababababcb8484bbababababababababababababababababababababababababababcb84000000000000000000000000000000000000000000000000000000000000
 -- 033:000000000000000000000000000000000000000000000000000000000000858595a504144454243444544454444454445444243454440414657585858595a504144454445444542434445444542434445444544454041465758585dceafaeaeaeaeae8f8eaeaeceaeaeaeafaeaeaeceaeaeaeaeafaecfc8585dcece8f8eaeafae8f8eaeaeaeaeaeaeceae8f8faeaeaeaeaeaeaecfc8585bcacacacacacacacacacacacacacacacacacacacacacacacacacaccc8585bcacacacacacacacacacacacacacacacacacacacacacacacacacaccc85000000000000000000000000000000000000000000000000000000000000
 -- </MAP>
 

@@ -23,7 +23,8 @@ HighScoreMemoryIndexes = {
 
 GameSettingsMemoryIndexes = {
 	input = 10,
-	gameplay = 11
+	gameplay = 11,
+	video = 12
 }
 
 -- Extract part of the binary representation of a number.

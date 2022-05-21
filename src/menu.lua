@@ -84,7 +84,7 @@ MainMenuConsts = {
 	lineHeight = 12
 }
 
-OptionsMenuOptionsCount = 6
+OptionsMenuOptionsCount = 7
 OptionsMenuOptions = {
 	{
 		options = ButtonPromptsOptions,
@@ -109,6 +109,31 @@ OptionsMenuOptions = {
 		end,
 		save = function (self)
 			GameSettings.buttonPrompts = self.selectedOption
+		end
+	},
+	{
+		options = ShowBackgroundsOptions,
+		optionsCount = 2,
+		selectedOption = 1,
+		draw = function(self, x, y)
+			print("Show backgrounds", x, y, 12)
+
+			for i = 1, self.optionsCount do
+				local textColour = 1
+
+				if i == self.selectedOption then
+					textColour = 3
+				end
+
+				print(self.options[i].label, x + 120 + 40 * (i - 1), y, textColour)
+			end
+		end,
+		input = ScrollOptionsH,
+		getCurrent = function (self)
+			self.selectedOption = GameSettings.showBackgrounds
+		end,
+		save = function (self)
+			GameSettings.showBackgrounds = self.selectedOption
 		end
 	},
 	{
