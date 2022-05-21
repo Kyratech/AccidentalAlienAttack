@@ -83,6 +83,9 @@ function StartGame()
 	SpecialWeaponUi = CreateSpecialWeaponUi()
 	LevelUi = CreateLevelUi()
 	PauseMenu = CreateMenu(PauseMenuOptions, PauseMenuOptionsCount, PauseMenuConsts, ScreenWidth / 2 - 44, 60)
+
+	MapX = MapCols * CurrentStage
+	MapY = 0
 end
 
 function StartLevel(formation)
@@ -91,6 +94,9 @@ function StartLevel(formation)
 	AlienManager:startLevel(formation)
 
 	AlienCarrier:prepare()
+
+	MapX = MapCols * CurrentStage
+	MapY = 0
 end
 
 function EndLevel()
@@ -223,9 +229,7 @@ function Draw()
 end
 
 function DrawBg()
-	local cols=30
-	local rows=17
-	map(30,0,cols,rows)
+	map(MapX, MapY, MapCols, MapRows)
 end
 
 function DrawGameObjects()

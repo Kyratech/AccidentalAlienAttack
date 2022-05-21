@@ -9,6 +9,9 @@ HalfScreenWidth = ScreenWidth / 2
 ScreenHeight = 136
 HalfScreenHeight = ScreenHeight / 2
 
+MapCols=30
+MapRows=17
+
 LeftWallX = 22
 RightWallX = 218
 TopY = 20
