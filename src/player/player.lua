@@ -107,11 +107,13 @@ function CreatePlayer()
 			self:disable()
 		end,
 		getWeaponPower = function (self, weapon)
-			if (self.weaponType ~= weapon) then
-				self.weaponType = weapon
-				self.weaponPower = 1
-			elseif (self.weaponPower < 4) then
-				self.weaponPower = self.weaponPower + 1
+			if (self.weaponPower < 4) then
+				if (self.weaponType ~= weapon) then
+					self.weaponType = weapon
+					self.weaponPower = 1
+				else
+					self.weaponPower = self.weaponPower + 1
+				end
 			end
 		end,
 		checkCollision = function (self)
