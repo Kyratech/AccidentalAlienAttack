@@ -26,11 +26,12 @@ function CreateDiveAlienDiving(x, y)
 		y = y,
 		w = 6,
 		h = 8,
+		speed = DiveAlienConsts.diveSpeed * AlienShotSpeedOptions[GameSettings.alienShotSpeed].value,
 		draw = function (self)
 			spr(423, self.x - 1, self.y, 12)
 		end,
 		update = function (self)
-			self.y = self.y + DiveAlienConsts.diveSpeed
+			self.y = self.y + self.speed
 		end,
 		checkCollision = function (self, i)
 			-- Check bottom of screen
@@ -51,7 +52,7 @@ function CreateDiveAlienDiving(x, y)
 			end
 		end,
 		die = function (self, i)
-			Explosion:enable(self.x, self.y)
+			Explosion:enable(self.x - 1, self.y)
 		
 			SpecialAlienRemove(i)
 		end
