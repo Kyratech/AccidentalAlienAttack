@@ -29,31 +29,31 @@ ScriptStageInterludes = {
 			speaker = "human"
 		},
 		{
-			text = "Less than you would fear.",
+			text = "How would you feel if I said...",
 			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		},
 		{
-			text = "...More than you would hope.",
+			text = "...that they self replicate?",
 			ani = DialogueAlienAnis.wince,
 			speaker = "alien"
 		}
 	},
 	{
 		{
-			text = "These guys are getting stronger...",
+			text = "Whew, those ones are tough!",
 			ani = DialogueHumanAnis.determined,
 			speaker = "human"
 		},
 		{
-			text = "It's part of their routines,",
+			text = "They evolve when in danger!",
 			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		},
 		{
-			text = "To evolve when under threat.",
-			ani = DialogueAlienAnis.nervousLaugh,
-			speaker = "alien"
+			text = "...You don't say.",
+			ani = DialogueHumanAnis.pout,
+			speaker = "human"
 		}
 	},
 	{
@@ -63,35 +63,57 @@ ScriptStageInterludes = {
 			speaker = "alien"
 		},
 		{
-			text = "Never...better!",
+			text = "BOMBS!? REALLY!?",
 			ani = DialogueHumanAnis.determined,
 			speaker = "human"
 		},
 		{
-			text = "I think I detect sarcasm...",
+			text = "I'll take that as a no.",
 			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		}
 	},
 	{
 		{
-			text = "I think they're running out!",
+			text = "They're becoming desperate!",
 			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		},
 		{
-			text = "When this is over...",
+			text = "You think?",
 			ani = DialogueHumanAnis.determined,
 			speaker = "human"
 		},
 		{
-			text = "We're having a chat about this.",
+			text = "Cos I'm feeling the same!",
 			ani = DialogueHumanAnis.pout,
 			speaker = "human"
 		},
 		{
-			text = "Are you asking me on a date?",
+			text = "I believe in you!",
 			ani = DialogueAlienAnis.relief,
+			speaker = "alien"
+		}
+	},
+	{
+		{
+			text = "Shields! How novel!",
+			ani = DialogueAlienAnis.relief,
+			speaker = "alien"
+		},
+		{
+			text = "HEY! Don't congratulate them!",
+			ani = DialogueHumanAnis.pout,
+			speaker = "human"
+		},
+		{
+			text = "They're definitely haywire.",
+			ani = DialogueAlienAnis.worried,
+			speaker = "alien"
+		},
+		{
+			text = "But I'm still proud of them.",
+			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		}
 	}
@@ -101,6 +123,7 @@ ScriptStageInterludesLengths = {
 	4,
 	3,
 	3,
+	4,
 	4
 }
 
@@ -119,7 +142,7 @@ ScriptGameOverGood = {
 		text = "Thank you, overly cocky human.",
 		ani = DialogueAlienAnis.nervousLaugh,
 		speaker = "alien"
-	},
+	}
 }
 
 ScriptGameOverBad = {
