@@ -13,17 +13,17 @@ PlayerMissileBurstConsts = {
 }
 
 PlayerMissileLaunchPayload = {
-	vertical = function (self, alienY)
-		PlayerMissileBurstLeft:enable(self.x - 3, alienY, 0, -2)
-	end,
+	-- vertical = function (self, alienY)
+	-- 	PlayerMissileBurstLeft:enable(self.x - 3, alienY)
+	-- end,
 	horizontal = function (self, alienY)
-		PlayerMissileBurstLeft:enable(self.x - 3, alienY, -2, 0)
-		PlayerMissileBurstRight:enable(self.x - 3, alienY, 2, 0)
+		PlayerMissileBurstLeft:enable(self.x - 24, alienY + 2)
+		PlayerMissileBurstRight:enable(self.x + 0, alienY + 2)
 	end,
-	diagonal = function (self, alienY)
-		PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
-		PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
-	end,
+	-- diagonal = function (self, alienY)
+	-- 	PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
+	-- 	PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
+	-- end,
 	mortar = function (self, alienY)
 		for i, mortarFragment in pairs(PlayerMortarFragments) do
 			mortarFragment:enable(self.x -1, self.y + 2)
@@ -141,6 +141,94 @@ function CreatePlayerMissileExhaust()
 			self.y = y
 
 			Animate(self, PlayerMissileExhaustAni)
+		end
+	}
+end
+
+PlayerMissileLinearBurstStatus = {
+	disabled = 0,
+	colliding = 1,
+	visible = 2
+}
+
+function CreatePlayerMissileLinearBurst(spriteFlip)
+	return {
+		x = PlayerMissileBurstConsts.storeX,
+		y = PlayerMissileBurstConsts.storeY,
+		w = 24,
+		h = 4,
+		status = PlayerMissileLinearBurstStatus.disabled,
+		spriteFlip = spriteFlip,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = PlayerMissileLinearBurstAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.status = PlayerMissileLinearBurstStatus.colliding
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerMissileLinearBurstAni.sprites[1]
+		end,
+		disable = function (self)
+			self.status = PlayerMissileLinearBurstStatus.disabled
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+		end,
+		draw = function (self)
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
+				-- Have to flip composite sprites by parts
+				spr(
+					self.ani.currentFrame,
+					self.x + 16 * self.spriteFlip,
+					self.y - 2,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 1,
+					self.x + 8,
+					self.y - 2,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 2,
+					self.x + 16 - 16 * self.spriteFlip,
+					self.y - 2,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+			end
+		end,
+		update = function (self)
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
+				AnimateOneshot(self, PlayerMissileLinearBurstAni)
+			end
+		end,
+		checkCollision = function (self)
+			if self.status == PlayerMissileLinearBurstStatus.colliding then
+				-- Only collide on the first frame
+				self.status = PlayerMissileLinearBurstStatus.visible
+
+				-- Check aliens
+				CollideWithAliens(self, function (self, alien) end)
+
+				if Collide(self, AlienCarrier) then
+					Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+					ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+					AlienCarrier:disable()
+
+					Score = Score + 5
+				end
+			end
 		end
 	}
 end

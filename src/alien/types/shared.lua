@@ -4,7 +4,6 @@ AlienConsts = {
 }
 
 function StandardDieFunction(self, formationPosition)
-	Explosion:enable(self.x, self.y)
 	Player:getWeaponPower(self.specialWeapon)
 
 	AlienRemove(formationPosition)

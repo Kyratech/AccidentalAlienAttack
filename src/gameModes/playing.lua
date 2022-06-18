@@ -25,8 +25,8 @@ function StartGame()
 	PlayerShield = CreatePlayerShield()
 	PlayerMissile = CreatePlayerMissile()
 	PlayerMissileExhaust = CreatePlayerMissileExhaust()
-	PlayerMissileBurstLeft = CreatePlayerMissileBurst()
-	PlayerMissileBurstRight = CreatePlayerMissileBurst()
+	PlayerMissileBurstLeft = CreatePlayerMissileLinearBurst(1)
+	PlayerMissileBurstRight = CreatePlayerMissileLinearBurst(0)
 	PlayerMortarFragments = {
 		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
 		CreatePlayerMortarFragment(PlayerMortarDirections.ssw),

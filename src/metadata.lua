@@ -378,8 +378,8 @@ function StartGame()
 	PlayerShield = CreatePlayerShield()
 	PlayerMissile = CreatePlayerMissile()
 	PlayerMissileExhaust = CreatePlayerMissileExhaust()
-	PlayerMissileBurstLeft = CreatePlayerMissileBurst()
-	PlayerMissileBurstRight = CreatePlayerMissileBurst()
+	PlayerMissileBurstLeft = CreatePlayerMissileLinearBurst(1)
+	PlayerMissileBurstRight = CreatePlayerMissileLinearBurst(0)
 	PlayerMortarFragments = {
 		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
 		CreatePlayerMortarFragment(PlayerMortarDirections.ssw),
@@ -2120,17 +2120,17 @@ PlayerMissileBurstConsts = {
 }
 
 PlayerMissileLaunchPayload = {
-	vertical = function (self, alienY)
-		PlayerMissileBurstLeft:enable(self.x - 3, alienY, 0, -2)
-	end,
+	-- vertical = function (self, alienY)
+	-- 	PlayerMissileBurstLeft:enable(self.x - 3, alienY)
+	-- end,
 	horizontal = function (self, alienY)
-		PlayerMissileBurstLeft:enable(self.x - 3, alienY, -2, 0)
-		PlayerMissileBurstRight:enable(self.x - 3, alienY, 2, 0)
+		PlayerMissileBurstLeft:enable(self.x - 20, alienY + 2)
+		PlayerMissileBurstRight:enable(self.x + 4, alienY + 2)
 	end,
-	diagonal = function (self, alienY)
-		PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
-		PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
-	end,
+	-- diagonal = function (self, alienY)
+	-- 	PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
+	-- 	PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
+	-- end,
 	mortar = function (self, alienY)
 		for i, mortarFragment in pairs(PlayerMortarFragments) do
 			mortarFragment:enable(self.x -1, self.y + 2)
@@ -2248,6 +2248,82 @@ function CreatePlayerMissileExhaust()
 			self.y = y
 
 			Animate(self, PlayerMissileExhaustAni)
+		end
+	}
+end
+
+function CreatePlayerMissileLinearBurst(spriteFlip)
+	return {
+		x = PlayerMissileBurstConsts.storeX,
+		y = PlayerMissileBurstConsts.storeY,
+		w = 24,
+		h = 4,
+		spriteFlip = spriteFlip,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = PlayerMissileLinearBurstAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.active = true
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerMissileLinearBurstAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+		end,
+		draw = function (self)
+			if self.active == true then
+				-- Have to flip composite sprites by parts
+				spr(
+					self.ani.currentFrame,
+					self.x + 16 * self.spriteFlip,
+					self.y - 2,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 1,
+					self.x + 8,
+					self.y - 2,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 2,
+					self.x + 16 - 16 * self.spriteFlip,
+					self.y - 2,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+			end
+		end,
+		update = function (self)
+			if self.active == true then
+				AnimateOneshot(self, PlayerMissileLinearBurstAni)
+			end
+		end,
+		checkCollision = function (self)
+			-- Check aliens
+			CollideWithAliens(self, function (self, alien) end)
+
+			if Collide(self, AlienCarrier) then
+				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+				AlienCarrier:disable()
+
+				Score = Score + 5
+			end
 		end
 	}
 end
@@ -3056,6 +3132,8 @@ function CreateDodgeAlien(i, j)
 		StandardDieFunction
 	)
 
+	dodgeAlien.dodgeEffect = CreateDodgeEffect()
+
 	dodgeAlien.dodgeDirection = AlienDodgeDirection.none
 	dodgeAlien.calculateNextDodge = function (self)
 		local canDodgeLeft = false
@@ -3098,11 +3176,17 @@ function CreateDodgeAlien(i, j)
 	end
 
 	dodgeAlien.dodge = function (self)
+		if self.dodgeDirection ~= 0 then
+			self.dodgeEffect:enable(self.x, self.y, self.dodgeDirection)
+		end
+		
 		self.column = self.column + self.dodgeDirection
 		self:calculateNextDodge()
 	end
 
 	dodgeAlien.update = function (self)
+		self.dodgeEffect:update()
+
 		local formationOffsetX = (self.column - 1) * 16
 		local formationOffsetY = (self.row - 1) * 10
 
@@ -3117,6 +3201,8 @@ function CreateDodgeAlien(i, j)
 	end
 
 	dodgeAlien.draw = function (self)
+		self.dodgeEffect:draw()
+
 		local spriteFlip = 0
 		if self.dodgeDirection == AlienDodgeDirection.left then
 			spriteFlip = 1
@@ -3138,6 +3224,75 @@ function AliensDodge()
 	for i = 1, AlienIndexesThatCanDodgeCount, 1 do
 		Aliens[AlienIndexesThatCanDodge[i]]:dodge()
 	end
+end
+
+function CreateDodgeEffect()
+	return {
+		active = false,
+		x = ExplosionConsts.storeX,
+		y = ExplosionConsts.storeY,
+		spriteFlip = 0,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = AlienDodgeEffectAni.sprites[1]
+		},
+		enable = function (self, x, y, direction)
+			self.active = true
+			self.x = x
+			self.y = y
+
+			self.spriteFlip = 0
+			if direction == AlienDodgeDirection.left then
+				self.spriteFlip = 1
+			end
+
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = AlienDodgeEffectAni.sprites[1]
+		end,
+		disable = function (self)
+			self.active = false
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+		end,
+		draw = function (self)
+			if self.active == true then
+				-- Have to flip composite sprites by parts
+				spr(
+					self.ani.currentFrame,
+					self.x,
+					self.y,
+					AlienDodgeEffectAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 1,
+					self.x + 8 - 16 * self.spriteFlip,
+					self.y,
+					AlienDodgeEffectAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 2,
+					self.x + 16 - 32 * self.spriteFlip,
+					self.y,
+					AlienDodgeEffectAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+			end
+		end,
+		update = function (self)
+			if self.active == true then
+				AnimateOneshot(self, AlienDodgeEffectAni)
+			end
+		end
+	}
 end
 
 AlienConsts = {
@@ -3742,93 +3897,505 @@ end
 
 -- For testing end-of-stage behaviour
 
-NumberOfStages = 5
-NumberOfLevelsPerStage = 2
+NumberOfStages = 6
+NumberOfLevelsPerStage = 10
 
 Formations = {
 	{
+		-- 1-1
 		{
-			5, 7, 6, 3, 3, 3, 3, 6, 7, 5,
-			5, 7, 6, 0, 0, 0, 0, 6, 7, 5,
-			5, 7, 6, 0, 0, 0, 0, 6, 7, 5,
-			5, 7, 6, 0, 0, 0, 0, 6, 7, 5,
+			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		},
+		-- 1-2
 		{
-			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
-			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
-			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
-			1, 0, 1, 1, 1, 1, 1, 0, 1, 0,
-			0, 0, 1, 1, 1, 1, 1, 0, 0, 0
+			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 1-3
+		{
+			2, 0, 2, 0, 2, 2, 0, 2, 0, 2,
+			0, 2, 0, 2, 0, 0, 2, 0, 2, 0,
+			0, 0, 2, 0, 0, 0, 0, 2, 0, 0,
+			0, 0, 0, 2, 2, 2, 2, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 1-4
+		{
+			2, 2, 2, 0, 0, 0, 0, 2, 2, 2,
+			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
+			3, 3, 3, 0, 0, 0, 0, 3, 3, 3,
+			0, 0, 0, 3, 3, 3, 3, 0, 0, 0,
+			0, 0, 0, 0, 3, 3, 0, 0, 0, 0
+		},
+		-- 1-5
+		{
+			3, 3, 3, 2, 2, 2, 2, 3, 3, 3,
+			3, 3, 3, 2, 2, 2, 2, 3, 3, 3,
+			0, 0, 0, 2, 2, 2, 2, 0, 0, 0,
+			1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+			0, 1, 0, 1, 0, 1, 0, 1, 0, 1
+		},
+		-- 1-6
+		{
+			1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
+			1, 1, 1, 0, 2, 2, 0, 1, 1, 1,
+			1, 1, 1, 0, 2, 2, 0, 1, 1, 1,
+			3, 0, 3, 0, 0, 0, 0, 3, 0, 3,
+			0, 3, 0, 0, 0, 0, 0, 0, 3, 0
+		},
+		-- 1-7
+		{
+			0, 0, 2, 3, 3, 3, 3, 2, 0, 0,
+			0, 0, 2, 3, 3, 3, 3, 2, 0, 0,
+			0, 0, 0, 3, 3, 3, 3, 0, 0, 0,
+			0, 0, 1, 1, 1, 1, 1, 1, 0, 0,
+			0, 1, 1, 1, 0, 0, 1, 1, 1, 0
+		},
+		-- 1-8
+		{
+			0, 0, 3, 3, 3, 3, 3, 3, 0, 0,
+			0, 0, 1, 2, 3, 3, 2, 1, 0, 0,
+			0, 0, 1, 2, 3, 3, 2, 1, 0, 0,
+			0, 0, 1, 2, 2, 2, 2, 1, 0, 0,
+			0, 0, 1, 2, 2, 2, 2, 1, 0, 0
+		},
+		-- 1-9
+		{
+			1, 0, 3, 0, 1, 0, 3, 0, 1, 0,
+			1, 0, 3, 0, 1, 0, 3, 0, 1, 0,
+			1, 0, 3, 0, 1, 0, 3, 0, 1, 0,
+			1, 0, 3, 0, 1, 0, 3, 0, 1, 0,
+			1, 0, 3, 0, 1, 0, 3, 0, 1, 0
+		},
+		-- 1-10
+		{
+			1, 0, 1, 0, 2, 2, 0, 1, 0, 1,
+			0, 1, 0, 1, 2, 2, 1, 0, 1, 0,
+			0, 0, 0, 0, 2, 2, 0, 0, 0, 0,
+			3, 3, 3, 3, 2, 2, 3, 3, 3, 3,
+			3, 3, 3, 3, 2, 2, 3, 3, 3, 3
 		}
 	},
 	{
+		-- 2-1
 		{
-			0, 2, 0, 2, 0, 0, 2, 0, 2, 0,
-			2, 0, 2, 0, 2, 2, 0, 2, 0, 2,
+			0, 0, 0, 4, 4, 4, 4, 0, 0, 0,
+			0, 0, 0, 4, 4, 4, 4, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-2
+		{
+			4, 4, 3, 3, 3, 3, 3, 3, 4, 4,
+			4, 4, 1, 1, 1, 1, 1, 1, 4, 4,
+			0, 0, 1, 1, 1, 1, 1, 1, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-3
+		{
+			3, 3, 3, 2, 2, 2, 2, 3, 3, 3,
+			3, 3, 3, 4, 4, 4, 4, 3, 3, 3,
+			3, 3, 3, 1, 1, 1, 1, 3, 3, 3,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-4
+		{
+			0, 0, 2, 2, 1, 1, 2, 2, 0, 0,
+			0, 4, 2, 2, 1, 1, 2, 2, 4, 0,
+			4, 0, 4, 0, 1, 1, 0, 4, 0, 4,
+			0, 4, 0, 0, 0, 0, 0, 0, 4, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-5
+		{
+			4, 4, 0, 3, 3, 3, 3, 0, 4, 4,
+			4, 4, 0, 3, 3, 3, 3, 0, 4, 4,
+			4, 4, 0, 3, 3, 3, 3, 0, 4, 4,
+			0, 0, 0, 3, 3, 3, 3, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-6
+		{
+			4, 0, 4, 0, 4, 4, 0, 4, 0, 4,
+			0, 4, 0, 4, 0, 0, 4, 0, 4, 0,
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-7
+		{
+			3, 3, 0, 0, 3, 3, 0, 0, 3, 3,
+			2, 2, 0, 0, 2, 2, 0, 0, 2, 2,
+			1, 1, 0, 0, 1, 1, 0, 0, 1, 1,
+			4, 4, 0, 0, 4, 4, 0, 0, 4, 4,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-8
+		{
+			4, 4, 4, 0, 0, 0, 4, 4, 4, 0,
+			0, 0, 0, 4, 4, 4, 0, 0, 0, 0,
+			1, 1, 1, 2, 0, 2, 1, 1, 1, 0,
+			1, 1, 1, 2, 0, 2, 1, 1, 1, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-9
+		{
+			4, 4, 0, 2, 3, 3, 2, 0, 4, 4,
+			4, 4, 0, 2, 3, 3, 2, 0, 4, 4,
+			4, 4, 0, 2, 3, 3, 2, 0, 4, 4,
+			3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 2-10
+		{
+			3, 3, 3, 1, 1, 1, 1, 2, 2, 2,
+			3, 3, 3, 1, 1, 1, 1, 2, 2, 2,
+			4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+			4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+	},
+	{
+		-- 3-1
+		{
+			0, 0, 0, 6, 6, 6, 6, 0, 0, 0,
+			0, 0, 0, 6, 6, 6, 6, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 3-2
+		{
+			0, 3, 1, 2, 2, 2, 2, 1, 3, 0,
+			0, 3, 1, 2, 2, 2, 2, 1, 3, 0,
+			0, 3, 6, 2, 2, 2, 2, 1, 6, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 3-3
+		{
+			3, 3, 3, 2, 2, 2, 1, 1, 1, 0,
+			3, 6, 3, 2, 6, 2, 1, 6, 1, 0,
+			3, 3, 3, 2, 2, 2, 1, 1, 1, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 3-4
+		{
+			0, 6, 0, 6, 0, 0, 6, 0, 6, 0,
+			0, 2, 6, 2, 0, 0, 2, 6, 2, 0,
+			0, 2, 2, 2, 0, 0, 2, 2, 2, 0,
+			0, 1, 1, 1, 0, 0, 1, 1, 1, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 3-5
+		{
+			6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+			3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 3-6
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 4, 1, 2, 3, 3, 2, 1, 4, 0,
+			0, 4, 1, 2, 3, 3, 2, 1, 4, 0,
+			0, 6, 0, 0, 0, 0, 0, 0, 6, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 3-7
+		{
+			0, 3, 3, 1, 2, 2, 1, 3, 3, 0,
+			0, 0, 3, 1, 2, 2, 1, 3, 0, 0,
+			0, 0, 0, 1, 6, 6, 1, 0, 0, 0,
+			0, 0, 0, 0, 4, 4, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 3-8
+		{
+			0, 0, 1, 6, 6, 6, 6, 1, 0, 0,
+			0, 0, 1, 1, 1, 1, 1, 1, 0, 0,
+			0, 0, 1, 4, 4, 4, 4, 1, 0, 0,
+			0, 0, 1, 1, 1, 1, 1, 1, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 3-9
+		{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 			2, 0, 0, 2, 0, 0, 2, 0, 0, 2,
-			2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 2, 0, 0, 2, 0, 0, 2,
+			2, 6, 6, 2, 0, 0, 2, 6, 6, 2,
+			2, 6, 6, 2, 0, 0, 2, 6, 6, 2
+		},
+		-- 3-10
+		{
+			0, 0, 0, 6, 3, 4, 1, 2, 6, 3,
+			0, 0, 6, 3, 4, 1, 2, 6, 3, 0,
+			0, 6, 3, 4, 1, 2, 6, 3, 0, 0,
+			6, 3, 4, 1, 2, 6, 3, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
+	},
+	{
+		-- 4-1
+		{
+			5, 0, 5, 0, 5, 0, 5, 0, 5, 0,
+			0, 5, 0, 5, 0, 5, 0, 5, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 4-2
+		{
+			0, 0, 0, 3, 1, 3, 1, 0, 0, 0,
+			2, 2, 2, 1, 3, 1, 3, 2, 2, 2,
+			5, 5, 5, 3, 1, 3, 1, 5, 5, 5,
+			0, 0, 0, 1, 3, 1, 3, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 4-3
+		{
+			0, 2, 2, 0, 1, 1, 0, 2, 2, 0,
+			0, 1, 1, 0, 2, 2, 0, 1, 1, 0,
+			0, 2, 2, 0, 1, 1, 0, 2, 2, 0,
+			0, 1, 1, 0, 2, 2, 0, 1, 1, 0,
+			0, 5, 5, 0, 5, 5, 0, 5, 5, 0
+		},
+		-- 4-4
+		{
+			0, 5, 0, 5, 0, 5, 0, 5, 0, 0,
+			1, 5, 1, 5, 1, 5, 1, 5, 1, 0,
+			0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 4-5
+		{
+			0, 3, 2, 1, 5, 5, 1, 2, 3, 0,
+			0, 0, 2, 1, 5, 5, 1, 2, 0, 0,
+			0, 0, 0, 1, 5, 5, 1, 0, 0, 0,
+			0, 0, 0, 5, 5, 5, 5, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 4-6
+		{
+			0, 6, 6, 0, 0, 0, 0, 6, 6, 0,
+			0, 0, 0, 5, 5, 5, 5, 0, 0, 0,
+			0, 0, 0, 3, 3, 3, 3, 0, 0, 0,
+			0, 1, 1, 0, 0, 0, 0, 1, 1, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 4-7
+		{
+			0, 2, 3, 0, 1, 1, 0, 3, 2, 0,
+			0, 2, 3, 0, 6, 6, 0, 3, 2, 0,
+			0, 4, 4, 4, 4, 4, 4, 4, 4, 0,
+			0, 2, 3, 0, 5, 5, 0, 3, 2, 0,
+			0, 0, 0, 0, 5, 5, 0, 0, 0, 0
+		},
+		-- 4-8
+		{
+			5, 1, 2, 6, 6, 6, 6, 2, 1, 5,
+			5, 1, 2, 4, 4, 4, 4, 2, 1, 5,
+			5, 1, 0, 0, 0, 0, 0, 0, 1, 5,
+			5, 0, 0, 0, 0, 0, 0, 0, 0, 5,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 4-9
+		{
+			4, 4, 5, 5, 4, 4, 5, 5, 4, 4,
+			0, 0, 5, 5, 0, 0, 5, 5, 0, 0,
+			2, 2, 0, 0, 2, 2, 0, 0, 2, 2,
+			2, 2, 0, 0, 2, 2, 0, 0, 2, 2,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 4-10
+		{
+			5, 5, 5, 5, 6, 6, 5, 5, 5, 5,
+			4, 4, 4, 4, 6, 6, 4, 4, 4, 4,
+			3, 3, 2, 2, 3, 3, 2, 2, 3, 3,
+			1, 1, 1, 1, 2, 2, 1, 1, 1, 1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
+	},
+	{
+		-- 5-1
+		{
+			0, 0, 0, 8, 8, 8, 8, 0, 0, 0,
+			0, 0, 0, 8, 8, 8, 8, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 5-2
+		{
+			2, 1, 1, 3, 8, 3, 1, 1, 2, 0,
+			0, 2, 1, 3, 8, 3, 1, 2, 0, 0,
+			0, 0, 2, 3, 8, 3, 2, 0, 0, 0,
+			0, 0, 0, 2, 8, 2, 0, 0, 0, 0,
+			0, 0, 0, 0, 2, 0, 0, 0, 0, 0
+		},
+		-- 5-3
+		{
+			0, 3, 8, 3, 2, 2, 3, 8, 3, 0,
+			0, 3, 8, 3, 2, 2, 3, 8, 3, 0,
+			0, 1, 8, 1, 3, 3, 1, 8, 1, 0,
+			0, 1, 8, 1, 3, 3, 1, 8, 1, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 5-4
+		{
+			3, 0, 1, 0, 0, 0, 0, 1, 0, 3,
+			3, 8, 1, 8, 2, 2, 8, 1, 8, 3,
+			3, 8, 1, 8, 2, 2, 8, 1, 8, 3,
+			3, 0, 1, 0, 0, 0, 0, 1, 0, 3,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 5-5
+		{
+			0, 0, 2, 2, 2, 2, 2, 2, 0, 0,
+			0, 3, 8, 8, 3, 3, 8, 8, 3, 0,
+			0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+			0, 0, 8, 8, 8, 8, 8, 8, 0, 0,
+			0, 0, 0, 0, 2, 2, 0, 0, 0, 0
+		},
+		-- 5-6
+		{
+			5, 1, 1, 4, 8, 4, 1, 1, 5, 0,
+			0, 5, 1, 2, 8, 2, 1, 5, 0, 0,
+			0, 0, 5, 2, 8, 2, 5, 0, 0, 0,
+			0, 0, 0, 3, 8, 3, 0, 0, 0, 0,
+			0, 0, 0, 0, 3, 0, 0, 0, 0, 0
+		},
+		-- 5-7
+		{
+			0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+			0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+			0, 3, 5, 3, 1, 1, 3, 5, 3, 0,
+			0, 3, 8, 3, 4, 4, 3, 8, 3, 0,
+			0, 3, 8, 3, 4, 4, 3, 8, 3, 0
+		},
+		-- 5-8
+		{
+			6, 6, 6, 6, 5, 5, 6, 6, 6, 6,
+			0, 2, 2, 8, 6, 6, 8, 2, 2, 0,
+			0, 0, 2, 8, 6, 6, 8, 2, 0, 0,
+			0, 0, 0, 8, 6, 6, 8, 0, 0, 0,
+			0, 0, 0, 8, 6, 6, 8, 0, 0, 0
+		},
+		-- 5-9
+		{
+			0, 3, 2, 6, 6, 6, 6, 2, 3, 0,
+			0, 3, 2, 5, 8, 8, 5, 2, 3, 0,
+			0, 0, 2, 5, 8, 8, 5, 2, 0, 0,
+			0, 0, 0, 5, 8, 8, 5, 0, 0, 0,
+			0, 0, 0, 5, 8, 8, 5, 0, 0, 0
+		},
+		-- 5-10
+		{
+			6, 8, 6, 5, 5, 5, 5, 6, 8, 6,
+			4, 8, 4, 1, 1, 1, 1, 4, 8, 4,
+			4, 8, 4, 1, 1, 1, 1, 4, 8, 4,
+			4, 8, 4, 3, 3, 3, 3, 4, 8, 4,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
+	},
+	{
+		-- 6-1
+		{
+			0, 0, 1, 7, 1, 1, 7, 1, 0, 0,
+			0, 0, 1, 7, 1, 1, 7, 1, 0, 0,
+			0, 0, 1, 7, 1, 1, 7, 1, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 6-2
+		{
+			3, 2, 3, 2, 3, 2, 3, 2, 3, 0,
+			2, 1, 2, 1, 2, 1, 2, 1, 2, 0,
+			0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+			0, 7, 0, 7, 0, 7, 0, 7, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 6-3
+		{
+			1, 7, 3, 3, 7, 7, 3, 3, 7, 1,
+			1, 7, 3, 3, 7, 7, 3, 3, 7, 1,
+			1, 7, 3, 3, 7, 7, 3, 3, 7, 1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 6-4
+		{
+			3, 7, 7, 7, 2, 2, 7, 7, 7, 3,
+			3, 7, 7, 2, 0, 0, 2, 7, 7, 3,
+			3, 7, 2, 0, 0, 0, 0, 2, 7, 3,
+			3, 2, 0, 0, 0, 0, 0, 0, 2, 3,
 			2, 0, 0, 0, 0, 0, 0, 0, 0, 2
 		},
+		-- 6-5
 		{
-			3, 0, 0, 1, 1, 1, 1, 0, 0, 3,
-			3, 0, 0, 1, 1, 1, 1, 0, 0, 3,
-			3, 0, 0, 1, 1, 1, 1, 0, 0, 3,
-			3, 0, 0, 1, 1, 1, 1, 0, 0, 3,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-		}
-	},
-	{
-		{
-			2, 0, 3, 3, 3, 3, 3, 0, 2, 0,
-			2, 0, 3, 3, 3, 3, 0, 0, 2, 0,
-			2, 0, 3, 3, 3, 0, 0, 0, 2, 0,
-			2, 0, 3, 3, 0, 0, 0, 0, 2, 0,
-			2, 0, 3, 0, 0, 0, 0, 0, 2, 0
-		},
-		{
-			3, 0, 1, 1, 3, 1, 1, 0, 3, 0,
-			3, 0, 1, 1, 3, 1, 1, 0, 3, 0,
-			3, 0, 1, 1, 3, 1, 1, 0, 3, 0,
-			3, 0, 1, 1, 3, 1, 1, 0, 3, 0,
-			0, 0, 1, 1, 3, 1, 1, 0, 0, 0
-		}
-	},
-	{
-		{
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-			1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 2, 3, 7, 7, 7, 7, 3, 2, 1,
+			1, 2, 3, 7, 7, 7, 7, 3, 2, 1,
+			0, 0, 1, 2, 3, 3, 2, 1, 0, 0,
+			0, 0, 1, 2, 3, 3, 2, 1, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		},
+		-- 6-6
 		{
-			1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-			1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-			1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-			1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-			1, 0, 1, 0, 1, 0, 1, 0, 1, 0
-		}
-	},
-	{
-		{
-			3, 2, 0, 0, 1, 1, 0, 0, 2, 3,
-			3, 2, 2, 0, 1, 1, 0, 2, 2, 3,
-			3, 0, 2, 2, 1, 1, 2, 2, 0, 3,
-			3, 0, 0, 2, 2, 2, 2, 0, 0, 3,
-			3, 0, 0, 0, 2, 2, 0, 0, 0, 3
+			0, 0, 3, 7, 6, 6, 7, 3, 0, 0,
+			0, 0, 3, 7, 3, 3, 7, 3, 0, 0,
+			0, 0, 3, 7, 3, 3, 7, 3, 0, 0,
+			0, 0, 3, 4, 3, 3, 4, 3, 0, 0,
+			0, 0, 0, 4, 0, 0, 4, 0, 0, 0
 		},
+		-- 6-7
 		{
-			1, 2, 3, 2, 1, 1, 2, 3, 2, 1,
-			1, 2, 3, 2, 1, 1, 2, 3, 2, 1,
-			1, 2, 3, 2, 1, 1, 2, 3, 2, 1,
-			1, 2, 3, 2, 1, 1, 2, 3, 2, 1,
-			1, 2, 3, 2, 1, 1, 2, 3, 2, 1
-		}
+			0, 6, 6, 0, 7, 7, 0, 6, 6, 0,
+			0, 6, 6, 0, 7, 7, 0, 6, 6, 0,
+			0, 4, 4, 8, 8, 8, 8, 4, 4, 0,
+			0, 5, 5, 0, 1, 1, 0, 5, 5, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 6-8
+		{
+			0, 5, 7, 2, 1, 1, 2, 7, 5, 0,
+			0, 5, 7, 2, 1, 1, 2, 7, 5, 0,
+			0, 5, 7, 2, 1, 1, 2, 7, 5, 0,
+			0, 3, 8, 8, 3, 3, 8, 8, 3, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		},
+		-- 6-9
+		{
+			1, 2, 3, 8, 7, 7, 8, 3, 2, 1,
+			1, 2, 3, 8, 7, 7, 8, 3, 2, 1,
+			0, 2, 3, 8, 7, 7, 8, 3, 2, 0,
+			0, 0, 3, 8, 7, 7, 8, 3, 0, 0,
+			0, 0, 0, 8, 4, 4, 8, 0, 0, 0
+		},
+		-- 6-10
+		{
+			6, 6, 6, 6, 5, 5, 6, 6, 6, 6,
+			5, 5, 5, 5, 7, 7, 5, 5, 5, 5,
+			3, 3, 3, 3, 7, 7, 3, 3, 3, 3,
+			1, 7, 7, 1, 7, 7, 1, 7, 7, 1,
+			8, 4, 4, 8, 8, 8, 8, 4, 4, 8
+		},
 	}
 }
 
--- Will softlock if spawned - for dev use only.
+-- Will crash if spawned - for dev use only.
 Formation_Empty = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -4257,31 +4824,31 @@ ScriptStageInterludes = {
 			speaker = "human"
 		},
 		{
-			text = "Less than you would fear.",
+			text = "How would you feel if I said...",
 			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		},
 		{
-			text = "...More than you would hope.",
+			text = "...that they self replicate?",
 			ani = DialogueAlienAnis.wince,
 			speaker = "alien"
 		}
 	},
 	{
 		{
-			text = "These guys are getting stronger...",
+			text = "Whew, those ones are tough!",
 			ani = DialogueHumanAnis.determined,
 			speaker = "human"
 		},
 		{
-			text = "It's part of their routines,",
+			text = "They evolve when in danger!",
 			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		},
 		{
-			text = "To evolve when under threat.",
-			ani = DialogueAlienAnis.nervousLaugh,
-			speaker = "alien"
+			text = "...You don't say.",
+			ani = DialogueHumanAnis.pout,
+			speaker = "human"
 		}
 	},
 	{
@@ -4291,35 +4858,57 @@ ScriptStageInterludes = {
 			speaker = "alien"
 		},
 		{
-			text = "Never...better!",
+			text = "BOMBS!? REALLY!?",
 			ani = DialogueHumanAnis.determined,
 			speaker = "human"
 		},
 		{
-			text = "I think I detect sarcasm...",
+			text = "I'll take that as a no.",
 			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		}
 	},
 	{
 		{
-			text = "I think they're running out!",
+			text = "They're becoming desperate!",
 			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		},
 		{
-			text = "When this is over...",
+			text = "You think?",
 			ani = DialogueHumanAnis.determined,
 			speaker = "human"
 		},
 		{
-			text = "We're having a chat about this.",
+			text = "Cos I'm feeling the same!",
 			ani = DialogueHumanAnis.pout,
 			speaker = "human"
 		},
 		{
-			text = "Are you asking me on a date?",
+			text = "I believe in you!",
 			ani = DialogueAlienAnis.relief,
+			speaker = "alien"
+		}
+	},
+	{
+		{
+			text = "Shields! How novel!",
+			ani = DialogueAlienAnis.relief,
+			speaker = "alien"
+		},
+		{
+			text = "HEY! Don't congratulate them!",
+			ani = DialogueHumanAnis.pout,
+			speaker = "human"
+		},
+		{
+			text = "They're definitely haywire.",
+			ani = DialogueAlienAnis.worried,
+			speaker = "alien"
+		},
+		{
+			text = "But I'm still proud of them.",
+			ani = DialogueAlienAnis.nervousLaugh,
 			speaker = "alien"
 		}
 	}
@@ -4329,6 +4918,7 @@ ScriptStageInterludesLengths = {
 	4,
 	3,
 	3,
+	4,
 	4
 }
 
@@ -4347,7 +4937,7 @@ ScriptGameOverGood = {
 		text = "Thank you, overly cocky human.",
 		ani = DialogueAlienAnis.nervousLaugh,
 		speaker = "alien"
-	},
+	}
 }
 
 ScriptGameOverBad = {
@@ -4637,6 +5227,13 @@ AlienDodgeReadyAni = {
 	clrIndex = 12
 }
 
+AlienDodgeEffectAni = {
+	frameDelay = 5,
+	length = 5,
+	sprites = { 413, 429, 445, 461, 397 },
+	clrIndex = 0
+}
+
 AlienShieldAni = {
 	frameDelay = 10,
 	length = 4,
@@ -4748,6 +5345,12 @@ PlayerMissileBurstAni = {
 	frameDelay = 2,
 	length = 5,
 	sprites = { 345, 346, 347, 348, 349 }
+}
+
+PlayerMissileLinearBurstAni = {
+	frameDelay = 60,
+	length = 6,
+	sprites = { 480, 496, 499, 502, 505, 508 }
 }
 
 PlayerMortarAni = {
@@ -5318,11 +5921,26 @@ Init()
 -- 219:000aa00000acba0000acba0000abba00000aa000000cc00000dccd00000cc000
 -- 220:00cccb000cbbaba0cbccbabacbccba9acabbaa9abbaaa9ac0ab99ac000aaac00
 -- 221:00ccba000cbbaba0cbccba9acbccaa9acbccaa9ccbaaa9ac0bb99ac000aaaa00
+-- 224:000000000000000000044000444cc400444cc400000440000000000000000000
 -- 228:b0000000b00000000b00000000bccccc00000000000000000000000000000000
 -- 229:000b0000000b000000b00000cb00000000000000000000000000000000000000
 -- 236:00ccca000ca000a0ca00000accb0000accca00caabcbac9b0abbb9b000aaab00
 -- 237:0000cc000c0000b0c000000ac0000000bb000000ab00000c0abc00b000aaa000
 -- 238:00000c00000000b00000000000000000c0000000b00000000b00000000aa0000
+-- 240:0000000000000000044444444ccccccc4ccccccc044444440000000000000000
+-- 241:000000000000000040000440ccccccc4ccccccc4400004400000000000000000
+-- 243:00000000000044400444ccc44ccccccc4ccccccc044444440000000000000000
+-- 244:000000040000004c444444cccccccccccccccccc4444444c0000000400000000
+-- 245:44400000ccc40000cccc4000cccc4000cccc4000cccc4000cccc400044440000
+-- 246:0000000000000333033334433444443433444444003440030000000000000000
+-- 247:00000004300000440003444c444444cc444444cc3344444c0000000400000000
+-- 248:44444000ccccc400cccccc40cccccc40cccccc40cccccc40cccccc4044444400
+-- 249:0000000000000000000022300022330000233333000020000000000000000000
+-- 250:0330000033000000000333332333344433334003334400000000000000000000
+-- 251:0333333034444333444444334444444344444443344444433444443303333330
+-- 252:0000000000000002000000000000222000022222000000000000002200000002
+-- 253:0000000000022200002022200220000200000000000200000220000022000000
+-- 254:0220022022000022220000002203300002033300200330022200022202200020
 -- </SPRITES>
 
 -- <MAP>

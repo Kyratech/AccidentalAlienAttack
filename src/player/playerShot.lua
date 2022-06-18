@@ -40,6 +40,7 @@ function CreatePlayerShot()
 			end
 
 			CollideWithAliens(self, function (self, alien)
+				Explosion:enable(alien.x, alien.y)
 				PlayerShot:reset()
 			end)
 
