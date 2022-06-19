@@ -58,6 +58,7 @@ CreateScreenTransition = function ()
 		end,
 		input = function (self)
 			if self.state == ScreenTransitionStates.complete and btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				if CurrentStage > NumberOfStages then
 					GameOver(ScriptGameOverGood, 3)
 				else

@@ -31,6 +31,7 @@ function CreatePlayer()
 		statusTimer = 0,
 		weaponType = PlayerWeapons.none,
 		weaponPower = 0,
+		canShoot = false,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
@@ -89,12 +90,14 @@ function CreatePlayer()
 			self.ani.delayCounter = 0
 			self.ani.currentCounter = 1
 			self.ani.currentFrame = PlayerLeftAni.sprites[1]
+			self.canShoot = true
 		end,
 		disable = function (self)
 			self.active = false
 			self.ani.delayCounter = 0
 			self.ani.currentCounter = 1
 			self.ani.currentFrame = PlayerDeadAni.sprites[1]
+			self.canShoot = false
 		end,
 		respawn = function (self)
 			self:activateStatus(PlayerStatuses.shield, PlayerConsts.respawnShieldLength)

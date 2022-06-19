@@ -102,6 +102,8 @@ function StartLevel(formation)
 
 	MapX = MapCols * CurrentStage
 	MapY = MapRows * ShowBackgroundsOptions[GameSettings.showBackgrounds].value
+
+	Player.canShoot = true
 end
 
 function EndLevel()
@@ -118,6 +120,7 @@ function EndStage()
 	CurrentLevel = 1
 	CurrentStage = CurrentStage + 1
 
+	Player.canShoot = false
 	Player:activateStatus(PlayerStatuses.shield, PlayerConsts.powerupShieldLength)
 	ScreenTransition:start()
 end
@@ -144,11 +147,11 @@ function Input()
 	end
 
 	if btnp(BtnA) then
-		if Player.active == true then
+		if Player.canShoot == true then
 			PlayerShot:shoot()
 		end
 	elseif btnp(BtnB) then
-		if Player.active == true and Player.weaponPower == 4 then
+		if Player.canShoot == true and Player.weaponPower == 4 then
 			SpecialWeaponPicker[Player.weaponType]()
 		end
 	end
