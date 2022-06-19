@@ -389,11 +389,10 @@ function StartGame()
 	PlayerMissileBurstDiagonalRight = CreatePlayerMissileDiagonalBurst(0)
 
 	PlayerMortarFragments = {
+		CreatePlayerMortarFragment(PlayerMortarDirections.nw),
 		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
-		CreatePlayerMortarFragment(PlayerMortarDirections.ssw),
-		CreatePlayerMortarFragment(PlayerMortarDirections.s),
-		CreatePlayerMortarFragment(PlayerMortarDirections.sse),
-		CreatePlayerMortarFragment(PlayerMortarDirections.se)
+		CreatePlayerMortarFragment(PlayerMortarDirections.se),
+		CreatePlayerMortarFragment(PlayerMortarDirections.ne)
 	}
 	PlayerSwarmGroup = CreateSpecialWeaponSwarmGroup()
 	PlayerBubble = CreateSpecialWeaponBubble()
@@ -2598,11 +2597,13 @@ end
 
 -- I'm using compass directions as a shorthand even though north isnt actually up
 PlayerMortarDirections = {
+	nw = { x = -0.71, y = -0.71 },
 	sw = { x = -0.71, y = 0.71 },
 	ssw = { x = -0.38, y = 0.92 },
 	s = { x = 0, y = 1 },
 	sse = { x = 0.38, y = 0.92 },
 	se = { x = 0.71, y = 0.71 },
+	ne = { x = 0.71, y = -0.71 }
 }
 
 function CreatePlayerMortarFragment(mortarDirection)
@@ -2646,6 +2647,7 @@ function CreatePlayerMortarFragment(mortarDirection)
 			-- Check aliens
 			CollideWithAliens(self, function (self, alien)
 				self:disable()
+				sfx(soundEffects.explosionStandard)
 			end)
 
 			if Collide(self, AlienCarrier) then
@@ -2653,6 +2655,8 @@ function CreatePlayerMortarFragment(mortarDirection)
 				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
 				AlienCarrier:disable()
 				self:disable()
+
+				sfx(soundEffects.explosionBigAlt)
 
 				Score = Score + 5
 			end
@@ -4136,10 +4140,10 @@ Formations = {
 			-- 0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
 			-- 0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
 			-- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-			2, 0, 2, 0, 2, 2, 0, 2, 0, 2,
-			0, 2, 0, 2, 0, 0, 2, 0, 2, 0,
-			0, 0, 2, 0, 0, 0, 0, 2, 0, 0,
-			0, 0, 0, 2, 2, 2, 2, 0, 0, 0,
+			0, 0, 0, 6, 6, 6, 6, 0, 0, 0,
+			0, 0, 0, 6, 6, 6, 6, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		},
 		-- 1-2
@@ -4810,6 +4814,11 @@ CreateScreenTransition = function ()
 		leadingPoint = 0,
 		state = ScreenTransitionStates.disabled,
 		textCountdown = 90,
+		playingSound = {
+			false,
+			false,
+			false
+		},
 		draw = function (self)
 			if self.state ~= ScreenTransitionStates.disabled then
 				local triangleBackX = self.leadingPoint - HalfScreenHeight
@@ -4830,14 +4839,26 @@ CreateScreenTransition = function ()
 				end
 
 				if self.textCountdown < 60 then
+					if self.playingSound[1] == false then
+						self.playingSound[1] = true
+						sfx(soundEffects.uiDing)
+					end
 					PrintCustomCentred("zone", HalfScreenWidth, HalfScreenHeight - 8)
 				end
 
 				if self.textCountdown < 30 then
+					if self.playingSound[2] == false then
+						self.playingSound[2] = true
+						sfx(soundEffects.uiDing)
+					end
 					PrintCustomCentred("cleared", HalfScreenWidth, HalfScreenHeight)
 				end
 
 				if self.textCountdown <= 0 then
+					if self.playingSound[3] == false then
+						self.playingSound[3] = true
+						sfx(soundEffects.uiDing)
+					end
 					DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
 				end
 			end
@@ -4873,6 +4894,11 @@ CreateScreenTransition = function ()
 		end,
 		start = function (self)
 			self.state = ScreenTransitionStates.animating
+			self.playingSound = {
+				false,
+				false,
+				false
+			}
 		end,
 		reset = function (self)
 			self.state = ScreenTransitionStates.disabled
@@ -5906,7 +5932,7 @@ Init()
 -- 153:1111111111111111111111111111111111111111111111111111111111111111
 -- 154:0000000011100000111111001111111111111111111111111111111111111111
 -- 156:00000000000cc000000cc00000cc0c000000cc000cccc0c000000cc000000000
--- 157:00000000000cc0000c0cc0c00000000000c00c0000c00c000c0000c000000000
+-- 157:000000000cc00cc00c0000c0000cc000000cc0000c0000c00cc00cc000000000
 -- 158:ddddddddeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 -- 159:ddddddddeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee1eeeeee1e1eeeeed1de
 -- 160:2ffffeed2ffffddd2fffffdd2fffffddfffffffd222fffff2f2fffff222f2222
