@@ -29,6 +29,8 @@ function StartGame()
 	PlayerMissileBurstVertical = CreatePlayerMissileVerticalBurst()
 	PlayerMissileBurstLeft = CreatePlayerMissileHorizontalBurst(1)
 	PlayerMissileBurstRight = CreatePlayerMissileHorizontalBurst(0)
+	PlayerMissileBurstDiagonalLeft = CreatePlayerMissileDiagonalBurst(1)
+	PlayerMissileBurstDiagonalRight = CreatePlayerMissileDiagonalBurst(0)
 
 	PlayerMortarFragments = {
 		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
@@ -160,9 +162,13 @@ function Update()
 	PlayerMissileBurstVertical:update()
 	PlayerMissileBurstLeft:update()
 	PlayerMissileBurstRight:update()
+	PlayerMissileBurstDiagonalLeft:update()
+	PlayerMissileBurstDiagonalRight:update()
 	PlayerMissileBurstVertical:checkCollision()
 	PlayerMissileBurstLeft:checkCollision()
 	PlayerMissileBurstRight:checkCollision()
+	PlayerMissileBurstDiagonalLeft:checkCollision()
+	PlayerMissileBurstDiagonalRight:checkCollision()
 
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:update()
@@ -247,6 +253,9 @@ function DrawGameObjects()
 	PlayerMissileBurstVertical:draw()
 	PlayerMissileBurstLeft:draw()
 	PlayerMissileBurstRight:draw()
+	PlayerMissileBurstDiagonalLeft:draw()
+	PlayerMissileBurstDiagonalRight:draw()
+
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:draw()
 	end
@@ -270,6 +279,8 @@ function DrawGameObjects()
 	TimestopPowerup:draw()
 
 	ScreenTransition:draw()
+
+	-- DrawAimingDebug()
 end
 
 function DrawUi()
@@ -289,4 +300,8 @@ end
 function DrawMouseDebug()
 	local x,y,left,middle,right,scrollx,scrolly = mouse()
 	print("(" .. x .. "," .. y .. ")", 5, 21, 7)
+end
+
+function DrawAimingDebug()
+	rect(Player.x + 4, 0, 2, ScreenHeight, 12)
 end

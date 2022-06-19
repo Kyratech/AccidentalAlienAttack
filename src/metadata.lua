@@ -376,10 +376,13 @@ function StartGame()
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
 	PlayerShield = CreatePlayerShield()
+
 	PlayerMissile = CreatePlayerMissile()
 	PlayerMissileExhaust = CreatePlayerMissileExhaust()
-	PlayerMissileBurstLeft = CreatePlayerMissileLinearBurst(1)
-	PlayerMissileBurstRight = CreatePlayerMissileLinearBurst(0)
+	PlayerMissileBurstVertical = CreatePlayerMissileVerticalBurst()
+	PlayerMissileBurstLeft = CreatePlayerMissileHorizontalBurst(1)
+	PlayerMissileBurstRight = CreatePlayerMissileHorizontalBurst(0)
+
 	PlayerMortarFragments = {
 		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
 		CreatePlayerMortarFragment(PlayerMortarDirections.ssw),
@@ -504,12 +507,16 @@ function Update()
 
 	PlayerShot:update()
 	PlayerShot:checkCollision()
+
 	PlayerMissile:update()
 	PlayerMissile:checkCollision()
+	PlayerMissileBurstVertical:update()
 	PlayerMissileBurstLeft:update()
 	PlayerMissileBurstRight:update()
+	PlayerMissileBurstVertical:checkCollision()
 	PlayerMissileBurstLeft:checkCollision()
 	PlayerMissileBurstRight:checkCollision()
+
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:update()
 		mortarFragment:checkCollision()
@@ -590,6 +597,7 @@ function DrawGameObjects()
 
 	PlayerShot:draw()
 	PlayerMissile:draw()
+	PlayerMissileBurstVertical:draw()
 	PlayerMissileBurstLeft:draw()
 	PlayerMissileBurstRight:draw()
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
@@ -1782,6 +1790,7 @@ function CreatePlayerShot()
 			end
 
 			CollideWithAliens(self, function (self, alien)
+				Explosion:enable(alien.x, alien.y)
 				PlayerShot:reset()
 			end)
 
@@ -2120,12 +2129,12 @@ PlayerMissileBurstConsts = {
 }
 
 PlayerMissileLaunchPayload = {
-	-- vertical = function (self, alienY)
-	-- 	PlayerMissileBurstLeft:enable(self.x - 3, alienY)
-	-- end,
+	vertical = function (self, alienY)
+		PlayerMissileBurstVertical:enable(self.x - 1, alienY - 20)
+	end,
 	horizontal = function (self, alienY)
-		PlayerMissileBurstLeft:enable(self.x - 20, alienY + 2)
-		PlayerMissileBurstRight:enable(self.x + 4, alienY + 2)
+		PlayerMissileBurstLeft:enable(self.x - 24, alienY + 2)
+		PlayerMissileBurstRight:enable(self.x + 0, alienY + 2)
 	end,
 	-- diagonal = function (self, alienY)
 	-- 	PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
@@ -2252,20 +2261,26 @@ function CreatePlayerMissileExhaust()
 	}
 end
 
-function CreatePlayerMissileLinearBurst(spriteFlip)
+PlayerMissileLinearBurstStatus = {
+	disabled = 0,
+	colliding = 1,
+	visible = 2
+}
+
+function CreatePlayerMissileVerticalBurst()
 	return {
 		x = PlayerMissileBurstConsts.storeX,
 		y = PlayerMissileBurstConsts.storeY,
-		w = 24,
-		h = 4,
-		spriteFlip = spriteFlip,
+		w = 4,
+		h = 24,
+		status = PlayerMissileLinearBurstStatus.disabled,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
 			currentFrame = PlayerMissileLinearBurstAni.sprites[1]
 		},
 		enable = function (self, x, y)
-			self.active = true
+			self.status = PlayerMissileLinearBurstStatus.colliding
 			self.x = x
 			self.y = y
 			self.ani.delayCounter = 0
@@ -2273,12 +2288,97 @@ function CreatePlayerMissileLinearBurst(spriteFlip)
 			self.ani.currentFrame = PlayerMissileLinearBurstAni.sprites[1]
 		end,
 		disable = function (self)
-			self.active = false
+			self.status = PlayerMissileLinearBurstStatus.disabled
 			self.x = ExplosionConsts.storeX
 			self.y = ExplosionConsts.storeY
 		end,
 		draw = function (self)
-			if self.active == true then
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
+				-- Have to rotate composite sprites by parts
+				spr(
+					self.ani.currentFrame,
+					self.x - 2,
+					self.y + 16,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					0,
+					3
+				)
+
+				spr(
+					self.ani.currentFrame + 1,
+					self.x - 2,
+					self.y + 8,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					0,
+					3
+				)
+
+				spr(
+					self.ani.currentFrame + 2,
+					self.x - 2,
+					self.y,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					0,
+					3
+				)
+			end
+		end,
+		update = function (self)
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
+				AnimateOneshot(self, PlayerMissileLinearBurstAni)
+			end
+		end,
+		checkCollision = function (self)
+			if self.status == PlayerMissileLinearBurstStatus.colliding then
+				-- Only collide on the first frame
+				self.status = PlayerMissileLinearBurstStatus.visible
+
+				-- Check aliens
+				CollideWithAliens(self, function (self, alien) end)
+
+				if Collide(self, AlienCarrier) then
+					Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+					ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+					AlienCarrier:disable()
+
+					Score = Score + 5
+				end
+			end
+		end
+	}
+end
+
+function CreatePlayerMissileHorizontalBurst(spriteFlip)
+	return {
+		x = PlayerMissileBurstConsts.storeX,
+		y = PlayerMissileBurstConsts.storeY,
+		w = 24,
+		h = 4,
+		status = PlayerMissileLinearBurstStatus.disabled,
+		spriteFlip = spriteFlip,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = PlayerMissileLinearBurstAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.status = PlayerMissileLinearBurstStatus.colliding
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerMissileLinearBurstAni.sprites[1]
+		end,
+		disable = function (self)
+			self.status = PlayerMissileLinearBurstStatus.disabled
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+		end,
+		draw = function (self)
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
 				-- Have to flip composite sprites by parts
 				spr(
 					self.ani.currentFrame,
@@ -2309,20 +2409,25 @@ function CreatePlayerMissileLinearBurst(spriteFlip)
 			end
 		end,
 		update = function (self)
-			if self.active == true then
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
 				AnimateOneshot(self, PlayerMissileLinearBurstAni)
 			end
 		end,
 		checkCollision = function (self)
-			-- Check aliens
-			CollideWithAliens(self, function (self, alien) end)
+			if self.status == PlayerMissileLinearBurstStatus.colliding then
+				-- Only collide on the first frame
+				self.status = PlayerMissileLinearBurstStatus.visible
 
-			if Collide(self, AlienCarrier) then
-				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
-				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
-				AlienCarrier:disable()
+				-- Check aliens
+				CollideWithAliens(self, function (self, alien) end)
 
-				Score = Score + 5
+				if Collide(self, AlienCarrier) then
+					Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+					ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+					AlienCarrier:disable()
+
+					Score = Score + 5
+				end
 			end
 		end
 	}
@@ -3301,7 +3406,6 @@ AlienConsts = {
 }
 
 function StandardDieFunction(self, formationPosition)
-	Explosion:enable(self.x, self.y)
 	Player:getWeaponPower(self.specialWeapon)
 
 	AlienRemove(formationPosition)
@@ -3904,10 +4008,10 @@ Formations = {
 	{
 		-- 1-1
 		{
-			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+			0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
+			0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
+			0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
+			0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		},
 		-- 1-2
@@ -5348,7 +5452,7 @@ PlayerMissileBurstAni = {
 }
 
 PlayerMissileLinearBurstAni = {
-	frameDelay = 60,
+	frameDelay = 2,
 	length = 6,
 	sprites = { 480, 496, 499, 502, 505, 508 }
 }
@@ -5779,6 +5883,8 @@ Init()
 -- 043:000099900009aaa900009aa9090089a99a900999998008900900000000800000
 -- 044:0099000009a990000a9000009900000090000000000000000000009000000a00
 -- 045:000009a00000009a00a000090990000000000000000080000000000000000000
+-- 046:0000000000000002000000230000002300000020000000000000000000000000
+-- 047:2220022032000032300000022002200000002000000000000000000000222000
 -- 048:333ccc33c2111322cccc3203ccc31220cc322c22c321ccc831cccccccccccccc
 -- 049:33ccc3332231112c4023cccc02213ccc22c223cc8ccc123ccccccc13cccccccc
 -- 050:c333cc33cc211322ccc13204ccc31220cc322c22cc21ccc8c31cccccc1cccccc
@@ -5793,6 +5899,8 @@ Init()
 -- 059:08000090000009a90000099a9000999080000900008800000008000000000000
 -- 060:0000a9000000000a9a0000000900000000000000000000000000000000000000
 -- 061:000000a000000990900009000008000000000000000000000000000000000000
+-- 062:0010000201000000000000000000000000002000000200000000000110000001
+-- 063:0223320002332000000200000000000000000000100000001000000000000000
 -- 064:cc333c33ccc21322ccc13203ccc31220cc322c22cc321cc8cc22ccccccc1cccc
 -- 065:33c333cc22312ccc40231ccc02213ccc22c223cc8cc123cccccc22cccccc1ccc
 -- 066:aaccccaa99aaaa99cc9009ccca9009aca989989a99c88c9989cccc98c8cccc8c
@@ -5803,6 +5911,9 @@ Init()
 -- 071:ccc55ccccc5665cccc6006cccc6006ccc667755cc6f6655cc6fcc55cc6ccc55c
 -- 072:ccc55ccccc5665cccc6006cccc6006ccc765567cc775577cc775577cc775577c
 -- 073:ccc55ccccc5665cccc6006cccc6006ccc557766cc5566f6cc55ccf6cc55ccc6c
+-- 077:00000000000000000000000000000000000000000000000000000000c0000000
+-- 078:0000000000000000000000000000000000000000000000000000000000000004
+-- 079:00000000000000000044400000ccc40004ccc400044c44004404400040000000
 -- 080:ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc2322b
 -- 081:ccccccccccccccccccccccccccccccccccccccccccccccccccccccccb2322ccc
 -- 082:ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc2232b
@@ -5812,11 +5923,9 @@ Init()
 -- 086:ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc1cccd
 -- 087:ccccccccccccccccccccccccccccccccccccccccccccccccdccccccc0dc11ccc
 -- 088:0003200000022000000cc000000cc000000cc0000ddccdd000dccd00000cc000
--- 089:000000000000000000000000000cc000000cc000000000000000000000000000
--- 090:0000000000040000004c400004ccc400044cc400004c40000000400000000000
--- 091:0003330003344430034444303344443033444443034444430333443000033000
--- 092:0220022022000022220000002203300000033300200330022200022202200020
--- 093:0100000100000000000000000000000000001100000010001000000000000001
+-- 090:0000000000000000000000000000000000cc000000cc00000000000000000000
+-- 092:0000000c00000040000004400044440004cc000004c440000040000000000000
+-- 094:0000004300000330003333300344330004444300344430000343300003300000
 -- 096:cc2999b0cc1999abccc8888accc23223cc211111cc170000ccc1d0d0cccc1111
 -- 097:0b9993ccba9991cca8888ccc22322ccc111113cc000071cc0d0d1ccc1111cccc
 -- 098:cc3999b0cc1999abccc8888accc22322cc311111cc170000ccc1d0d0cccc1111
@@ -5827,6 +5936,8 @@ Init()
 -- 103:777991cc778881cc78988ccc88882ccc822212cc211171cc17071ccc1111cccc
 -- 104:0002200000234200002432000003200000020000000020000002000000002000
 -- 105:0022220002243220022342200022320000002000000200000000200000020000
+-- 110:0000000000000000000000000000000000000003000000030000000000000003
+-- 111:0000000003333300344343004433443043333430334433303444433033444300
 -- 112:000000000000000000000000000000000000cccc000c000000b000000b000000
 -- 113:00000000000000000000000000000000cccc00000000c00000000b00000000b0
 -- 114:000000000000000000000000000000000000cccc000c000000b000000b000000
@@ -5841,6 +5952,8 @@ Init()
 -- 123:00000000000000000000000000000000ccc00000000000000000000000000000
 -- 124:000000000000000000000000000000000000000c000000000000000000000000
 -- 125:00000000000000000000000000000000c0000000000000000000000000000000
+-- 126:0000000300220030020000000000300000033020203300222033022002000000
+-- 127:0033300000000000000000000000000000000000000000000000000000000000
 -- 128:0b000000b0000000b0000000b0000000b0000000b00000000aa00000000aaaaa
 -- 129:000000b00000000b0000000b0000000b0000000b0000000b00000aa0aaaaa000
 -- 130:0b000000b0000000b0000000b0000000b0000000b00000000aa00000000aaaa0
