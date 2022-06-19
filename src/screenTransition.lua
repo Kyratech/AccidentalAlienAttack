@@ -13,6 +13,11 @@ CreateScreenTransition = function ()
 		leadingPoint = 0,
 		state = ScreenTransitionStates.disabled,
 		textCountdown = 90,
+		playingSound = {
+			false,
+			false,
+			false
+		},
 		draw = function (self)
 			if self.state ~= ScreenTransitionStates.disabled then
 				local triangleBackX = self.leadingPoint - HalfScreenHeight
@@ -33,14 +38,26 @@ CreateScreenTransition = function ()
 				end
 
 				if self.textCountdown < 60 then
+					if self.playingSound[1] == false then
+						self.playingSound[1] = true
+						sfx(soundEffects.uiDing)
+					end
 					PrintCustomCentred("zone", HalfScreenWidth, HalfScreenHeight - 8)
 				end
 
 				if self.textCountdown < 30 then
+					if self.playingSound[2] == false then
+						self.playingSound[2] = true
+						sfx(soundEffects.uiDing)
+					end
 					PrintCustomCentred("cleared", HalfScreenWidth, HalfScreenHeight)
 				end
 
 				if self.textCountdown <= 0 then
+					if self.playingSound[3] == false then
+						self.playingSound[3] = true
+						sfx(soundEffects.uiDing)
+					end
 					DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
 				end
 			end
@@ -76,6 +93,11 @@ CreateScreenTransition = function ()
 		end,
 		start = function (self)
 			self.state = ScreenTransitionStates.animating
+			self.playingSound = {
+				false,
+				false,
+				false
+			}
 		end,
 		reset = function (self)
 			self.state = ScreenTransitionStates.disabled
