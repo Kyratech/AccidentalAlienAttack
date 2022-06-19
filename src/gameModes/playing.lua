@@ -23,10 +23,13 @@ function StartGame()
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
 	PlayerShield = CreatePlayerShield()
+
 	PlayerMissile = CreatePlayerMissile()
 	PlayerMissileExhaust = CreatePlayerMissileExhaust()
-	PlayerMissileBurstLeft = CreatePlayerMissileLinearBurst(1)
-	PlayerMissileBurstRight = CreatePlayerMissileLinearBurst(0)
+	PlayerMissileBurstVertical = CreatePlayerMissileVerticalBurst()
+	PlayerMissileBurstLeft = CreatePlayerMissileHorizontalBurst(1)
+	PlayerMissileBurstRight = CreatePlayerMissileHorizontalBurst(0)
+
 	PlayerMortarFragments = {
 		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
 		CreatePlayerMortarFragment(PlayerMortarDirections.ssw),
@@ -151,12 +154,16 @@ function Update()
 
 	PlayerShot:update()
 	PlayerShot:checkCollision()
+
 	PlayerMissile:update()
 	PlayerMissile:checkCollision()
+	PlayerMissileBurstVertical:update()
 	PlayerMissileBurstLeft:update()
 	PlayerMissileBurstRight:update()
+	PlayerMissileBurstVertical:checkCollision()
 	PlayerMissileBurstLeft:checkCollision()
 	PlayerMissileBurstRight:checkCollision()
+
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:update()
 		mortarFragment:checkCollision()
@@ -237,6 +244,7 @@ function DrawGameObjects()
 
 	PlayerShot:draw()
 	PlayerMissile:draw()
+	PlayerMissileBurstVertical:draw()
 	PlayerMissileBurstLeft:draw()
 	PlayerMissileBurstRight:draw()
 	for i, mortarFragment in pairs(PlayerMortarFragments) do

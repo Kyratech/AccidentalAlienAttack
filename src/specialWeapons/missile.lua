@@ -13,9 +13,9 @@ PlayerMissileBurstConsts = {
 }
 
 PlayerMissileLaunchPayload = {
-	-- vertical = function (self, alienY)
-	-- 	PlayerMissileBurstLeft:enable(self.x - 3, alienY)
-	-- end,
+	vertical = function (self, alienY)
+		PlayerMissileBurstVertical:enable(self.x - 1, alienY - 20)
+	end,
 	horizontal = function (self, alienY)
 		PlayerMissileBurstLeft:enable(self.x - 24, alienY + 2)
 		PlayerMissileBurstRight:enable(self.x + 0, alienY + 2)
@@ -151,7 +151,91 @@ PlayerMissileLinearBurstStatus = {
 	visible = 2
 }
 
-function CreatePlayerMissileLinearBurst(spriteFlip)
+function CreatePlayerMissileVerticalBurst()
+	return {
+		x = PlayerMissileBurstConsts.storeX,
+		y = PlayerMissileBurstConsts.storeY,
+		w = 4,
+		h = 24,
+		status = PlayerMissileLinearBurstStatus.disabled,
+		ani = {
+			delayCounter = 0,
+			currentCounter = 1,
+			currentFrame = PlayerMissileLinearBurstAni.sprites[1]
+		},
+		enable = function (self, x, y)
+			self.status = PlayerMissileLinearBurstStatus.colliding
+			self.x = x
+			self.y = y
+			self.ani.delayCounter = 0
+			self.ani.currentCounter = 1
+			self.ani.currentFrame = PlayerMissileLinearBurstAni.sprites[1]
+		end,
+		disable = function (self)
+			self.status = PlayerMissileLinearBurstStatus.disabled
+			self.x = ExplosionConsts.storeX
+			self.y = ExplosionConsts.storeY
+		end,
+		draw = function (self)
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
+				-- Have to rotate composite sprites by parts
+				spr(
+					self.ani.currentFrame,
+					self.x - 2,
+					self.y + 16,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					0,
+					3
+				)
+
+				spr(
+					self.ani.currentFrame + 1,
+					self.x - 2,
+					self.y + 8,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					0,
+					3
+				)
+
+				spr(
+					self.ani.currentFrame + 2,
+					self.x - 2,
+					self.y,
+					PlayerMissileLinearBurstAni.clrIndex,
+					1,
+					0,
+					3
+				)
+			end
+		end,
+		update = function (self)
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
+				AnimateOneshot(self, PlayerMissileLinearBurstAni)
+			end
+		end,
+		checkCollision = function (self)
+			if self.status == PlayerMissileLinearBurstStatus.colliding then
+				-- Only collide on the first frame
+				self.status = PlayerMissileLinearBurstStatus.visible
+
+				-- Check aliens
+				CollideWithAliens(self, function (self, alien) end)
+
+				if Collide(self, AlienCarrier) then
+					Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+					ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+					AlienCarrier:disable()
+
+					Score = Score + 5
+				end
+			end
+		end
+	}
+end
+
+function CreatePlayerMissileHorizontalBurst(spriteFlip)
 	return {
 		x = PlayerMissileBurstConsts.storeX,
 		y = PlayerMissileBurstConsts.storeY,
