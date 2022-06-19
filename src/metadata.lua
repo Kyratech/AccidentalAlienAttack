@@ -42,6 +42,9 @@ StateDialogue = 4
 StateInstructions = 5
 StateHighScores = 6
 
+-- Sound constants
+UiVolume = 15
+
 HighScoreMemoryIndexes = {
 	{
 		name = 0,
@@ -477,6 +480,12 @@ end
 
 function InputPause()
 	if btnp(BtnX) then
+		if Paused == true then
+			sfx(soundEffects.uiUnpause)
+		else
+			sfx(soundEffects.uiPause)
+		end
+
 		Paused = not Paused
 	end
 end
@@ -773,6 +782,7 @@ end
 
 function DialogueInput()
 	if btnp(BtnA) then
+		sfx(soundEffects.uiConfirm)
 		EndDialogueFunction()
 	end
 end
@@ -808,6 +818,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiDing)
 				InstructionStep = InstructionStep + 1
 			end
 		
@@ -835,6 +846,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiDing)
 				InstructionStep = InstructionStep + 1
 			end
 		
@@ -868,6 +880,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiDing)
 				InstructionStep = InstructionStep + 1
 			end
 		
@@ -893,6 +906,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiDing)
 				InstructionStep = InstructionStep + 1
 			end
 		
@@ -922,6 +936,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				TitleScreen()
 			end
 		
@@ -980,6 +995,7 @@ end
 
 function ScrollOptionsH(self)
 	if btnp(BtnLeft) then
+		sfx(soundEffects.uiDing)
 		self.selectedOption = self.selectedOption - 1
 
 		if self.selectedOption == 0 then
@@ -988,6 +1004,7 @@ function ScrollOptionsH(self)
 	end
 
 	if btnp(BtnRight) then
+		sfx(soundEffects.uiDing)
 		self.selectedOption = self.selectedOption + 1
 
 		if self.selectedOption > self.optionsCount then
@@ -996,6 +1013,7 @@ function ScrollOptionsH(self)
 	end
 
 	if btnp(BtnA) then
+		sfx(soundEffects.uiConfirm)
 		for i = 1, OptionsMenuOptionsCount do
 			OptionsMenuOptions[i]:save()
 			SaveGameSettings()
@@ -1016,6 +1034,7 @@ MainMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				GameState = StateDialogue
 				DialogueInit(
 					ScriptIntro,
@@ -1033,6 +1052,7 @@ MainMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				HighScoresScreen()
 			end
 		end
@@ -1043,6 +1063,7 @@ MainMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				InstructionsScreen()
 			end
 		end
@@ -1053,6 +1074,7 @@ MainMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				OptionsMenuOpen = true
 				OptionsMenu:getCurrent()
 			end
@@ -1255,6 +1277,7 @@ PauseMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiUnpause)
 				Paused = false
 			end
 		end
@@ -1265,6 +1288,7 @@ PauseMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				TitleScreen()
 			end
 		end
@@ -1306,6 +1330,8 @@ function CreateMenu(menuOptions, menuOptionsCount, menuConsts, x, y)
 				if self.selectedOption == 0 then
 					self.selectedOption = menuOptionsCount
 				end
+
+				sfx(soundEffects.uiDing)
 			end
 
 			if btnp(BtnDown) then
@@ -1314,6 +1340,8 @@ function CreateMenu(menuOptions, menuOptionsCount, menuConsts, x, y)
 				if self.selectedOption > menuOptionsCount then
 					self.selectedOption = 1
 				end
+
+				sfx(soundEffects.uiDing)
 			end
 
 			self.options[self.selectedOption]:input()
@@ -1411,16 +1439,21 @@ function CreateInitialsInput(submit)
 		end,
 		input = function (self)
 			if btnp(BtnLeft) then
+				sfx(soundEffects.uiDing)
 				self:updateSelectedCharacter(self.selectedCharacter - 1)
 			elseif btnp(BtnRight) then
+				sfx(soundEffects.uiDing)
 				self:updateSelectedCharacter(self.selectedCharacter + 1)
 			elseif btnp(BtnUp) then
+				sfx(soundEffects.uiDing)
 				self:updateSelectedCharacter(self.selectedCharacter - 13)
 			elseif btnp(BtnDown) then
+				sfx(soundEffects.uiDing)
 				self:updateSelectedCharacter(self.selectedCharacter + 13)
 			end
 
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				if self.editingCharacter ~= 3 then
 					self.editingCharacter = self.editingCharacter + 1
 				else
@@ -2040,6 +2073,7 @@ function CreateSpecialWeaponBlockProjectile()
 				self.ani.currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
+				sfx(soundEffects.missileMicro)
 			end
 		end,
 		disable = function (self)
@@ -2110,6 +2144,7 @@ function CreateSpecialWeaponBlock()
 		checkCollision = function (self)
 			if self.hp > 0 then
 				CollideWithAliens(self, function(self, alien)
+					sfx(soundEffects.explosionStandard)
 					self:takeDamage(2)
 				end)
 			end
@@ -2175,6 +2210,7 @@ PlayerMissileLaunchPayload = {
 	end,
 	bubble = function (self, alienY)
 		PlayerBubble:enable(self.x - 3, alienY)
+		sfx(soundEffects.explosionEnergy)
 	end
 }
 
@@ -2644,7 +2680,9 @@ function CreateSpecialWeaponDrill()
 		},
 		checkCollision = function (self)
 			if self.active == true then
-				CollideWithAliens(self, function (self, alien) end)
+				CollideWithAliens(self, function (self, alien)
+					sfx(soundEffects.explosionStandard)
+				end)
 			end
 		end,
 		shoot = function (self)
@@ -2658,6 +2696,7 @@ function CreateSpecialWeaponDrill()
 				self.ani.currentFrame = SpecialWeaponDrillAni.sprites[1]
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
+				sfx(soundEffects.missile)
 			end
 		end,
 		disable = function (self)
@@ -2751,12 +2790,16 @@ function CreateSpecialWeaponBubble()
 		end,
 		checkCollision = function (self)
 			-- Check aliens
-			CollideWithAliens(self, function (self, alien) end)
+			CollideWithAliens(self, function (self, alien)
+				sfx(soundEffects.explosionEnergy)
+			end)
 
 			if Collide(self, AlienCarrier) then
 				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
 				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
 				AlienCarrier:disable()
+
+				sfx(soundEffects.explosionEnergy)
 
 				ScorePoints(5)
 			end
@@ -2870,6 +2913,8 @@ function CreateSpecialWeaponSwarmMissile()
 			end
 
 			CollideWithAliens(self, function (self, alien)
+				sfx(soundEffects.explosionStandard)
+
 				self:reset()
 			end)
 
@@ -2880,12 +2925,17 @@ function CreateSpecialWeaponSwarmMissile()
 
 				ScorePoints(5)
 
+				sfx(soundEffects.explosionStandard)
+
 				self:reset()
 			end
 
 			if Collide(self, SpecialWeaponBlock) then
 				SpecialWeaponBlock:takeDamage(1)
 				SpecialWeaponBlock:shove()
+
+				sfx(soundEffects.explosionStandard)
+
 				self:reset()
 			end
 		end,
@@ -2897,6 +2947,8 @@ function CreateSpecialWeaponSwarmMissile()
 			self.launchY = self.y
 
 			self.speed = SpecialWeaponSwarmConsts.acceleration
+
+			sfx(soundEffects.missileMicro)
 		end,
 		reset = function (self)
 			self.x = SpecialWeaponSwarmConsts.storeX
@@ -3047,7 +3099,7 @@ CreatePowerup = function (spriteIndex, collectionFunction)
 			end
 		end,
 		checkCollision = function (self)
-			if self.y + self.h >= GroundY then
+			if self.speed ~= 0 and self.y + self.h >= GroundY then
 				if self.bounces < PowerupConsts.bounces then
 					self.speed = -self.speed
 					self.bounces = self.bounces + 1
@@ -3055,11 +3107,13 @@ CreatePowerup = function (spriteIndex, collectionFunction)
 					self.speed = 0
 				end
 
+				sfx(soundEffects.powerupTink)
 				self.y = GroundY - self.h
 			end
 
 			if Collide(self, Player) then
 				collectionFunction()
+				sfx(soundEffects.powerup)
 				self:disable()
 			end
 		end,
@@ -3144,12 +3198,14 @@ function CreateAlienBomb(alienBombBlasts)
 			if self.y + self.h > GroundY then
 				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
 				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
+				sfx(soundEffects.explosionBig)
 				self:reset()
 			end
 
 			if Collide(self, SpecialWeaponBlock) then
 				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
 				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
+				sfx(soundEffects.explosionBig)
 				self:reset()
 				SpecialWeaponBlock:takeDamage(1)
 			end
@@ -3258,10 +3314,12 @@ function CreateDiveAlienDiving(x, y)
 		checkCollision = function (self, i)
 			-- Check bottom of screen
 			if self.y + self.h > GroundY then
+				sfx(soundEffects.explosionStandard)
 				self:die(i)
 			end
 
 			if Collide(self, SpecialWeaponBlock) then
+				sfx(soundEffects.explosionStandard)
 				SpecialWeaponBlock:takeDamage(1)
 				self:die(i)
 			end
@@ -4061,7 +4119,7 @@ end
 -- For testing end-of-stage behaviour
 
 NumberOfStages = 6
-NumberOfLevelsPerStage = 10
+NumberOfLevelsPerStage = 1
 
 Formations = {
 	{
@@ -5351,7 +5409,15 @@ soundEffects = {
 	laser = 1,
 	missile = 2,
 	explosionBig = 3,
-	explosionBigAlt = 4
+	explosionBigAlt = 4,
+	explosionEnergy = 5,
+	missileMicro = 6,
+	powerupTink = 7,
+	powerup = 9,
+	uiConfirm = 16,
+	uiDing = 17,
+	uiPause = 20,
+	uiUnpause = 21
 }
 
 AlienRedAni = {
@@ -6165,6 +6231,13 @@ Init()
 -- 004:03f003c003a003800360035003401350135023603370439053c063e073f083f093f0a3f0b3f0c3f0d3f0d3f0e3f0e3f0e3f0e3f0e3f0f3f0f3f0f3f018b000000000
 -- 005:029002f002500220030003000320136023a033004300630073009300a300b300c300c300d300d300d300e300e300e300f300f300f300f300f300f300207000005400
 -- 006:93d07380634063206310730083009300a300b300c300c300d300d300e300e300f300f300f300f300f300f300f300f300f300f300f300f300f300f300484000000000
+-- 007:6000b000d000e000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000408000000000
+-- 008:50108020a040b090c0f0d0f0e0f0e0f0f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000400000000000
+-- 009:40209030d050407090b0d0e0e0e0f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000305000000000
+-- 016:5210a220d240e270e2a0c24052408270b2f0d240e200e200e200e200e200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200300000005400
+-- 017:6230a240c250d260e280e2a0f2c0f2d0f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200300000000000
+-- 020:72f072f072e072e072d082c082b092a0a280c260e230e200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200205000000000
+-- 021:82008200821082208230824092609290a2d0c2f0d2f0e200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200f200205000000000
 -- </SFX>
 
 -- <PALETTE>

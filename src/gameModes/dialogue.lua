@@ -31,6 +31,7 @@ end
 
 function DialogueInput()
 	if btnp(BtnA) then
+		sfx(soundEffects.uiConfirm)
 		EndDialogueFunction()
 	end
 end

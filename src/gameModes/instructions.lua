@@ -16,6 +16,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiDing)
 				InstructionStep = InstructionStep + 1
 			end
 		
@@ -43,6 +44,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiDing)
 				InstructionStep = InstructionStep + 1
 			end
 		
@@ -76,6 +78,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiDing)
 				InstructionStep = InstructionStep + 1
 			end
 		
@@ -101,6 +104,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiDing)
 				InstructionStep = InstructionStep + 1
 			end
 		
@@ -130,6 +134,7 @@ InstructionPages = {
 		end,
 		input = function ()
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				TitleScreen()
 			end
 		

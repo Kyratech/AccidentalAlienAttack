@@ -93,7 +93,7 @@ CreatePowerup = function (spriteIndex, collectionFunction)
 			end
 		end,
 		checkCollision = function (self)
-			if self.y + self.h >= GroundY then
+			if self.speed ~= 0 and self.y + self.h >= GroundY then
 				if self.bounces < PowerupConsts.bounces then
 					self.speed = -self.speed
 					self.bounces = self.bounces + 1
@@ -101,11 +101,13 @@ CreatePowerup = function (spriteIndex, collectionFunction)
 					self.speed = 0
 				end
 
+				sfx(soundEffects.powerupTink)
 				self.y = GroundY - self.h
 			end
 
 			if Collide(self, Player) then
 				collectionFunction()
+				sfx(soundEffects.powerup)
 				self:disable()
 			end
 		end,

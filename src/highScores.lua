@@ -83,16 +83,21 @@ function CreateInitialsInput(submit)
 		end,
 		input = function (self)
 			if btnp(BtnLeft) then
+				sfx(soundEffects.uiDing)
 				self:updateSelectedCharacter(self.selectedCharacter - 1)
 			elseif btnp(BtnRight) then
+				sfx(soundEffects.uiDing)
 				self:updateSelectedCharacter(self.selectedCharacter + 1)
 			elseif btnp(BtnUp) then
+				sfx(soundEffects.uiDing)
 				self:updateSelectedCharacter(self.selectedCharacter - 13)
 			elseif btnp(BtnDown) then
+				sfx(soundEffects.uiDing)
 				self:updateSelectedCharacter(self.selectedCharacter + 13)
 			end
 
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				if self.editingCharacter ~= 3 then
 					self.editingCharacter = self.editingCharacter + 1
 				else

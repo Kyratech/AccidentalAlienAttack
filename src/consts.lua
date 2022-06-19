@@ -36,3 +36,6 @@ StateGameOver = 3
 StateDialogue = 4
 StateInstructions = 5
 StateHighScores = 6
+
+-- Sound constants
+UiVolume = 15

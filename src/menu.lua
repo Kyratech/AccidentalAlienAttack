@@ -1,5 +1,6 @@
 function ScrollOptionsH(self)
 	if btnp(BtnLeft) then
+		sfx(soundEffects.uiDing)
 		self.selectedOption = self.selectedOption - 1
 
 		if self.selectedOption == 0 then
@@ -8,6 +9,7 @@ function ScrollOptionsH(self)
 	end
 
 	if btnp(BtnRight) then
+		sfx(soundEffects.uiDing)
 		self.selectedOption = self.selectedOption + 1
 
 		if self.selectedOption > self.optionsCount then
@@ -16,6 +18,7 @@ function ScrollOptionsH(self)
 	end
 
 	if btnp(BtnA) then
+		sfx(soundEffects.uiConfirm)
 		for i = 1, OptionsMenuOptionsCount do
 			OptionsMenuOptions[i]:save()
 			SaveGameSettings()
@@ -36,6 +39,7 @@ MainMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				GameState = StateDialogue
 				DialogueInit(
 					ScriptIntro,
@@ -53,6 +57,7 @@ MainMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				HighScoresScreen()
 			end
 		end
@@ -63,6 +68,7 @@ MainMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				InstructionsScreen()
 			end
 		end
@@ -73,6 +79,7 @@ MainMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				OptionsMenuOpen = true
 				OptionsMenu:getCurrent()
 			end
@@ -275,6 +282,7 @@ PauseMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiUnpause)
 				Paused = false
 			end
 		end
@@ -285,6 +293,7 @@ PauseMenuOptions = {
 		end,
 		input = function(self)
 			if btnp(BtnA) then
+				sfx(soundEffects.uiConfirm)
 				TitleScreen()
 			end
 		end
@@ -326,6 +335,8 @@ function CreateMenu(menuOptions, menuOptionsCount, menuConsts, x, y)
 				if self.selectedOption == 0 then
 					self.selectedOption = menuOptionsCount
 				end
+
+				sfx(soundEffects.uiDing)
 			end
 
 			if btnp(BtnDown) then
@@ -334,6 +345,8 @@ function CreateMenu(menuOptions, menuOptionsCount, menuConsts, x, y)
 				if self.selectedOption > menuOptionsCount then
 					self.selectedOption = 1
 				end
+
+				sfx(soundEffects.uiDing)
 			end
 
 			self.options[self.selectedOption]:input()

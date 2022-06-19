@@ -124,6 +124,12 @@ end
 
 function InputPause()
 	if btnp(BtnX) then
+		if Paused == true then
+			sfx(soundEffects.uiUnpause)
+		else
+			sfx(soundEffects.uiPause)
+		end
+
 		Paused = not Paused
 	end
 end
