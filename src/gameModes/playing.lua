@@ -33,11 +33,10 @@ function StartGame()
 	PlayerMissileBurstDiagonalRight = CreatePlayerMissileDiagonalBurst(0)
 
 	PlayerMortarFragments = {
+		CreatePlayerMortarFragment(PlayerMortarDirections.nw),
 		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
-		CreatePlayerMortarFragment(PlayerMortarDirections.ssw),
-		CreatePlayerMortarFragment(PlayerMortarDirections.s),
-		CreatePlayerMortarFragment(PlayerMortarDirections.sse),
-		CreatePlayerMortarFragment(PlayerMortarDirections.se)
+		CreatePlayerMortarFragment(PlayerMortarDirections.se),
+		CreatePlayerMortarFragment(PlayerMortarDirections.ne)
 	}
 	PlayerSwarmGroup = CreateSpecialWeaponSwarmGroup()
 	PlayerBubble = CreateSpecialWeaponBubble()

@@ -1,10 +1,12 @@
 -- I'm using compass directions as a shorthand even though north isnt actually up
 PlayerMortarDirections = {
+	nw = { x = -0.71, y = -0.71 },
 	sw = { x = -0.71, y = 0.71 },
 	ssw = { x = -0.38, y = 0.92 },
 	s = { x = 0, y = 1 },
 	sse = { x = 0.38, y = 0.92 },
 	se = { x = 0.71, y = 0.71 },
+	ne = { x = 0.71, y = -0.71 }
 }
 
 function CreatePlayerMortarFragment(mortarDirection)
@@ -48,6 +50,7 @@ function CreatePlayerMortarFragment(mortarDirection)
 			-- Check aliens
 			CollideWithAliens(self, function (self, alien)
 				self:disable()
+				sfx(soundEffects.explosionStandard)
 			end)
 
 			if Collide(self, AlienCarrier) then
@@ -55,6 +58,8 @@ function CreatePlayerMortarFragment(mortarDirection)
 				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
 				AlienCarrier:disable()
 				self:disable()
+
+				sfx(soundEffects.explosionBigAlt)
 
 				Score = Score + 5
 			end
