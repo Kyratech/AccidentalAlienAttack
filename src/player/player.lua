@@ -73,6 +73,7 @@ function CreatePlayer()
 
 				if self.deathTimer == 160 then
 					PlayerExplosionSecondary:enable(Player.x, Player.y)
+					sfx(soundEffects.explosionBigAlt)
 				elseif self.deathTimer <= 0 then
 					Lives = Lives - 1
 					if Lives > 0 then
@@ -104,6 +105,7 @@ function CreatePlayer()
 			self.deathTimer = 180
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			PowerupUi:setIcon(PowerupIcons.none)
+			sfx(soundEffects.explosionStandard)
 			self:disable()
 		end,
 		getWeaponPower = function (self, weapon)

@@ -41,6 +41,9 @@ function CreatePlayerShot()
 
 			CollideWithAliens(self, function (self, alien)
 				Explosion:enable(alien.x, alien.y)
+
+				sfx(soundEffects.explosionStandard)
+
 				PlayerShot:reset()
 			end)
 
@@ -50,6 +53,8 @@ function CreatePlayerShot()
 				AlienCarrier:disable()
 
 				ScorePoints(5)
+
+				sfx(soundEffects.explosionBigAlt)
 
 				PlayerShot:reset()
 			end
@@ -65,6 +70,8 @@ function CreatePlayerShot()
 				self.x = Player.x + 4
 				self.y = Player.y
 				self.speed = PlayerShotConsts.speed
+
+				sfx(soundEffects.laser)
 
 				AliensDodge()
 			end

@@ -57,6 +57,7 @@
 		"dialogue/dialogueSystem.lua",
 		"dialogue/dialogueScripts.lua",
 		"ui.lua",
+		"soundEffects.lua",
 		"animations/alien/types/basic.lua",
 		"animations/alien/types/bomb.lua",
 		"animations/alien/types/dive.lua",

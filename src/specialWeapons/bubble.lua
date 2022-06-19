@@ -60,12 +60,16 @@ function CreateSpecialWeaponBubble()
 		end,
 		checkCollision = function (self)
 			-- Check aliens
-			CollideWithAliens(self, function (self, alien) end)
+			CollideWithAliens(self, function (self, alien)
+				sfx(soundEffects.explosionEnergy)
+			end)
 
 			if Collide(self, AlienCarrier) then
 				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
 				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
 				AlienCarrier:disable()
+
+				sfx(soundEffects.explosionEnergy)
 
 				ScorePoints(5)
 			end

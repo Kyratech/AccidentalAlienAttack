@@ -37,6 +37,7 @@ function CreateSpecialWeaponBlockProjectile()
 				self.ani.currentFrame = SpecialWeaponBlockProjectileAni.sprites[1]
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
+				sfx(soundEffects.missileMicro)
 			end
 		end,
 		disable = function (self)
@@ -107,6 +108,7 @@ function CreateSpecialWeaponBlock()
 		checkCollision = function (self)
 			if self.hp > 0 then
 				CollideWithAliens(self, function(self, alien)
+					sfx(soundEffects.explosionStandard)
 					self:takeDamage(2)
 				end)
 			end

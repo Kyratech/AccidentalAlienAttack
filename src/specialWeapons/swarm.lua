@@ -104,6 +104,8 @@ function CreateSpecialWeaponSwarmMissile()
 			end
 
 			CollideWithAliens(self, function (self, alien)
+				sfx(soundEffects.explosionStandard)
+
 				self:reset()
 			end)
 
@@ -114,12 +116,17 @@ function CreateSpecialWeaponSwarmMissile()
 
 				ScorePoints(5)
 
+				sfx(soundEffects.explosionStandard)
+
 				self:reset()
 			end
 
 			if Collide(self, SpecialWeaponBlock) then
 				SpecialWeaponBlock:takeDamage(1)
 				SpecialWeaponBlock:shove()
+
+				sfx(soundEffects.explosionStandard)
+
 				self:reset()
 			end
 		end,
@@ -131,6 +138,8 @@ function CreateSpecialWeaponSwarmMissile()
 			self.launchY = self.y
 
 			self.speed = SpecialWeaponSwarmConsts.acceleration
+
+			sfx(soundEffects.missileMicro)
 		end,
 		reset = function (self)
 			self.x = SpecialWeaponSwarmConsts.storeX

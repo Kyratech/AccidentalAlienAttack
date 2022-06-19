@@ -20,7 +20,9 @@ function CreateSpecialWeaponDrill()
 		},
 		checkCollision = function (self)
 			if self.active == true then
-				CollideWithAliens(self, function (self, alien) end)
+				CollideWithAliens(self, function (self, alien)
+					sfx(soundEffects.explosionStandard)
+				end)
 			end
 		end,
 		shoot = function (self)
@@ -34,6 +36,7 @@ function CreateSpecialWeaponDrill()
 				self.ani.currentFrame = SpecialWeaponDrillAni.sprites[1]
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
+				sfx(soundEffects.missile)
 			end
 		end,
 		disable = function (self)

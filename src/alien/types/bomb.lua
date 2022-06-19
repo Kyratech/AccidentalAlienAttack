@@ -62,12 +62,14 @@ function CreateAlienBomb(alienBombBlasts)
 			if self.y + self.h > GroundY then
 				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
 				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
+				sfx(soundEffects.explosionBig)
 				self:reset()
 			end
 
 			if Collide(self, SpecialWeaponBlock) then
 				self.alienBombBlasts[1]:enable(self.x - 8, self.y - 10)
 				self.alienBombBlasts[2]:enable(self.x + 8, self.y - 10)
+				sfx(soundEffects.explosionBig)
 				self:reset()
 				SpecialWeaponBlock:takeDamage(1)
 			end

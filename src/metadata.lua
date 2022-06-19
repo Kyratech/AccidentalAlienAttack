@@ -382,6 +382,8 @@ function StartGame()
 	PlayerMissileBurstVertical = CreatePlayerMissileVerticalBurst()
 	PlayerMissileBurstLeft = CreatePlayerMissileHorizontalBurst(1)
 	PlayerMissileBurstRight = CreatePlayerMissileHorizontalBurst(0)
+	PlayerMissileBurstDiagonalLeft = CreatePlayerMissileDiagonalBurst(1)
+	PlayerMissileBurstDiagonalRight = CreatePlayerMissileDiagonalBurst(0)
 
 	PlayerMortarFragments = {
 		CreatePlayerMortarFragment(PlayerMortarDirections.sw),
@@ -513,9 +515,13 @@ function Update()
 	PlayerMissileBurstVertical:update()
 	PlayerMissileBurstLeft:update()
 	PlayerMissileBurstRight:update()
+	PlayerMissileBurstDiagonalLeft:update()
+	PlayerMissileBurstDiagonalRight:update()
 	PlayerMissileBurstVertical:checkCollision()
 	PlayerMissileBurstLeft:checkCollision()
 	PlayerMissileBurstRight:checkCollision()
+	PlayerMissileBurstDiagonalLeft:checkCollision()
+	PlayerMissileBurstDiagonalRight:checkCollision()
 
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:update()
@@ -600,6 +606,9 @@ function DrawGameObjects()
 	PlayerMissileBurstVertical:draw()
 	PlayerMissileBurstLeft:draw()
 	PlayerMissileBurstRight:draw()
+	PlayerMissileBurstDiagonalLeft:draw()
+	PlayerMissileBurstDiagonalRight:draw()
+
 	for i, mortarFragment in pairs(PlayerMortarFragments) do
 		mortarFragment:draw()
 	end
@@ -623,6 +632,8 @@ function DrawGameObjects()
 	TimestopPowerup:draw()
 
 	ScreenTransition:draw()
+
+	-- DrawAimingDebug()
 end
 
 function DrawUi()
@@ -642,6 +653,10 @@ end
 function DrawMouseDebug()
 	local x,y,left,middle,right,scrollx,scrolly = mouse()
 	print("(" .. x .. "," .. y .. ")", 5, 21, 7)
+end
+
+function DrawAimingDebug()
+	rect(Player.x + 4, 0, 2, ScreenHeight, 12)
 end
 
 GameOverPages = {
@@ -1666,6 +1681,7 @@ function CreatePlayer()
 
 				if self.deathTimer == 160 then
 					PlayerExplosionSecondary:enable(Player.x, Player.y)
+					sfx(soundEffects.explosionBigAlt)
 				elseif self.deathTimer <= 0 then
 					Lives = Lives - 1
 					if Lives > 0 then
@@ -1697,6 +1713,7 @@ function CreatePlayer()
 			self.deathTimer = 180
 			PlayerExplosionPrimary:enable(Player.x + 1, Player.y)
 			PowerupUi:setIcon(PowerupIcons.none)
+			sfx(soundEffects.explosionStandard)
 			self:disable()
 		end,
 		getWeaponPower = function (self, weapon)
@@ -1791,6 +1808,9 @@ function CreatePlayerShot()
 
 			CollideWithAliens(self, function (self, alien)
 				Explosion:enable(alien.x, alien.y)
+
+				sfx(soundEffects.explosionStandard)
+
 				PlayerShot:reset()
 			end)
 
@@ -1800,6 +1820,8 @@ function CreatePlayerShot()
 				AlienCarrier:disable()
 
 				ScorePoints(5)
+
+				sfx(soundEffects.explosionBigAlt)
 
 				PlayerShot:reset()
 			end
@@ -1815,6 +1837,8 @@ function CreatePlayerShot()
 				self.x = Player.x + 4
 				self.y = Player.y
 				self.speed = PlayerShotConsts.speed
+
+				sfx(soundEffects.laser)
 
 				AliensDodge()
 			end
@@ -2131,19 +2155,23 @@ PlayerMissileBurstConsts = {
 PlayerMissileLaunchPayload = {
 	vertical = function (self, alienY)
 		PlayerMissileBurstVertical:enable(self.x - 1, alienY - 20)
+		sfx(soundEffects.explosionBig)
 	end,
 	horizontal = function (self, alienY)
-		PlayerMissileBurstLeft:enable(self.x - 24, alienY + 2)
-		PlayerMissileBurstRight:enable(self.x + 0, alienY + 2)
+		PlayerMissileBurstLeft:enable(self.x - 22, alienY + 2)
+		PlayerMissileBurstRight:enable(self.x, alienY + 2)
+		sfx(soundEffects.explosionBig)
 	end,
-	-- diagonal = function (self, alienY)
-	-- 	PlayerMissileBurstLeft:enable(self.x - 3, alienY, -1.4, -1.4)
-	-- 	PlayerMissileBurstRight:enable(self.x - 3, alienY, 1.4, -1.4)
-	-- end,
+	diagonal = function (self, alienY)
+		PlayerMissileBurstDiagonalLeft:enable(self.x - 16, alienY - 8)
+		PlayerMissileBurstDiagonalRight:enable(self.x + 10, alienY - 8)
+		sfx(soundEffects.explosionBig)
+	end,
 	mortar = function (self, alienY)
 		for i, mortarFragment in pairs(PlayerMortarFragments) do
 			mortarFragment:enable(self.x -1, self.y + 2)
 		end
+		sfx(soundEffects.explosionBig)
 	end,
 	bubble = function (self, alienY)
 		PlayerBubble:enable(self.x - 3, alienY)
@@ -2221,6 +2249,8 @@ function CreatePlayerMissile()
 				
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
+
+				sfx(soundEffects.missile)
 			end
 		end,
 		reset = function (self)
@@ -2433,63 +2463,92 @@ function CreatePlayerMissileHorizontalBurst(spriteFlip)
 	}
 end
 
-function CreatePlayerMissileBurst()
+function CreatePlayerMissileDiagonalBurst(spriteFlip)
 	return {
 		x = PlayerMissileBurstConsts.storeX,
 		y = PlayerMissileBurstConsts.storeY,
 		w = 8,
-		h = 8,
-		speedX = 0,
-		speedY = 0,
+		h = 4,
+		status = PlayerMissileLinearBurstStatus.disabled,
+		spriteFlip = spriteFlip,
 		ani = {
 			delayCounter = 0,
 			currentCounter = 1,
-			currentFrame = PlayerMissileBurstAni.sprites[1]
+			currentFrame = PlayerMissileDiagonalBurstAni.sprites[1]
 		},
-		enable = function (self, x, y, speedX, speedY)
-			self.active = true
+		enable = function (self, x, y)
+			self.status = PlayerMissileLinearBurstStatus.colliding
 			self.x = x
 			self.y = y
-			self.speedX = speedX
-			self.speedY = speedY
 			self.ani.delayCounter = 0
 			self.ani.currentCounter = 1
-			self.ani.currentFrame = PlayerMissileBurstAni.sprites[1]
+			self.ani.currentFrame = PlayerMissileDiagonalBurstAni.sprites[1]
 		end,
 		disable = function (self)
-			self.active = false
+			self.status = PlayerMissileLinearBurstStatus.disabled
 			self.x = ExplosionConsts.storeX
 			self.y = ExplosionConsts.storeY
-			self.speedX = 0
-			self.speedY = 0
 		end,
 		draw = function (self)
-			if self.active == true then
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
+				-- Have to flip composite sprites by parts
 				spr(
 					self.ani.currentFrame,
+					self.x - 8 + 16 * self.spriteFlip,
+					self.y - 2,
+					PlayerMissileDiagonalBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 1,
 					self.x,
-					self.y,
-					ExplosionConsts.clrIndex)
+					self.y - 2,
+					PlayerMissileDiagonalBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 16,
+					self.x - 8 + 16 * self.spriteFlip,
+					self.y + 6,
+					PlayerMissileDiagonalBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
+
+				spr(
+					self.ani.currentFrame + 17,
+					self.x,
+					self.y + 6,
+					PlayerMissileDiagonalBurstAni.clrIndex,
+					1,
+					self.spriteFlip
+				)
 			end
 		end,
 		update = function (self)
-			self.x = self.x + self.speedX
-			self.y = self.y + self.speedY
-
-			if self.active == true then
-				AnimateOneshot(self, PlayerMissileBurstAni)
+			if self.status ~= PlayerMissileLinearBurstStatus.disabled then
+				AnimateOneshot(self, PlayerMissileDiagonalBurstAni)
 			end
 		end,
 		checkCollision = function (self)
-			-- Check aliens
-			CollideWithAliens(self, function (self, alien) end)
+			if self.status == PlayerMissileLinearBurstStatus.colliding then
+				-- Only collide on the first frame
+				self.status = PlayerMissileLinearBurstStatus.visible
 
-			if Collide(self, AlienCarrier) then
-				Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
-				ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
-				AlienCarrier:disable()
+				-- Check aliens
+				CollideWithAliens(self, function (self, alien) end)
 
-				Score = Score + 5
+				if Collide(self, AlienCarrier) then
+					Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+					ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+					AlienCarrier:disable()
+
+					Score = Score + 5
+				end
 			end
 		end
 	}
@@ -4008,10 +4067,15 @@ Formations = {
 	{
 		-- 1-1
 		{
-			0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
-			0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
-			0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
-			0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
+			-- 0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
+			-- 0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
+			-- 0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
+			-- 0, 3, 0, 3, 0, 0, 3, 0, 3, 0,
+			-- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			2, 0, 2, 0, 2, 2, 0, 2, 0, 2,
+			0, 2, 0, 2, 0, 0, 2, 0, 2, 0,
+			0, 0, 2, 0, 0, 0, 0, 2, 0, 0,
+			0, 0, 0, 2, 2, 2, 2, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		},
 		-- 1-2
@@ -5282,6 +5346,14 @@ CreateLevelUi = function()
 	}
 end
 
+soundEffects = {
+	explosionStandard = 0,
+	laser = 1,
+	missile = 2,
+	explosionBig = 3,
+	explosionBigAlt = 4
+}
+
 AlienRedAni = {
 	frameDelay = 10,
 	length = 4,
@@ -5445,16 +5517,16 @@ PlayerMissileExhaustAni = {
 	sprites = { 360, 361 }
 }
 
-PlayerMissileBurstAni = {
-	frameDelay = 2,
-	length = 5,
-	sprites = { 345, 346, 347, 348, 349 }
-}
-
 PlayerMissileLinearBurstAni = {
 	frameDelay = 2,
 	length = 6,
 	sprites = { 480, 496, 499, 502, 505, 508 }
+}
+
+PlayerMissileDiagonalBurstAni = {
+	frameDelay = 3,
+	length = 5,
+	sprites = { 330, 332, 334, 366, 302 }
 }
 
 PlayerMortarAni = {
@@ -6086,7 +6158,13 @@ Init()
 -- </WAVES>
 
 -- <SFX>
--- 000:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000304000000000
+-- 000:030003b00390030003000300336083d0b360d300d30063008300a300b300b300c300c300d300d300d300d300d300e300e300e300e300e300e300f300185000004500
+-- 001:0230129042508300b300c300d300d300d300e300e300e300e300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300300000000000
+-- 002:83c0739063705350434043304320431043105310530063007300830093009300a300b300c300d300d300d300e300e300e300e300f300f300f300f300404000000000
+-- 003:03f003b0037003500320031013101310134023d02310330033004300430053006300730083009300a300b300c300d300d300e300e300e300e300f300280000007400
+-- 004:03f003c003a003800360035003401350135023603370439053c063e073f083f093f0a3f0b3f0c3f0d3f0d3f0e3f0e3f0e3f0e3f0e3f0f3f0f3f0f3f018b000000000
+-- 005:029002f002500220030003000320136023a033004300630073009300a300b300c300c300d300d300d300e300e300e300f300f300f300f300f300f300207000005400
+-- 006:93d07380634063206310730083009300a300b300c300c300d300d300e300e300f300f300f300f300f300f300f300f300f300f300f300f300f300f300484000000000
 -- </SFX>
 
 -- <PALETTE>

@@ -15,22 +15,27 @@ PlayerMissileBurstConsts = {
 PlayerMissileLaunchPayload = {
 	vertical = function (self, alienY)
 		PlayerMissileBurstVertical:enable(self.x - 1, alienY - 20)
+		sfx(soundEffects.explosionBig)
 	end,
 	horizontal = function (self, alienY)
 		PlayerMissileBurstLeft:enable(self.x - 22, alienY + 2)
 		PlayerMissileBurstRight:enable(self.x, alienY + 2)
+		sfx(soundEffects.explosionBig)
 	end,
 	diagonal = function (self, alienY)
 		PlayerMissileBurstDiagonalLeft:enable(self.x - 16, alienY - 8)
 		PlayerMissileBurstDiagonalRight:enable(self.x + 10, alienY - 8)
+		sfx(soundEffects.explosionBig)
 	end,
 	mortar = function (self, alienY)
 		for i, mortarFragment in pairs(PlayerMortarFragments) do
 			mortarFragment:enable(self.x -1, self.y + 2)
 		end
+		sfx(soundEffects.explosionBig)
 	end,
 	bubble = function (self, alienY)
 		PlayerBubble:enable(self.x - 3, alienY)
+		sfx(soundEffects.explosionEnergy)
 	end
 }
 
@@ -105,6 +110,8 @@ function CreatePlayerMissile()
 				
 				Player.weaponType = PlayerWeapons.none
 				Player.weaponPower = 0
+
+				sfx(soundEffects.missile)
 			end
 		end,
 		reset = function (self)

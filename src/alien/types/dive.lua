@@ -36,10 +36,12 @@ function CreateDiveAlienDiving(x, y)
 		checkCollision = function (self, i)
 			-- Check bottom of screen
 			if self.y + self.h > GroundY then
+				sfx(soundEffects.explosionStandard)
 				self:die(i)
 			end
 
 			if Collide(self, SpecialWeaponBlock) then
+				sfx(soundEffects.explosionStandard)
 				SpecialWeaponBlock:takeDamage(1)
 				self:die(i)
 			end
