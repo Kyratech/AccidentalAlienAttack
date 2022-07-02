@@ -7,7 +7,7 @@ InstructionPages = {
 			print("on holiday, but their drone swarm", 16, 32, 12)
 			print("seems to have run amok!", 16, 40, 12)
 	
-			print("Do both of you a favour and blow", 16, 56, 12)
+			print("Do yourself a favour and blow", 16, 56, 12)
 			print("those malfunctioning machines up", 16, 64, 12)
 			print("before they do some damage!", 16, 72, 12)
 	
@@ -69,9 +69,9 @@ InstructionPages = {
 
 			spr(125, 96, 48, 0)
 
-			print("Use your special weapons quickly, as", 16, 64, 12)
-			print("shooting a different type of drone will", 16, 72, 12)
-			print("reset your special weapon energy!", 16, 80, 12)
+			print("If your special weapon is charged", 16, 64, 12)
+			print("then shooting a different drone", 16, 72, 12)
+			print("won't reset your special weapon!", 16, 80, 12)
 	
 			DrawButtonPrompt(ButtonIcons.A, "Continue", ScreenWidth - 63, ScreenHeight - 8)
 			DrawButtonPrompt(ButtonIcons.B, "Back", 2, ScreenHeight - 8)

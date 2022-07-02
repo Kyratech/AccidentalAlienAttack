@@ -35,7 +35,7 @@ function TitleDraw()
 	
 		MainMenu:draw()
 	
-		print("Developed by @KyraTech_13", 2, ScreenHeight - 8, 2)
+		print("Developed by KorinnTech", 2, ScreenHeight - 8, 2)
 		print(Version, ScreenWidth - 40, ScreenHeight - 8, 2, true)
 	end
 end
