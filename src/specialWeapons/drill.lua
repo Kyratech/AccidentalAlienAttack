@@ -23,6 +23,16 @@ function CreateSpecialWeaponDrill()
 				CollideWithAliens(self, function (self, alien)
 					sfx(soundEffects.explosionStandard)
 				end)
+
+				if Collide(self, AlienCarrier) then
+					Explosion:enable(AlienCarrier.x + 4, AlienCarrier.y)
+					ActivateRandomPowerup(AlienCarrier.x + 4, AlienCarrier.y)
+					AlienCarrier:disable()
+	
+					ScorePoints(5)
+	
+					sfx(soundEffects.explosionBigAlt)
+				end
 			end
 		end,
 		shoot = function (self)
