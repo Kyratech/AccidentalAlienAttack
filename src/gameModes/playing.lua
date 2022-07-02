@@ -20,6 +20,8 @@ function StartGame()
 	Lives = 3
 	Score = 0
 
+	ExtraLivesEarnedByScore = 0
+
 	Player = CreatePlayer()
 	PlayerShot = CreatePlayerShot()
 	PlayerShield = CreatePlayerShield()
@@ -235,12 +237,33 @@ function UpdateAndDrawAlienShots()
 	end
 end
 
-function ScorePoints(x)
-	local scoreIncrease = x
+function ScorePoints(points)
+	local currentScore = Score
+	local newScore = GetNewScore(points)
+
+	local currentExtraLifeThreshold = GetCurrentExtraLifeThreshold()
+	if currentScore < currentExtraLifeThreshold and newScore >= currentExtraLifeThreshold then
+		Lives = Lives + 1
+		ExtraLivesEarnedByScore = ExtraLivesEarnedByScore + 1
+	end
+
+	Score = newScore
+end
+
+function GetNewScore(points)
+	local scoreIncrease = points
 	if Player.status == PlayerStatuses.scoreMultiplier then
 		scoreIncrease = scoreIncrease * 2
 	end
-	Score = Score + scoreIncrease
+	return Score + scoreIncrease
+end
+
+function GetCurrentExtraLifeThreshold()
+	if ExtraLivesEarnedByScore < 3 then
+		return ExtraLifeSpecialTresholds[ExtraLivesEarnedByScore + 1]
+	else
+		return ExtraLifeThreshold * (ExtraLivesEarnedByScore - 2)
+	end
 end
 
 function Draw()

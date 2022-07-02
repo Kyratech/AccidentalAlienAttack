@@ -39,3 +39,11 @@ StateHighScores = 6
 
 -- Sound constants
 UiVolume = 15
+
+-- Gameplay settings
+ExtraLifeSpecialTresholds = {
+	50,
+	100,
+	200
+}
+ExtraLifeThreshold = 500
