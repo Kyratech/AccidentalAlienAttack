@@ -58,6 +58,9 @@ function CreateAlienManager()
 			AlienIndexesThatCanDodge = {}
 			AlienIndexesThatCanDodgeCount = 0
 
+			-- If a position had value true, it can be dodged into
+			PositionsThatCanBeDodgedInto = {}
+
 			for j = 1, AlienCountY, 1 do
 				for i = 1, AlienCountX, 1 do
 					local formationPosition = GetFormationPosition(i, j)
@@ -79,6 +82,10 @@ function CreateAlienManager()
 							table.insert( AlienIndexesThatCanShoot, formationPosition )
 							AlienIndexesThatCanShootCount = AlienIndexesThatCanShootCount + 1
 						end
+
+						PositionsThatCanBeDodgedInto[formationPosition] = false
+					else
+						PositionsThatCanBeDodgedInto[formationPosition] = true
 					end
 				end
 			end

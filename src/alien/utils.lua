@@ -37,6 +37,8 @@ function AlienRemove(formationPosition)
 		end
 	end
 
+	PositionsThatCanBeDodgedInto[formationPosition] = true
+
 	CheckEndOfLevel()
 end
 

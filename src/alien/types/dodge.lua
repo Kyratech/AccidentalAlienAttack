@@ -22,14 +22,14 @@ function CreateDodgeAlien(i, j)
 
 		if self.column > 1 then
 			local alienIndexToTheLeft = GetFormationPosition(self.column - 1, self.row)
-			if Aliens[alienIndexToTheLeft] == nil then
+			if PositionsThatCanBeDodgedInto[alienIndexToTheLeft] == true then
 				canDodgeLeft = true
 			end
 		end
 
 		if self.column < AlienCountX then
 			local alienIndexToTheRight = GetFormationPosition(self.column + 1, self.row)
-			if Aliens[alienIndexToTheRight] == nil then
+			if PositionsThatCanBeDodgedInto[alienIndexToTheRight] == true then
 				canDodgeRight = true
 			end
 		end
@@ -40,16 +40,19 @@ function CreateDodgeAlien(i, j)
 			if rng == 2 then
 				self.dodgeDirection = AlienDodgeDirection.right
 			end
+			UpdatePositionsThatCanBeDodgedInto(self.column, self.row, self.dodgeDirection)
 			return
 		end
 
 		if canDodgeLeft then
 			self.dodgeDirection = AlienDodgeDirection.left
+			UpdatePositionsThatCanBeDodgedInto(self.column, self.row, self.dodgeDirection)
 			return
 		end
 
 		if canDodgeRight then
 			self.dodgeDirection = AlienDodgeDirection.right
+			UpdatePositionsThatCanBeDodgedInto(self.column, self.row, self.dodgeDirection)
 			return
 		end
 
@@ -59,9 +62,10 @@ function CreateDodgeAlien(i, j)
 	dodgeAlien.dodge = function (self)
 		if self.dodgeDirection ~= 0 then
 			self.dodgeEffect:enable(self.x, self.y, self.dodgeDirection)
+
+			self.column = self.column + self.dodgeDirection
 		end
-		
-		self.column = self.column + self.dodgeDirection
+
 		self:calculateNextDodge()
 	end
 
@@ -105,6 +109,13 @@ function AliensDodge()
 	for i = 1, AlienIndexesThatCanDodgeCount, 1 do
 		Aliens[AlienIndexesThatCanDodge[i]]:dodge()
 	end
+end
+
+function UpdatePositionsThatCanBeDodgedInto(column, row, dodgeDirection)
+	local currentIndex = GetFormationPosition(column, row)
+	local newIndex = GetFormationPosition(column + dodgeDirection, row)
+	PositionsThatCanBeDodgedInto[currentIndex] = true
+	PositionsThatCanBeDodgedInto[newIndex] = false
 end
 
 function CreateDodgeEffect()
