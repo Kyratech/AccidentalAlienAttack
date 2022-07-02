@@ -3,7 +3,7 @@ GameSettings = {
 	showBackgrounds = 1,
 	alienSpeed = 4,
 	alienShotSpeed = 3,
-	alienDescentRate = 3,
+	alienDescentRate = 2,
 	alienCarrierSpeed = 3,
 	alienAttackRate = 3
 }
