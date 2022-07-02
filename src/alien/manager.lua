@@ -124,11 +124,13 @@ function CreateAlienManager()
 			self.rowsStepped = self.newRowsStepped
 		end,
 		calculateTranslation = function (self)
-			local speedX = self.direction.x * self.speed
-			local speedY = self.direction.y
-
-			self.translationX = self.translationX + speedX
-			self.translationY = self.translationY + speedY
+			if Player.status ~= PlayerStatuses.timestop then
+				local speedX = self.direction.x * self.speed
+				local speedY = self.direction.y
+	
+				self.translationX = self.translationX + speedX
+				self.translationY = self.translationY + speedY
+			end
 		end,
 
 		reachRightWall = function (self)

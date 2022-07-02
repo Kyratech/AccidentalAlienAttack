@@ -90,7 +90,7 @@
 -- For testing end-of-stage behaviour
 
 NumberOfStages = 6
-NumberOfLevelsPerStage = 1
+NumberOfLevelsPerStage = 10
 
 Formations = {
 	{
