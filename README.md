@@ -4,23 +4,13 @@ A clone of Space Invaders made in the [TIC-80](https://github.com/nesbox/TIC-80)
 
 ## Features
 
-- 10 exciting (citation needed) levels!
-- 3 different special weapons!
+- 60 exciting (citation needed) levels!
+- 8 different special weapons!
 - 4 different powerups!
 - Basic visual novel style cutscenes!
 - Difficulty and accessibility settings!
 - Persistent high score recording!
 - Ingame manual!
-
-## Roadmap
-
-Unordered TODO list before the game hits 1.0.0.
-
-- Additional ways to earn bonus points.
-- Better level transitions.
-- 3 new alien types.
-- 3 new special weapons.
-- 30 new levels (for a total of 40).
 
 ## Requirements
 
