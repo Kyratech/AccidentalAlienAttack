@@ -20,6 +20,8 @@ GroundY = 125
 AlienCountX = 10
 AlienCountY = 5
 
+PointsPerLifeLeft = 100
+
 -- Button aliases
 BtnUp = 0
 BtnDown = 1

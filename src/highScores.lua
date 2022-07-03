@@ -23,24 +23,24 @@ HighScoreMemoryIndexes = {
 
 DefaultHighScores = {
 	{
-		name = "ALP",
-		score = 50
+		name = "ALF",
+		score = 2500
 	},
 	{
-		name = "BET",
-		score = 40
+		name = "BRA",
+		score = 2000
 	},
 	{
-		name = "GAM",
-		score = 30
+		name = "CHA",
+		score = 1500
 	},
 	{
 		name = "DEL",
-		score = 20
+		score = 1000
 	},
 	{
-		name = "EPS",
-		score = 10
+		name = "ECH",
+		score = 500
 	}
 }
 

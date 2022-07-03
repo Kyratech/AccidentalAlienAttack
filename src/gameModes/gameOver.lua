@@ -66,6 +66,8 @@ function GameOver(script, numberOfLines)
 
 	GameOverPage = 1
 
+	Score = Score + Lives * PointsPerLifeLeft
+
 	DialogueObject = CreateDialogueScreen(script, numberOfLines, 20)
 	InitialsInput = CreateInitialsInput(
 		function ()
